@@ -25,8 +25,8 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'nid' => array(
-        'description' => 'The nid of the event this registration is associated with.',
+      'entity_id' => array(
+        'description' => 'The id of the entity this registration is associated with.',
         'type' => 'int',
         'not null' => FALSE,
         'default' => 0,

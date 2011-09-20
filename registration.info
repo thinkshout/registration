@@ -4,8 +4,6 @@ package = Registration
 core = 7.x
 
 dependencies[] = entity
-dependencies[] = field
-dependencies[] = text
-dependencies[] = list
 
+files[] = includes/registration.entity.inc
 files[] = registration.forms.inc

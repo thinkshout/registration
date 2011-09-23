@@ -93,7 +93,6 @@ function registration_schema() {
 	      'description' => 'Node id these registration settings are for.',
 	      'type' => 'int',
 	      'not null' => TRUE,
-	      'default' => 0,
 	    ),
 	    'notification_email' => array(
 	      'description' => 'Email address to send notifications to.',
@@ -113,7 +112,7 @@ function registration_schema() {
 	      'size' => 'big',
 	      'not null' => TRUE,
 	    ),
-	    'limit' => array(
+	    'capacity' => array(
 	      'description' => 'Maximum number of users who can signup for this event.',
 	      'type' => 'int',
 	      'unsigned' => TRUE,

@@ -141,7 +141,6 @@ function registration_delete_confirm_submit($form, &$form_state) {
  * Return a form for sending a broadcast email to participants.
  */
 function registration_registrations_broadcast_form($form, &$form_state, $node) {
-  $form = array();
   $form_state['node'] = $node;
 
   $form['subject'] = array(
@@ -186,7 +185,8 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
     $recipients = array();
     
     // load registrations and build an array of recipients
-    $registrations = mkc_registration_load_multiple(array_keys($entities['registration']));    
+    $registrations = mkc_registration_load_multiple(
+				array_keys($entities['registration']));    
     foreach($registrations as $registration) {
       if (isset($registration->email[LANGUAGE_NONE][0]['value'])) {
         $recipients[] = $registration->email[LANGUAGE_NONE][0]['value'];        
@@ -198,7 +198,8 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
       'subject' => $form_state['values']['subject'],
       'message' => $form_state['values']['message'],      
     );
-    $result = drupal_mail('registration', 'broadcast', implode(', ', $recipients), $language, $params);
+    $result = drupal_mail('registration', 'broadcast', 
+				implode(', ', $recipients), $language, $params);
     if ($result['result']) {
       drupal_set_message(t('The message has been sent to @count participants.', 
         array('@count' => count($recipients))));
@@ -213,6 +214,70 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
     drupal_set_message(
       t('There are no participants signed up for this tour.'), 
       $type = 'warning');
-  }
+  }  
+}
+
+/**
+ * Return a form for a node's registration settings.
+ *
+ * @param array $form 
+ * @param array $form_state 
+ * @param object $node 
+ */
+function registration_registrations_settings_form($form, &$form_state, $node) {
+	$form_state['node'] = $node;
+	
+	$result = db_select('registration_node', 'rn')
+		->fields('rn')
+	  ->condition('nid', $node->nid, '=')
+    ->execute()
+		->fetchAssoc();
+
+	$form['status'] = array(
+	  '#type' => 'checkbox',
+	  '#title' => t('Enable'),
+	  '#description' => t('Check to enable registrations for %name.', 
+			array('%name' => $node->title)),
+	  '#default_value' => isset($result['status']) ? $result['status'] : -1,
+	);
+	
   
+	$form['capacity'] = array(
+	  '#type' => 'textfield',
+	  '#title' => t('Capacity'),
+	  '#description' => t('The maximum number of regsitrants for %name. Leave at 0
+	 			for no limit.', array('%name' => $node->title)),
+	  '#size' => 5,
+	  '#maxlength' => 10,
+		'#default_value' => isset($result['capacity']) ? $result['capacity'] : 0
+	);
+	
+  $form['save'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Settings'),
+  );
+	
+	return $form;
+}
+
+/**
+ * Submit handler for registration_registrations_settings_form().
+ *
+ * @param array $form 
+ * @param array $form_state 
+ */
+function registration_registrations_settings_form_submit($form, &$form_state) {
+  $node = $form_state['node'];
+	$fields = array(
+		'nid' => $node->nid,
+		'status' => $form_state['values']['status'],
+		'capacity' => $form_state['values']['capacity'],
+	);
+  db_update('registration_node')
+    ->fields($fields)
+	  ->condition('nid', $node->nid, '=')
+    ->execute();
+
+	drupal_set_message(t('Registration settings have been saved.'));
+	drupal_goto('node/' . $node->nid);
 }

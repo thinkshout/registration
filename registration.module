@@ -71,8 +71,18 @@ function registration_menu() {
 	  'access arguments' => array(1),
 	  'type' => MENU_DEFAULT_LOCAL_TASK,
 	);
+	$items['node/%node/registrations/settings'] = array(
+	  'title' => 'Settings',
+	  'page callback' => 'drupal_get_form',
+	  'page arguments' => array('registration_registrations_settings_form', 1),
+	  'access callback' => 'registration_administer_registrations_access',
+	  'access arguments' => array(1),
+	  'file' => 'registration.forms.inc',
+	  'weight' => 9,
+	  'type' => MENU_LOCAL_TASK,
+	);
 	$items['node/%node/registrations/broadcast'] = array(
-	  'title' => 'Email Participants',
+	  'title' => 'Email Registrants',
 	  'page callback' => 'drupal_get_form',
 	  'page arguments' => array('registration_registrations_broadcast_form', 1),
 	  'access callback' => 'registration_administer_registrations_access',
@@ -289,16 +299,27 @@ function registration_mail($key, &$message, $params) {
 }
 
 /**
- * Returns a list of content types that have registrations enabled
+ * Implements hook_node_insert().
  */
-// function registration_content_types() {
-//   $enabled_types = array();
-//   foreach (node_type_get_names() as $type => $name) {
-//     if (variable_get('registration_node_status_' . $type, 0)) {
-//       $enabled_types[$type] = $name;
-//     }
-//   }
-// 
-//   return $enabled_types;
-// }
-// 
+function registration_node_insert($node) {
+  db_insert('registration_node')
+    ->fields(array(
+      'nid' => $node->nid,
+      'status' => 0,
+    ))
+    ->execute();
+}
+
+/**
+ * Implements hook_node_delete().
+ *   Delete registrations and settings for this node.
+ */
+function registration_node_delete($node) {
+  db_delete('registration')
+  ->condition('nid', $node->nid)
+  ->execute();
+
+  db_delete('registration_node')
+  ->condition('nid', $node->nid)
+  ->execute();
+}

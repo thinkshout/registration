@@ -11,11 +11,16 @@ module_load_include('inc', 'registration', 'includes/registration.entity');
  * Implements hook_menu().
  */
 function registration_menu() {
-  $items['admin/structure/registration/manage'] = array(
-    'title' => 'Registration Admin',
+  $items['admin/structure/registration'] = array(
+    'title' => 'Registration',
     'description' => 'Manage Registration structure',
     'page callback' => 'registration_admin_page',
     'access arguments' => array('administer registration'),
+  );
+  $items['admin/structure/registration/manage'] = array(
+    'title' => 'Settings',
+    'description' => 'Manage Registration settings',
+		'type' => MENU_DEFAULT_LOCAL_TASK
   );
   $items['registration/%registration'] = array(
     'title callback' => 'registration_page_title',
@@ -70,6 +75,41 @@ function registration_admin_page() {
 }
 
 /**
+ * Implements hook__form().
+ */
+function registration_settings_form($form, &$form_state) {
+  $type = node_type_get_type($node);
+
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => check_plain($type->title_label),
+    '#default_value' => !empty($node->title) ? $node->title : '',
+    '#required' => TRUE, '#weight' => -5
+  );
+
+  $form['field1'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom field'),
+    '#default_value' => $node->field1,
+    '#maxlength' => 127,
+  );
+  $form['selectbox'] = array(
+    '#type' => 'select',
+    '#title' => t('Select box'),
+    '#default_value' => $node->selectbox,
+    '#options' => array(
+      1 => 'Option A',
+      2 => 'Option B',
+      3 => 'Option C',
+    ),
+    '#description' => t('Choose an option.'),
+  );
+
+  return $form;
+}
+
+
+/**
  * Page for viewing a single registraiton.
  */
 function registration_page_view($registration, $view_mode = 'full') {
@@ -84,4 +124,50 @@ function registration_page_title($registration) {
   if ($node = node_load($registration->nid)) {
     return t('Registration for @title', array('@title' => $node->title));
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * 	 Add registration options to node type form.
+ */
+function registration_form_node_type_form_alter(&$form, &$form_state) {	
+	$type = $form['#node_type']->type;
+	
+  $form['registration'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Registration settings'),
+    '#group' => 'additional_settings',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['registration']['registration_node_status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable registrations for this content type'),
+    '#default_value' => variable_get('registration_node_status_' . $type, 0),
+    '#description' => t('If enabled, users will be allowed to register for this 
+			content type unless an administrator disbles registrations on specific 
+			posts.'),
+  );
+}
+
+/**
+ * Implements hook_node_type_delete().
+ */
+function registration_node_type_delete($info) {
+  variable_del('registration_node_status' . $info->type);
+}
+
+/**
+ * Returns a list of content types that have registrations enabled
+ */
+function registration_content_types() {
+  $enabled_types = array();
+  foreach (node_type_get_names() as $content_type => $content_name) {
+    if (variable_get('registration_node_status' . $content_type, 0)) {
+      $enabled_types[] = $content_type;
+    }
+  }
+
+  return $enabled_types;
 }

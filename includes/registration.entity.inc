@@ -41,11 +41,6 @@ function registration_entity_info() {
       ),
       'uri callback' => 'registration_uri',
       'token type' => 'registration',
-      'managed' => TRUE,
-			'admin ui' => array(
-        'path' => 'admin/structure/registration/manage',
-				'file' => 'registration.forms.inc'
-			)
     ),
   );
 }

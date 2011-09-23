@@ -25,7 +25,7 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'entity_id' => array(
+      'nid' => array(
         'description' => 'The id of the entity this registration is associated with.',
         'type' => 'int',
         'not null' => FALSE,
@@ -62,7 +62,7 @@ function registration_schema() {
       'registration_type'          => array(array('type', 4)),
     ),
     'foreign keys' => array(
-      'registration_tour' => array(
+      'registration_node' => array(
         'table' => 'node',
         'columns' => array('nid' => 'nid'),
       ),
@@ -77,6 +77,57 @@ function registration_schema() {
     ),
     'primary key' => array('registration_id'),
   );
+
+
+	$schema['registration_node'] = array(
+	  'description' => 'Registration per-entity settings.',
+	  'fields' => array(
+	    'nid' => array(
+	      'description' => 'Node id these registration settings are for.',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	      'default' => 0,
+	    ),
+	    'notification_email' => array(
+	      'description' => 'Email address to send notifications to.',
+	      'type' => 'varchar',
+	      'length' => 64,
+	      'not null' => FALSE,
+	    ),
+	    'send_confirmation' => array(
+	      'description' => 'Boolean indicating whether confirmation emails should be sent.',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	      'default' => 0,
+	    ),
+	    'confirmation_email' => array(
+	      'description' => 'Email template to send to users when they signup.',
+	      'type' => 'text',
+	      'size' => 'big',
+	      'not null' => TRUE,
+	    ),
+	    'limit' => array(
+	      'description' => 'Maximum number of users who can signup for this event.',
+	      'type' => 'int',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	      'default' => 0,
+	    ),
+	    'status' => array(
+	      'description' => 'Boolean indicating if signups are open (1) or closed (0) for the given node',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	      'default' => 1,
+	    ),
+	  ),
+	  'foreign keys' => array(
+	    'registration_node_node' => array(
+	      'table' => 'node',
+	      'columns' => array('nid' => 'nid'),
+	    ),
+	  ),
+	  'primary key' => array('nid'),
+	);
 
   return $schema;
 }

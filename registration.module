@@ -11,13 +11,13 @@ module_load_include('inc', 'registration', 'includes/registration.entity');
  * Implements hook_menu().
  */
 function registration_menu() {
-  $items['admin/structure/registration'] = array(
+  $items['admin/structure/registration/manage'] = array(
     'title' => 'Registration',
     'description' => 'Manage Registration structure',
     'page callback' => 'registration_admin_page',
     'access arguments' => array('administer registration'),
   );
-  $items['admin/structure/registration/manage'] = array(
+  $items['admin/structure/registration/manage/settings'] = array(
     'title' => 'Settings',
     'description' => 'Manage Registration settings',
 		'type' => MENU_DEFAULT_LOCAL_TASK
@@ -45,6 +45,33 @@ function registration_menu() {
     'file' => 'registration.forms.inc',
   );  
 
+	$items['node/%node/register'] = array(
+	  'title' => 'Register',
+	  'page callback' => 'registration_register_page',
+	  'page arguments' => array(1),
+	  'access callback' => 'registration_register_page_access',
+	  'access arguments' => array(1),
+	  'file' => 'registration.forms.inc',
+	  'type' => MENU_LOCAL_TASK,
+	);
+	$items['node/%node/registrations'] = array(
+	  'title' => 'Registrations',
+	  'page callback' => 'registration_registrations_page',
+	  'page arguments' => array(1),
+	  'access callback' => 'registration_administer_registrations_access',
+	  'access arguments' => array(1),
+	  'type' => MENU_LOCAL_TASK,
+	);
+	$items['node/%node/registrations/broadcast'] = array(
+	  'title' => 'Email Participants',
+	  'page callback' => 'drupal_get_form',
+	  'page arguments' => array('registration_registrations_broadcast_form', 1),
+	  'access callback' => 'registration_administer_registrations_access',
+	  'access arguments' => array(1),    
+	  'weight' => 10,
+	  'type' => MENU_LOCAL_TASK,
+	);
+
   return $items;
 }
 
@@ -71,43 +98,23 @@ function registration_permission() {
  * Landing page for managing the structure of registrations.
  */
 function registration_admin_page() {
-  return t('Manage extra fields for your registration here.');
+	$rows = array();
+	foreach (node_type_get_names() as $type => $name) {
+		$rows[] = array(
+			l($name, 'admin/structure/types/manage/' . $type),
+			(variable_get('registration_node_status_' . $type, 0)) ? t('Enabled') : 
+				t('Disabled')
+		);
+	}
+	
+  $table = array(
+    'header' => array(t('Content type'), t('Registration status')),
+    'rows' => $rows,
+  );	
+	$out = theme('table', $table);
+
+  return t('Manage extra fields for your registration here.') . $out;
 }
-
-/**
- * Implements hook__form().
- */
-function registration_settings_form($form, &$form_state) {
-  $type = node_type_get_type($node);
-
-  $form['title'] = array(
-    '#type' => 'textfield',
-    '#title' => check_plain($type->title_label),
-    '#default_value' => !empty($node->title) ? $node->title : '',
-    '#required' => TRUE, '#weight' => -5
-  );
-
-  $form['field1'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Custom field'),
-    '#default_value' => $node->field1,
-    '#maxlength' => 127,
-  );
-  $form['selectbox'] = array(
-    '#type' => 'select',
-    '#title' => t('Select box'),
-    '#default_value' => $node->selectbox,
-    '#options' => array(
-      1 => 'Option A',
-      2 => 'Option B',
-      3 => 'Option C',
-    ),
-    '#description' => t('Choose an option.'),
-  );
-
-  return $form;
-}
-
 
 /**
  * Page for viewing a single registraiton.
@@ -159,15 +166,106 @@ function registration_node_type_delete($info) {
 }
 
 /**
- * Returns a list of content types that have registrations enabled
+ * Access callback for registration_register_page().
  */
-function registration_content_types() {
-  $enabled_types = array();
-  foreach (node_type_get_names() as $content_type => $content_name) {
-    if (variable_get('registration_node_status' . $content_type, 0)) {
-      $enabled_types[] = $content_type;
+function registration_register_page_access($node) {
+  $ret = FALSE;
+  if (variable_get('registration_node_status_' . $node->type, 0)) {
+    if (user_access('administer registration')) {
+      $ret = TRUE;
+    }
+    else if (user_access('add registration') && registration_has_room($node)) {
+      $ret = TRUE;
     }
   }
 
-  return $enabled_types;
+  return $ret;
 }
+
+/**
+ * Access callback for registration_registrations_page().
+ */
+function registration_administer_registrations_access($node) {
+  $ret = FALSE;
+  if (variable_get('registration_node_status_' . $node->type, 0)) {
+    if (user_access('administer mkc_registration')) {
+      $ret = TRUE;
+    }
+  }
+
+  return $ret;
+}
+
+/**
+ * Page callback for adding a registration.
+ */
+function registration_register_page($node) {
+  $registration = entity_get_controller('registration')->create(array('type' => 'registration'));
+  $registration->nid = $node->nid;
+  return drupal_get_form('registration_form', $registration);
+}
+
+/**
+ * Page callback for viewing a tour's registrations
+ */
+function registration_registrations_page($node) {
+  drupal_set_title(t('Registrations for !title', array('!title' => $node->title)));
+  $query = new EntityFieldQuery;
+  $query
+     ->entityCondition('entity_type', 'registration')
+     ->propertyCondition('nid', $node->nid);
+  $result = $query->execute();
+	$registrations = registration_load_multiple(array_keys($result['registration']));
+	dpm($registrations);
+	
+	$rows = array();
+	foreach ($registrations as $registration) {
+		// dpm($registration);
+		$rows[] = array(
+			l($registration->registration_id, 'registration/' . $registration->registration_id),
+			$registration->user_uid,
+			$registration->author_uid,
+			date('m/s/Y t', $registration->created),
+		);
+	}
+	
+  $table = array(
+    'header' => array(t('id'), t('User'), t('Created By'), t('Created')),
+    'rows' => $rows,
+  );	
+	$out = theme('table', $table);
+	
+  return $out;
+}
+
+/**
+ * Helper to determine if a tour has any slots left.
+ */
+function registration_has_room($node) {
+  $ret = FALSE;
+  if (isset($node->field_limit['und'][0]['value'])) {
+    $limit = $node->field_limit['und'][0]['value'];
+    $count = db_query("SELECT count(nid) FROM {registration} WHERE nid = :nid", array(':nid' => $node->nid))->fetchField();
+    if ($count < $limit) {
+      $ret = TRUE;
+    }
+  }
+
+  return $ret;
+}
+
+
+/**
+ * Returns a list of content types that have registrations enabled
+ */
+// function registration_content_types() {
+//   $enabled_types = array();
+//   foreach (node_type_get_names() as $type => $name) {
+//     if (variable_get('registration_node_status_' . $type, 0)) {
+//       $enabled_types[$type] = $name;
+//     }
+//   }
+// 
+//   return $enabled_types;
+// }
+// 

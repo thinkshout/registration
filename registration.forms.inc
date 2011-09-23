@@ -18,6 +18,7 @@ function registration_form($form, &$form_state, $registration) {
 		'#default_value' => $user->uid ? $user->mail : '',
 	  '#size' => 40,
 	  '#maxlength' => 255,
+		'#required' => TRUE
 	);
 
   field_attach_form('registration', $registration, $form, $form_state);

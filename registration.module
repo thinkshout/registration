@@ -227,20 +227,30 @@ function registration_registrations_page($node) {
 
 	if (!empty($result['registration'])) {
 		$registrations = registration_load_multiple(array_keys($result['registration']));
-		
+
 		$rows = array();
 		foreach ($registrations as $registration) {
-			// dpm($registration);
+			$author = '';
+			if ($registration->author_uid) {
+				$author = user_load($registration->author_uid);
+				$author = l($author->name, 'user/' . $author->uid);
+			}
+			$user = 'N/A';
+			if ($registration->user_uid) {
+				$user = user_load($registration->user_uid);
+				$user = l($user->name, 'user/' . $user->uid);
+			}
 			$rows[] = array(
 				l($registration->registration_id, 'registration/' . $registration->registration_id),
-				$registration->user_uid,
-				$registration->author_uid,
+				l($registration->mail, 'mailto:' . $registration->mail),
+				$user,
+				$author,
 				date('m/s/Y t', $registration->created),
 			);
 		}
 
 	  $table = array(
-	    'header' => array(t('id'), t('User'), t('Created By'), t('Created')),
+	    'header' => array(t('id'), t('Email'), t('User'), t('Created By'), t('Created')),
 	    'rows' => $rows,
 	  );	
 		$out = theme('table', $table);		

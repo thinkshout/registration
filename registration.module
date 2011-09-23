@@ -54,20 +54,30 @@ function registration_menu() {
 	  'file' => 'registration.forms.inc',
 	  'type' => MENU_LOCAL_TASK,
 	);
+	
 	$items['node/%node/registrations'] = array(
-	  'title' => 'Registrations',
+	  'title' => 'Manage Registrations',
 	  'page callback' => 'registration_registrations_page',
 	  'page arguments' => array(1),
 	  'access callback' => 'registration_administer_registrations_access',
 	  'access arguments' => array(1),
 	  'type' => MENU_LOCAL_TASK,
 	);
+	$items['node/%node/registrations/list'] = array(
+	  'title' => 'Registrations',
+	  'page callback' => 'registration_registrations_page',
+	  'page arguments' => array(1),
+	  'access callback' => 'registration_administer_registrations_access',
+	  'access arguments' => array(1),
+	  'type' => MENU_DEFAULT_LOCAL_TASK,
+	);
 	$items['node/%node/registrations/broadcast'] = array(
 	  'title' => 'Email Participants',
 	  'page callback' => 'drupal_get_form',
 	  'page arguments' => array('registration_registrations_broadcast_form', 1),
 	  'access callback' => 'registration_administer_registrations_access',
-	  'access arguments' => array(1),    
+	  'access arguments' => array(1),
+	  'file' => 'registration.forms.inc',
 	  'weight' => 10,
 	  'type' => MENU_LOCAL_TASK,
 	);
@@ -209,31 +219,35 @@ function registration_register_page($node) {
  * Page callback for viewing a tour's registrations
  */
 function registration_registrations_page($node) {
-  drupal_set_title(t('Registrations for !title', array('!title' => $node->title)));
   $query = new EntityFieldQuery;
   $query
      ->entityCondition('entity_type', 'registration')
      ->propertyCondition('nid', $node->nid);
   $result = $query->execute();
-	$registrations = registration_load_multiple(array_keys($result['registration']));
-	dpm($registrations);
-	
-	$rows = array();
-	foreach ($registrations as $registration) {
-		// dpm($registration);
-		$rows[] = array(
-			l($registration->registration_id, 'registration/' . $registration->registration_id),
-			$registration->user_uid,
-			$registration->author_uid,
-			date('m/s/Y t', $registration->created),
-		);
+
+	if (!empty($result['registration'])) {
+		$registrations = registration_load_multiple(array_keys($result['registration']));
+		
+		$rows = array();
+		foreach ($registrations as $registration) {
+			// dpm($registration);
+			$rows[] = array(
+				l($registration->registration_id, 'registration/' . $registration->registration_id),
+				$registration->user_uid,
+				$registration->author_uid,
+				date('m/s/Y t', $registration->created),
+			);
+		}
+
+	  $table = array(
+	    'header' => array(t('id'), t('User'), t('Created By'), t('Created')),
+	    'rows' => $rows,
+	  );	
+		$out = theme('table', $table);		
 	}
-	
-  $table = array(
-    'header' => array(t('id'), t('User'), t('Created By'), t('Created')),
-    'rows' => $rows,
-  );	
-	$out = theme('table', $table);
+	else {
+		$out = t('There are no registratrants for %name', array('%name' => $node->title));
+	}
 	
   return $out;
 }
@@ -254,6 +268,15 @@ function registration_has_room($node) {
   return $ret;
 }
 
+/**
+ * Implements hook_mail().
+ */
+function registration_mail($key, &$message, $params) {
+  $subject = $params['subject'];
+  $body = $params['message'];
+  $message['subject'] .= str_replace(array("\r", "\n"), '', $subject);
+  $message['body'][] = drupal_html_to_text($body);
+}
 
 /**
  * Returns a list of content types that have registrations enabled

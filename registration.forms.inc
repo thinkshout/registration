@@ -60,11 +60,19 @@ function registration_form($form, &$form_state, $registration) {
  * Validation callback for registration_form().
  */
 function registration_form_validate($form, &$form_state) {
+  $registration = $form_state['registration'];
+
+	// verify the event hasn't sold out
+	if (!registration_has_room($registration->nid)) {
+		drupal_set_message(t('Sorry, %name has sold out during your registration.', 
+				array('%name' => $node->title)));
+	}
+	
+	// validate email address
   if (!valid_email_address($form_state['values']['mail'])) {
 		form_set_error('mail', t('The email address is invalid.'));
   }
 	
-  $registration = $form_state['registration'];
   // Notify field widgets to validate their data.
   field_attach_form_validate('registration', $registration, $form, $form_state);
 }
@@ -89,7 +97,8 @@ function registration_form_submit($form, &$form_state) {
     $form_state['redirect'] = 'node/' . $registration->nid;    
   }
   else {
-    drupal_set_message(t('Sorry, there has been a problem submitting your registration.'));
+    drupal_set_message(t('Sorry, there has been a problem submitting your 
+				registration.'));
   }
 
 }
@@ -104,7 +113,8 @@ function registration_form_delete_submit($form, &$form_state) {
     unset($_GET['destination']);
   }
   $registration = $form_state['registration'];
-  $form_state['redirect'] = array('registration/' . $registration->registration_id . '/delete', array('query' => $destination));
+  $form_state['redirect'] = array('registration/' . 
+		$registration->registration_id . '/delete', array('query' => $destination));
 }
 
 
@@ -113,9 +123,13 @@ function registration_form_delete_submit($form, &$form_state) {
  */
 function registration_delete_confirm($form, &$form_state, $registration) {
   // Always provide entity id in the same form key as in the entity edit form.
-  $form['registration_id'] = array('#type' => 'value', '#value' => $registration->registration_id);
+  $form['registration_id'] = array(
+		'#type' => 'value', '
+		#value' => $registration->registration_id
+	);
   return confirm_form($form,
-    t('Are you sure you want to delete registration %title?', array('%title' => $registration->registration_id)),
+    t('Are you sure you want to delete registration %title?', 
+				array('%title' => $registration->registration_id)),
     'registration/' . $registration->registration_id,
     t('This action cannot be undone.'),
     t('Delete'),
@@ -227,18 +241,14 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
 function registration_registrations_settings_form($form, &$form_state, $node) {
 	$form_state['node'] = $node;
 	
-	$result = db_select('registration_node', 'rn')
-		->fields('rn')
-	  ->condition('nid', $node->nid, '=')
-    ->execute()
-		->fetchAssoc();
+	$settings = registration_node_settings($node->nid);
 
 	$form['status'] = array(
 	  '#type' => 'checkbox',
 	  '#title' => t('Enable'),
 	  '#description' => t('Check to enable registrations for %name.', 
 			array('%name' => $node->title)),
-	  '#default_value' => isset($result['status']) ? $result['status'] : -1,
+	  '#default_value' => isset($settings['status']) ? $settings['status'] : -1,
 	);
 	
   
@@ -249,7 +259,7 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
 	 			for no limit.', array('%name' => $node->title)),
 	  '#size' => 5,
 	  '#maxlength' => 10,
-		'#default_value' => isset($result['capacity']) ? $result['capacity'] : 0
+		'#default_value' => isset($settings['capacity']) ? $settings['capacity'] : 0
 	);
 	
   $form['save'] = array(

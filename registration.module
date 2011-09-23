@@ -191,11 +191,11 @@ function registration_node_type_delete($info) {
 function registration_register_page_access($node) {
   $ret = FALSE;
   if (variable_get('registration_node_status_' . $node->type, 0)) {
-    if (user_access('administer registration')) {
-      $ret = TRUE;
-    }
-    else if (user_access('add registration') && registration_has_room($node)) {
-      $ret = TRUE;
+    if (user_access('administer registration') || user_access('add registration')) {
+			$settings = registration_node_settings($node->nid);
+			if ($settings['status']) {
+	      $ret = TRUE;				
+			}
     }
   }
 
@@ -220,9 +220,14 @@ function registration_administer_registrations_access($node) {
  * Page callback for adding a registration.
  */
 function registration_register_page($node) {
-  $registration = entity_get_controller('registration')->create(array('type' => 'registration'));
-  $registration->nid = $node->nid;
-  return drupal_get_form('registration_form', $registration);
+	if (registration_has_room($node->nid)) {
+	  $registration = entity_get_controller('registration')->create(array('type' => 'registration'));
+	  $registration->nid = $node->nid;
+	  return drupal_get_form('registration_form', $registration);		
+	}
+	else {
+		return t('Sorry, %name is sold out', array('%name' => $node->title));
+	}
 }
 
 /**
@@ -273,16 +278,16 @@ function registration_registrations_page($node) {
 }
 
 /**
- * Helper to determine if a tour has any slots left.
+ * Helper to determine if a node has any slots left.
  */
-function registration_has_room($node) {
+function registration_has_room($nid) {
   $ret = FALSE;
-  if (isset($node->field_limit['und'][0]['value'])) {
-    $limit = $node->field_limit['und'][0]['value'];
-    $count = db_query("SELECT count(nid) FROM {registration} WHERE nid = :nid", array(':nid' => $node->nid))->fetchField();
-    if ($count < $limit) {
-      $ret = TRUE;
-    }
+	$settings = registration_node_settings($nid);
+  $capacity = $settings['capacity'];
+  $count = db_query("SELECT count(nid) FROM {registration} WHERE nid = :nid", 
+			array(':nid' => $nid))->fetchField();
+  if ($count < $capacity) {
+    $ret = TRUE;
   }
 
   return $ret;
@@ -322,4 +327,20 @@ function registration_node_delete($node) {
   db_delete('registration_node')
   ->condition('nid', $node->nid)
   ->execute();
+}
+
+/**
+ * Return all registration settings for a given node.
+ *
+ * @param string $nid 
+ * @return array
+ */
+function registration_node_settings($nid) {
+	$result = db_select('registration_node', 'rn')
+		->fields('rn')
+	  ->condition('nid', $nid, '=')
+    ->execute()
+		->fetchAssoc();
+
+	return $result;
 }

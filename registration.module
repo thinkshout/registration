@@ -255,7 +255,7 @@ function registration_registrations_page($node) {
 				l($registration->mail, 'mailto:' . $registration->mail),
 				$author,
 				$registration->count,
-				date('m/s/Y t', $registration->created),
+				format_date($registration->created),
 			);
 		}
 
@@ -344,6 +344,7 @@ function registration_node_delete($node) {
  * @return array
  */
 function registration_node_settings($nid) {
+	// @TODO: Add static variable handling.
 	$result = db_select('registration_node', 'rn')
 		->fields('rn')
 	  ->condition('nid', $nid, '=')
@@ -351,4 +352,34 @@ function registration_node_settings($nid) {
 		->fetchAssoc();
 
 	return $result;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function registration_theme() {
+  return array(
+    'registration' => array(
+      'arguments' => array('registration' => NULL),
+    ),
+  );
+}
+
+/**
+ * Theme handler for registrations.
+ *
+ * @param array $variables 
+ * 	 Contains a complete registration object.
+ */
+function theme_registration($variables) {
+	$registration = $variables['registration'];
+	$output = '<div><label>' . t('Email') . '</label>' . $registration->mail . '</div>';
+  if ($node = node_load($registration->nid)) {
+    $output .= '<div><label>' . $node->type . "</label>" . l($node->title, 'node/' . $registration->nid) . '</div>';
+  }
+	
+	$output .= '<div><label>' . t('Count') . '</label>' . $registration->count . '</div>';
+	$output .= '<div><label>' . t('Created') . '</label>' . format_date($registration->created) . '</div>';
+	
+	return $output;
 }

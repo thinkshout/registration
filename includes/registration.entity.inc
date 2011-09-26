@@ -61,21 +61,13 @@ class RegistrationEntityClass extends Entity {
   }
 
   /**
-   * Override buildContent() to add the username to the output.
+   * Override buildContent() to add registration properties.
    */
   public function buildContent($view_mode = 'full', $langcode = NULL) {
-    if ($node = node_load($this->nid)) {
-      $content['nid'] = array(
-        '#prefix' => '<div>',        
-        '#markup' => "Tour: " . l($node->title, 'node/' . $this->nid),
-        '#suffix' => '</div>',        
-        '#weight' => 10
-      );      
-    }
-    $content['created'] = array(
-      '#markup' => "Created: ". format_date($this->created),
-      '#weight' => 10
-    );
+		// invoke theme handler to return markup for registration properties
+		$content['registration'] = array(
+			'#markup' => theme('registration', array('registration' => $this))
+		);
 
     return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode, $content);
   }

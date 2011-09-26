@@ -20,6 +20,25 @@ function registration_form($form, &$form_state, $registration) {
 	  '#maxlength' => 255,
 		'#required' => TRUE
 	);
+	
+	$settings = registration_node_settings($registration->nid);
+  $capacity = $settings['capacity'];
+	$remaining = 20;
+	if ($capacity) {
+		$remaining = $capacity - registration_event_count($registration->nid);		
+	}
+	$options = array();
+	for ($i=1; $i < $remaining+1; $i++) { 
+		$options[$i] = $i;
+	}
+	$form['count'] = array(
+	  '#type' => 'select',
+	  '#title' => t('Count'),
+	  '#description' => t('Select the number of registrations you want to create.'),
+	  '#options' => $options,
+	  '#default_value' => 1,
+	);
+	
 
   field_attach_form('registration', $registration, $form, $form_state);
 
@@ -87,6 +106,7 @@ function registration_form_submit($form, &$form_state) {
   global $user;
   $registration->author_uid = $user->uid;
   $registration->mail = $form_state['values']['mail'];
+	$registration->count = $form_state['values']['count'];
 
   // Notify field widgets.
   field_attach_submit('registration', $registration, $form, $form_state);

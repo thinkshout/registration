@@ -38,6 +38,12 @@ function registration_schema() {
 	      'default' => '',
 	      'description' => "User's e-mail address.",
 	    ),
+	    'count' => array(
+	      'description' => 'How many slots this registration should use towards the total capacity for this event.',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	      'default' => 1,
+	    ),
       'author_uid' => array(
         'description' => 'The uid of the user who created this registration.',
         'type' => 'int',
@@ -71,10 +77,6 @@ function registration_schema() {
         'table' => 'users',
         'columns' => array('author_uid' => 'uid'),
       ),
-      'registration_user' => array(
-        'table' => 'users',
-        'columns' => array('user_uid' => 'uid'),
-      ),
     ),
     'primary key' => array('registration_id'),
   );
@@ -86,24 +88,6 @@ function registration_schema() {
 	    'nid' => array(
 	      'description' => 'Node id these registration settings are for.',
 	      'type' => 'int',
-	      'not null' => TRUE,
-	    ),
-	    'notification_email' => array(
-	      'description' => 'Email address to send notifications to.',
-	      'type' => 'varchar',
-	      'length' => 64,
-	      'not null' => FALSE,
-	    ),
-	    'send_confirmation' => array(
-	      'description' => 'Boolean indicating whether confirmation emails should be sent.',
-	      'type' => 'int',
-	      'not null' => TRUE,
-	      'default' => 0,
-	    ),
-	    'confirmation_email' => array(
-	      'description' => 'Email template to send to users when they signup.',
-	      'type' => 'text',
-	      'size' => 'big',
 	      'not null' => TRUE,
 	    ),
 	    'capacity' => array(

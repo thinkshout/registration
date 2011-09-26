@@ -253,14 +253,14 @@ function registration_registrations_page($node) {
 			$rows[] = array(
 				l($registration->registration_id, 'registration/' . $registration->registration_id),
 				l($registration->mail, 'mailto:' . $registration->mail),
-				$user,
 				$author,
+				$registration->count,
 				date('m/s/Y t', $registration->created),
 			);
 		}
 
 	  $table = array(
-	    'header' => array(t('id'), t('Email'), t('Created By'), t('Created')),
+	    'header' => array(t('id'), t('Email'), t('Created By'), t('Count'), t('Created')),
 	    'rows' => $rows,
 	  );	
 		$out = theme('table', $table);		
@@ -280,14 +280,25 @@ function registration_has_room($nid) {
 	$settings = registration_node_settings($nid);
   $capacity = $settings['capacity'];
 	if ($capacity) {
-	  $count = db_query("SELECT count(nid) FROM {registration} WHERE nid = :nid", 
-				array(':nid' => $nid))->fetchField();
-	  if ($count >= $capacity) {
-	    $ret = FALSE;
-	  }		
+	  $count = registration_event_count($nid);
+		if (($capacity - $count) < 1) {
+			$ret = FALSE;
+		}
 	}
-
+	
   return $ret;
+}
+
+/**
+ * Return the number of registrations for a given node.
+ *
+ * @param int $nid 
+ * @return int
+ */
+function registration_event_count($nid) {
+  $count = db_query("SELECT sum(nid*count) FROM {registration} WHERE nid = :nid", 
+			array(':nid' => $nid))->fetchField();
+	return $count;
 }
 
 /**

@@ -45,6 +45,7 @@ function registration_menu() {
     'file' => 'registration.forms.inc',
   );  
 
+	// node local tasks
 	$items['node/%node/register'] = array(
 	  'title' => 'Register',
 	  'page callback' => 'registration_register_page',
@@ -53,8 +54,7 @@ function registration_menu() {
 	  'access arguments' => array(1),
 	  'file' => 'registration.forms.inc',
 	  'type' => MENU_LOCAL_TASK,
-	);
-	
+	);	
 	$items['node/%node/registrations'] = array(
 	  'title' => 'Manage Registrations',
 	  'page callback' => 'registration_registrations_page',
@@ -281,14 +281,16 @@ function registration_registrations_page($node) {
  * Helper to determine if a node has any slots left.
  */
 function registration_has_room($nid) {
-  $ret = FALSE;
+  $ret = TRUE;
 	$settings = registration_node_settings($nid);
   $capacity = $settings['capacity'];
-  $count = db_query("SELECT count(nid) FROM {registration} WHERE nid = :nid", 
-			array(':nid' => $nid))->fetchField();
-  if ($count < $capacity) {
-    $ret = TRUE;
-  }
+	if ($capacity) {
+	  $count = db_query("SELECT count(nid) FROM {registration} WHERE nid = :nid", 
+				array(':nid' => $nid))->fetchField();
+	  if ($count >= $capacity) {
+	    $ret = FALSE;
+	  }		
+	}
 
   return $ret;
 }

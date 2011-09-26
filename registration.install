@@ -38,12 +38,6 @@ function registration_schema() {
 	      'default' => '',
 	      'description' => "User's e-mail address.",
 	    ),
-      'user_uid' => array(
-        'description' => 'The uid of the Drupal user connected to this registration.',
-        'type' => 'int',
-        'not null' => FALSE,
-        'default' => 0,
-      ),
       'author_uid' => array(
         'description' => 'The uid of the user who created this registration.',
         'type' => 'int',

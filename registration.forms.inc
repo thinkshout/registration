@@ -202,7 +202,7 @@ function registration_registrations_broadcast_form($form, &$form_state, $node) {
 }
 
 /**
- * Submit handler for mkc_tour_registrations_broadcast_form.
+ * Submit handler for registration_registrations_broadcast_form.
  */
 function registration_registrations_broadcast_form_submit($form, &$form_state) {
   global $language;
@@ -219,7 +219,7 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
     $recipients = array();
     
     // load registrations and build an array of recipients
-    $registrations = mkc_registration_load_multiple(
+    $registrations = registration_load_multiple(
 				array_keys($entities['registration']));    
     foreach($registrations as $registration) {
       if (isset($registration->email[LANGUAGE_NONE][0]['value'])) {

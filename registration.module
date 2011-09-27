@@ -47,7 +47,7 @@ function registration_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['registration/%registration/delete'] = array(
-    'title callback' => 'Delete Registratino',
+    'title' => 'Delete Registration',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('registration_delete_confirm', 1),
     'access arguments' => array('administer registration'),
@@ -257,17 +257,23 @@ function registration_registrations_page($node) {
         $author = user_load($registration->author_uid);
         $author = l($author->name, 'user/' . $author->uid);
       }
+			$actions = array(
+				l('View', 'registration/' . $registration->registration_id),
+				l('Edit', 'registration/' . $registration->registration_id . '/edit'),
+				l('Delete', 'registration/' . $registration->registration_id . '/delete'),
+			);
       $rows[] = array(
         l($registration->registration_id, 'registration/' . $registration->registration_id),
         l($registration->mail, 'mailto:' . $registration->mail),
         $author,
         $registration->count,
         format_date($registration->created),
+				implode(' | ', $actions)
       );
     }
 
     $table = array(
-      'header' => array(t('id'), t('Email'), t('Created By'), t('Count'), t('Created')),
+      'header' => array(t('id'), t('Email'), t('Created By'), t('Count'), t('Created'), t('Actions')),
       'rows' => $rows,
     );
     $out = theme('table', $table);

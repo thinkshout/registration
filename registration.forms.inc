@@ -146,9 +146,9 @@ function registration_form_delete_submit($form, &$form_state) {
  */
 function registration_delete_confirm($form, &$form_state, $registration) {
   // Always provide entity id in the same form key as in the entity edit form.
-  $form['registration_id'] = array(
-    '#type' => 'value', '
-		#value' => $registration->registration_id,
+  $form['registration'] = array(
+    '#type' => 'value',
+		'#value' => $registration,
   );
   return confirm_form($form,
     t('Are you sure you want to delete registration %title?',
@@ -166,13 +166,13 @@ function registration_delete_confirm($form, &$form_state, $registration) {
  */
 function registration_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
-    $id = $form_state['values']['registration_id'];
-    registration_delete_multiple(array($id));
-    watchdog('registration', 'Registration %id deleted.', array('%id' => $id));
-    drupal_set_message(t('Registration %id has been deleted.', array('%id' => $id)));
+    $registration = $form_state['values']['registration'];
+    registration_delete_multiple(array($registration->registration_id));
+    watchdog('registration', 'Registration %id deleted.', array('%id' => $registration->registration_id));
+    drupal_set_message(t('Registration %id has been deleted.', array('%id' => $registration->registration_id)));
   }
 
-  $form_state['redirect'] = '<front>';
+  $form_state['redirect'] = 'node/' . $registration->nid;
 }
 
 /**

@@ -179,13 +179,22 @@ function registration_delete_confirm_submit($form, &$form_state) {
 function registration_registrations_broadcast_form($form, &$form_state, $node) {
   $form_state['node'] = $node;
 
+	$form['from'] = array(
+	  '#type' => 'textfield',
+	  '#title' => t('From'),
+	  '#description' => t('Email address this message will come from.'),
+	  '#size' => 20,
+	  '#maxlength' => 40,
+		'#default_value' =>  variable_get('site_mail', ini_get('sendmail_from'))
+	);
+	
   $form['subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Subject'),
     '#description' => t('The subject of the message.'),
     '#required' => TRUE,
     '#size' => 40,
-    '#maxlength' => 255,
+    '#maxlength' => 40,
   );
   $form['message'] = array(
     '#type' => 'textarea',
@@ -204,11 +213,21 @@ function registration_registrations_broadcast_form($form, &$form_state, $node) {
 }
 
 /**
+ * Validation handler for registration_registrations_broadcast_form().
+ */
+function registration_registrations_broadcast_form_validate($form, &$form_state) {
+	if (!valid_email_address($form_state['values']['from'])) {
+		form_set_error('from', t('From email address is invalid.'));
+	}
+}
+
+/**
  * Submit handler for registration_registrations_broadcast_form.
  */
 function registration_registrations_broadcast_form_submit($form, &$form_state) {
   registration_send_broadcast(
     $form_state['node'],
+    $form_state['values']['from'],
     $form_state['values']['subject'],
     $form_state['values']['message']
   );

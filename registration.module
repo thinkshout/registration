@@ -383,7 +383,7 @@ function registration_mail($key, &$message, $params) {
  *
  * @param object $node
  */
-function registration_send_broadcast($node, $subject, $message) {
+function registration_send_broadcast($node, $from, $subject, $message) {
   global $language;
 
   // grab all registrations for this tour
@@ -411,7 +411,7 @@ function registration_send_broadcast($node, $subject, $message) {
       'message' => $message,
     );
     $result = drupal_mail('registration', 'broadcast',
-      implode(', ', $recipients), $language, $params
+      implode(', ', $recipients), $language, $params, $from
     );
     if ($result['result']) {
       drupal_set_message(t('The message has been sent to @count registrants.',

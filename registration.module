@@ -304,20 +304,11 @@ function registration_has_room($nid) {
  * @return int
  */
 function registration_event_count($nid) {
+	// @TODO: Add static variable
   $count = db_query("SELECT sum(nid*count) FROM {registration} WHERE nid = :nid",
     array(':nid' => $nid)
   )->fetchField();
   return $count;
-}
-
-/**
- * Implements hook_node_insert().
- */
-function registration_node_insert($node) {
-  db_insert('registration_node')->fields(array(
-      'nid' => $node->nid,
-      'status' => 0,
-    ))->execute();
 }
 
 /**
@@ -326,7 +317,6 @@ function registration_node_insert($node) {
  */
 function registration_node_delete($node) {
   db_delete('registration')->condition('nid', $node->nid)->execute();
-
   db_delete('registration_node')->condition('nid', $node->nid)->execute();
 }
 
@@ -339,7 +329,11 @@ function registration_node_delete($node) {
  */
 function registration_node_settings($nid) {
   // @TODO: Add static variable handling.
-  $result = db_select('registration_node', 'rn')->fields('rn')->condition('nid', $nid, '=')->execute()->fetchAssoc();
+  $result = db_select('registration_node', 'rn')
+		->fields('rn')
+		->condition('nid', $nid, '=')
+		->execute()
+		->fetchAssoc();
 
   return $result;
 }
@@ -443,4 +437,30 @@ function registration_send_broadcast($node, $subject, $message) {
       $type = 'warning'
     );
   }
+}
+
+function registration_update_node_settings($nid, $status, $capacity) {
+  $fields = array(
+    'nid' => $nid,
+    'status' => $status,
+    'capacity' => $capacity,
+  );
+	
+	// insert or udpate registration node settings
+	// @TODO: probably a better way to handle this
+	$count = db_query("SELECT count(nid) FROM {registration_node} WHERE nid = :nid",
+	  array(':nid' => $nid))->fetchField();
+	if ($count > 0) {
+	  db_update('registration_node')
+			->fields($fields)
+			->condition('nid', $nid, '=')
+			->execute();
+	}
+	else {
+	  db_insert('registration_node')
+			->fields($fields)
+			->execute();
+	}
+
+  drupal_set_message(t('Registration settings have been saved.'));	
 }

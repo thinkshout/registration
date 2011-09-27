@@ -222,7 +222,7 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
  * @param object $node
  */
 function registration_registrations_settings_form($form, &$form_state, $node) {
-  $form_state['node'] = $node;
+  $form_state['nid'] = $node->nid;
 
   $settings = registration_node_settings($node->nid);
 
@@ -261,15 +261,11 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
  * @param array $form_state
  */
 function registration_registrations_settings_form_submit($form, &$form_state) {
-  $node = $form_state['node'];
-  $fields = array(
-    'nid' => $node->nid,
-    'status' => $form_state['values']['status'],
-    'capacity' => $form_state['values']['capacity'],
-  );
-  db_update('registration_node')->fields($fields)->condition('nid', $node->nid, '=')->execute();
-
-  drupal_set_message(t('Registration settings have been saved.'));
-  drupal_goto('node/' . $node->nid);
+  $nid = $form_state['nid'];
+	registration_update_node_settings($nid, 
+		$form_state['values']['status'], 
+		$form_state['values']['capacity']
+	);
+  drupal_goto('node/' . $nid);
 }
 

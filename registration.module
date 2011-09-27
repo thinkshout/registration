@@ -20,22 +20,22 @@ function registration_menu() {
   $items['admin/structure/registration/manage/settings'] = array(
     'title' => 'Settings',
     'description' => 'Manage Registration settings',
-		'type' => MENU_DEFAULT_LOCAL_TASK
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
-	$items['registration/%registration'] = array(
-	  'title callback' => 'registration_page_title',
-	  'title arguments' => array(1),
-	  'page callback' => 'registration_page_view',
-	  'page arguments' => array(1),
-	  'access arguments' => array('view registration'),
-	);
+  $items['registration/%registration'] = array(
+    'title callback' => 'registration_page_title',
+    'title arguments' => array(1),
+    'page callback' => 'registration_page_view',
+    'page arguments' => array(1),
+    'access arguments' => array('view registration'),
+  );
   $items['registration/%registration/view'] = array(
     'title' => 'View',
     'page callback' => 'registration_page_view',
     'page arguments' => array(1),
     'access arguments' => array('view registration'),
-		'type' => MENU_DEFAULT_LOCAL_TASK
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['registration/%registration/edit'] = array(
     'title' => 'Edit',
@@ -43,8 +43,8 @@ function registration_menu() {
     'page arguments' => array('registration_form', 1),
     'access arguments' => array('administer registration'),
     'file' => 'registration.forms.inc',
-		'weight' => 10,
-		'type' => MENU_LOCAL_TASK
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
   );
   $items['registration/%registration/delete'] = array(
     'title callback' => 'Delete Registratino',
@@ -52,54 +52,54 @@ function registration_menu() {
     'page arguments' => array('registration_delete_confirm', 1),
     'access arguments' => array('administer registration'),
     'file' => 'registration.forms.inc',
-  );  
+  );
 
-	// node local tasks
-	$items['node/%node/register'] = array(
-	  'title' => 'Register',
-	  'page callback' => 'registration_register_page',
-	  'page arguments' => array(1),
-	  'access callback' => 'registration_register_page_access',
-	  'access arguments' => array(1),
-	  'file' => 'registration.forms.inc',
-	  'type' => MENU_LOCAL_TASK,
-	);	
-	$items['node/%node/registrations'] = array(
-	  'title' => 'Manage Registrations',
-	  'page callback' => 'registration_registrations_page',
-	  'page arguments' => array(1),
-	  'access callback' => 'registration_administer_registrations_access',
-	  'access arguments' => array(1),
-	  'type' => MENU_LOCAL_TASK,
-	);
-	$items['node/%node/registrations/list'] = array(
-	  'title' => 'Registrations',
-	  'page callback' => 'registration_registrations_page',
-	  'page arguments' => array(1),
-	  'access callback' => 'registration_administer_registrations_access',
-	  'access arguments' => array(1),
-	  'type' => MENU_DEFAULT_LOCAL_TASK,
-	);
-	$items['node/%node/registrations/settings'] = array(
-	  'title' => 'Settings',
-	  'page callback' => 'drupal_get_form',
-	  'page arguments' => array('registration_registrations_settings_form', 1),
-	  'access callback' => 'registration_administer_registrations_access',
-	  'access arguments' => array(1),
-	  'file' => 'registration.forms.inc',
-	  'weight' => 9,
-	  'type' => MENU_LOCAL_TASK,
-	);
-	$items['node/%node/registrations/broadcast'] = array(
-	  'title' => 'Email Registrants',
-	  'page callback' => 'drupal_get_form',
-	  'page arguments' => array('registration_registrations_broadcast_form', 1),
-	  'access callback' => 'registration_administer_registrations_access',
-	  'access arguments' => array(1),
-	  'file' => 'registration.forms.inc',
-	  'weight' => 10,
-	  'type' => MENU_LOCAL_TASK,
-	);
+  // node local tasks
+  $items['node/%node/register'] = array(
+    'title' => 'Register',
+    'page callback' => 'registration_register_page',
+    'page arguments' => array(1),
+    'access callback' => 'registration_register_page_access',
+    'access arguments' => array(1),
+    'file' => 'registration.forms.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['node/%node/registrations'] = array(
+    'title' => 'Manage Registrations',
+    'page callback' => 'registration_registrations_page',
+    'page arguments' => array(1),
+    'access callback' => 'registration_administer_registrations_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['node/%node/registrations/list'] = array(
+    'title' => 'Registrations',
+    'page callback' => 'registration_registrations_page',
+    'page arguments' => array(1),
+    'access callback' => 'registration_administer_registrations_access',
+    'access arguments' => array(1),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['node/%node/registrations/settings'] = array(
+    'title' => 'Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('registration_registrations_settings_form', 1),
+    'access callback' => 'registration_administer_registrations_access',
+    'access arguments' => array(1),
+    'file' => 'registration.forms.inc',
+    'weight' => 9,
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['node/%node/registrations/broadcast'] = array(
+    'title' => 'Email Registrants',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('registration_registrations_broadcast_form', 1),
+    'access callback' => 'registration_administer_registrations_access',
+    'access arguments' => array(1),
+    'file' => 'registration.forms.inc',
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+  );
 
   return $items;
 }
@@ -109,7 +109,7 @@ function registration_menu() {
  */
 function registration_permission() {
   return array(
-    'administer registration' =>  array(
+    'administer registration' => array(
       'title' => t('Administer registration'),
       'description' => t('Perform administration tasks for Registrations.'),
       'restrict access' => TRUE,
@@ -119,7 +119,7 @@ function registration_permission() {
     ),
     'add registration' => array(
       'title' => t('Add registrations'),
-    )
+    ),
   );
 }
 
@@ -127,20 +127,20 @@ function registration_permission() {
  * Landing page for managing the structure of registrations.
  */
 function registration_admin_page() {
-	$rows = array();
-	foreach (node_type_get_names() as $type => $name) {
-		$rows[] = array(
-			l($name, 'admin/structure/types/manage/' . $type),
-			(variable_get('registration_node_status_' . $type, 0)) ? t('Enabled') : 
-				t('Disabled')
-		);
-	}
-	
+  $rows = array();
+  foreach (node_type_get_names() as $type => $name) {
+    $rows[] = array(
+      l($name, 'admin/structure/types/manage/' . $type),
+      (variable_get('registration_node_status_' . $type, 0)) ? t('Enabled') :
+      t('Disabled'),
+    );
+  }
+
   $table = array(
     'header' => array(t('Content type'), t('Registration status')),
     'rows' => $rows,
-  );	
-	$out = theme('table', $table);
+  );
+  $out = theme('table', $table);
 
   return t('Manage extra fields for your registration here.') . $out;
 }
@@ -166,9 +166,9 @@ function registration_page_title($registration) {
  * Implements hook_form_FORM_ID_alter().
  * 	 Add registration options to node type form.
  */
-function registration_form_node_type_form_alter(&$form, &$form_state) {	
-	$type = $form['#node_type']->type;
-	
+function registration_form_node_type_form_alter(&$form, &$form_state) {
+  $type = $form['#node_type']->type;
+
   $form['registration'] = array(
     '#type' => 'fieldset',
     '#title' => t('Registration settings'),
@@ -201,10 +201,10 @@ function registration_register_page_access($node) {
   $ret = FALSE;
   if (variable_get('registration_node_status_' . $node->type, 0)) {
     if (user_access('administer registration') || user_access('add registration')) {
-			$settings = registration_node_settings($node->nid);
-			if ($settings['status']) {
-	      $ret = TRUE;				
-			}
+      $settings = registration_node_settings($node->nid);
+      if ($settings['status']) {
+        $ret = TRUE;
+      }
     }
   }
 
@@ -229,14 +229,14 @@ function registration_administer_registrations_access($node) {
  * Page callback for adding a registration.
  */
 function registration_register_page($node) {
-	if (registration_has_room($node->nid)) {
-	  $registration = entity_get_controller('registration')->create(array('type' => 'registration'));
-	  $registration->nid = $node->nid;
-	  return drupal_get_form('registration_form', $registration);		
-	}
-	else {
-		return t('Sorry, %name is sold out', array('%name' => $node->title));
-	}
+  if (registration_has_room($node->nid)) {
+    $registration = entity_get_controller('registration')->create(array('type' => 'registration'));
+    $registration->nid = $node->nid;
+    return drupal_get_form('registration_form', $registration);
+  }
+  else {
+    return t('Sorry, %name is sold out', array('%name' => $node->title));
+  }
 }
 
 /**
@@ -244,40 +244,38 @@ function registration_register_page($node) {
  */
 function registration_registrations_page($node) {
   $query = new EntityFieldQuery;
-  $query
-     ->entityCondition('entity_type', 'registration')
-     ->propertyCondition('nid', $node->nid);
+  $query->entityCondition('entity_type', 'registration')->propertyCondition('nid', $node->nid);
   $result = $query->execute();
 
-	if (!empty($result['registration'])) {
-		$registrations = registration_load_multiple(array_keys($result['registration']));
+  if (!empty($result['registration'])) {
+    $registrations = registration_load_multiple(array_keys($result['registration']));
 
-		$rows = array();
-		foreach ($registrations as $registration) {
-			$author = '';
-			if ($registration->author_uid) {
-				$author = user_load($registration->author_uid);
-				$author = l($author->name, 'user/' . $author->uid);
-			}
-			$rows[] = array(
-				l($registration->registration_id, 'registration/' . $registration->registration_id),
-				l($registration->mail, 'mailto:' . $registration->mail),
-				$author,
-				$registration->count,
-				format_date($registration->created),
-			);
-		}
+    $rows = array();
+    foreach ($registrations as $registration) {
+      $author = '';
+      if ($registration->author_uid) {
+        $author = user_load($registration->author_uid);
+        $author = l($author->name, 'user/' . $author->uid);
+      }
+      $rows[] = array(
+        l($registration->registration_id, 'registration/' . $registration->registration_id),
+        l($registration->mail, 'mailto:' . $registration->mail),
+        $author,
+        $registration->count,
+        format_date($registration->created),
+      );
+    }
 
-	  $table = array(
-	    'header' => array(t('id'), t('Email'), t('Created By'), t('Count'), t('Created')),
-	    'rows' => $rows,
-	  );	
-		$out = theme('table', $table);		
-	}
-	else {
-		$out = t('There are no registratrants for %name', array('%name' => $node->title));
-	}
-	
+    $table = array(
+      'header' => array(t('id'), t('Email'), t('Created By'), t('Count'), t('Created')),
+      'rows' => $rows,
+    );
+    $out = theme('table', $table);
+  }
+  else {
+    $out = t('There are no registratrants for %name', array('%name' => $node->title));
+  }
+
   return $out;
 }
 
@@ -285,41 +283,41 @@ function registration_registrations_page($node) {
  * Helper to determine if a node has any slots left.
  */
 function registration_has_room($nid) {
-  $ret = TRUE;
-	$settings = registration_node_settings($nid);
+  $ret      = TRUE;
+  $settings = registration_node_settings($nid);
   $capacity = $settings['capacity'];
-	if ($capacity) {
-	  $count = registration_event_count($nid);
-		if (($capacity - $count) < 1) {
-			$ret = FALSE;
-		}
-	}
-	
+  if ($capacity) {
+    $count = registration_event_count($nid);
+    if (($capacity - $count) < 1) {
+      $ret = FALSE;
+    }
+  }
+
   return $ret;
 }
 
 /**
  * Return the number of registrations for a given node.
  *
- * @param int $nid 
+ * @param int $nid
+ *
  * @return int
  */
 function registration_event_count($nid) {
-  $count = db_query("SELECT sum(nid*count) FROM {registration} WHERE nid = :nid", 
-			array(':nid' => $nid))->fetchField();
-	return $count;
+  $count = db_query("SELECT sum(nid*count) FROM {registration} WHERE nid = :nid",
+    array(':nid' => $nid)
+  )->fetchField();
+  return $count;
 }
 
 /**
  * Implements hook_node_insert().
  */
 function registration_node_insert($node) {
-  db_insert('registration_node')
-    ->fields(array(
+  db_insert('registration_node')->fields(array(
       'nid' => $node->nid,
       'status' => 0,
-    ))
-    ->execute();
+    ))->execute();
 }
 
 /**
@@ -327,30 +325,23 @@ function registration_node_insert($node) {
  *   Delete registrations and settings for this node.
  */
 function registration_node_delete($node) {
-  db_delete('registration')
-  ->condition('nid', $node->nid)
-  ->execute();
+  db_delete('registration')->condition('nid', $node->nid)->execute();
 
-  db_delete('registration_node')
-  ->condition('nid', $node->nid)
-  ->execute();
+  db_delete('registration_node')->condition('nid', $node->nid)->execute();
 }
 
 /**
  * Return all registration settings for a given node.
  *
- * @param string $nid 
+ * @param string $nid
+ *
  * @return array
  */
 function registration_node_settings($nid) {
-	// @TODO: Add static variable handling.
-	$result = db_select('registration_node', 'rn')
-		->fields('rn')
-	  ->condition('nid', $nid, '=')
-    ->execute()
-		->fetchAssoc();
+  // @TODO: Add static variable handling.
+  $result = db_select('registration_node', 'rn')->fields('rn')->condition('nid', $nid, '=')->execute()->fetchAssoc();
 
-	return $result;
+  return $result;
 }
 
 /**
@@ -367,20 +358,20 @@ function registration_theme() {
 /**
  * Theme handler for registrations.
  *
- * @param array $variables 
+ * @param array $variables
  * 	 Contains a complete registration object.
  */
 function theme_registration($variables) {
-	$registration = $variables['registration'];
-	$output = '<div><label>' . t('Email') . '</label>' . $registration->mail . '</div>';
+  $registration = $variables['registration'];
+  $output = '<div><label>' . t('Email') . '</label>' . $registration->mail . '</div>';
   if ($node = node_load($registration->nid)) {
     $output .= '<div><label>' . $node->type . "</label>" . l($node->title, 'node/' . $registration->nid) . '</div>';
   }
-	
-	$output .= '<div><label>' . t('Count') . '</label>' . $registration->count . '</div>';
-	$output .= '<div><label>' . t('Created') . '</label>' . format_date($registration->created) . '</div>';
-	
-	return $output;
+
+  $output .= '<div><label>' . t('Count') . '</label>' . $registration->count . '</div>';
+  $output .= '<div><label>' . t('Created') . '</label>' . format_date($registration->created) . '</div>';
+
+  return $output;
 }
 
 /**
@@ -396,48 +387,50 @@ function registration_mail($key, &$message, $params) {
 /**
  * Send an email to all registrations for a given node.
  *
- * @param object $node 
+ * @param object $node
  */
 function registration_send_broadcast($node, $subject, $message) {
-	global $language;
-  
+  global $language;
+
   // grab all registrations for this tour
   $query = new EntityFieldQuery();
-  $entities = $query->entityCondition('entity_type', 'registration')
-                    ->entityCondition('bundle', 'registration')
-                    ->propertyCondition('nid', $node->nid)
-                    ->execute();
+  $entities = $query->entityCondition('entity_type', 'registration')->entityCondition('bundle', 'registration')->propertyCondition('nid', $node->nid)->execute();
 
-  if(!empty($entities)) {
+  if (!empty($entities)) {
     $recipients = array();
-    
+
     // load registrations and build an array of recipients
     $registrations = registration_load_multiple(
-				array_keys($entities['registration']));    
-    foreach($registrations as $registration) {
+      array_keys($entities['registration'])
+    );
+    foreach ($registrations as $registration) {
       $recipients[] = $registration->mail;
     }
-    
+
     // send the email and communicate results
     $params = array(
       'subject' => $subject,
-      'message' => $message, 
+      'message' => $message,
     );
-    $result = drupal_mail('registration', 'broadcast', 
-				implode(', ', $recipients), $language, $params);
+    $result = drupal_mail('registration', 'broadcast',
+      implode(', ', $recipients), $language, $params
+    );
     if ($result['result']) {
-      drupal_set_message(t('The message has been sent to @count participants.', 
-        array('@count' => count($recipients))));
+      drupal_set_message(t('The message has been sent to @count participants.',
+          array('@count' => count($recipients))
+        ));
     }
     else {
       drupal_set_message(
-        t('There was an error sending the message.'), 
-        $type = 'error');
+        t('There was an error sending the message.'),
+        $type = 'error'
+      );
     }
   }
   else {
     drupal_set_message(
-      t('There are no participants signed up for this tour.'), 
-      $type = 'warning');
-  }  	
+      t('There are no participants signed up for this tour.'),
+      $type = 'warning'
+    );
+  }
 }

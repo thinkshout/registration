@@ -31,19 +31,19 @@ function registration_schema() {
         'not null' => FALSE,
         'default' => 0,
       ),
-	    'mail' => array(
-	      'type' => 'varchar',
-	      'length' => 254,
-	      'not null' => FALSE,
-	      'default' => '',
-	      'description' => "User's e-mail address.",
-	    ),
-	    'count' => array(
-	      'description' => 'How many slots this registration should use towards the total capacity for this event.',
-	      'type' => 'int',
-	      'not null' => TRUE,
-	      'default' => 1,
-	    ),
+      'mail' => array(
+        'type' => 'varchar',
+        'length' => 254,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => "User's e-mail address.",
+      ),
+      'count' => array(
+        'description' => 'How many slots this registration should use towards the total capacity for this event.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
       'author_uid' => array(
         'description' => 'The uid of the user who created this registration.',
         'type' => 'int',
@@ -64,9 +64,9 @@ function registration_schema() {
       ),
     ),
     'indexes' => array(
-      'registration_updated'       => array('updated'),
-      'registration_created'       => array('created'),
-      'registration_type'          => array(array('type', 4)),
+      'registration_updated' => array('updated'),
+      'registration_created' => array('created'),
+      'registration_type' => array(array('type', 4)),
     ),
     'foreign keys' => array(
       'registration_node' => array(
@@ -82,43 +82,44 @@ function registration_schema() {
   );
 
 
-	$schema['registration_node'] = array(
-	  'description' => 'Registration per-entity settings.',
-	  'fields' => array(
-	    'nid' => array(
-	      'description' => 'Node id these registration settings are for.',
-	      'type' => 'int',
-	      'not null' => TRUE,
-	    ),
-	    'capacity' => array(
-	      'description' => 'Maximum number of users who can signup for this event.',
-	      'type' => 'int',
-	      'unsigned' => TRUE,
-	      'not null' => TRUE,
-	      'default' => 0,
-	    ),
-	    'status' => array(
-	      'description' => 'Boolean indicating if signups are open (1) or closed (0) for the given node',
-	      'type' => 'int',
-	      'not null' => TRUE,
-	      'default' => 1,
-	    ),
-	    'settings' => array(
-	      'type' => 'blob',
-	      'not null' => TRUE,
-	      'size' => 'big',
-	      'serialize' => TRUE,
-	      'description' => 'A serialized object that stores additional registration settings.',
-	    ),
-	  ),
-	  'foreign keys' => array(
-	    'registration_node_node' => array(
-	      'table' => 'node',
-	      'columns' => array('nid' => 'nid'),
-	    ),
-	  ),
-	  'primary key' => array('nid'),
-	);
+  $schema['registration_node'] = array(
+    'description' => 'Registration per-entity settings.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'Node id these registration settings are for.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'capacity' => array(
+        'description' => 'Maximum number of users who can signup for this event.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'status' => array(
+        'description' => 'Boolean indicating if signups are open (1) or closed (0) for the given node',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'settings' => array(
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized object that stores additional registration settings.',
+      ),
+    ),
+    'foreign keys' => array(
+      'registration_node_node' => array(
+        'table' => 'node',
+        'columns' => array('nid' => 'nid'),
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
 
   return $schema;
 }
+

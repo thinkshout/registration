@@ -8,7 +8,7 @@
 /**
  * Implements hook_entity_info().
  */
-function registration_entity_info() {    
+function registration_entity_info() {
   return array(
     'registration' => array(
       'module' => 'registration',
@@ -36,7 +36,7 @@ function registration_entity_info() {
       'view modes' => array(
         'full' => array(
           'label' => t('Full Registration'),
-          'custom settings' =>  FALSE,
+          'custom settings' => FALSE,
         ),
       ),
       'uri callback' => 'registration_uri',
@@ -45,7 +45,7 @@ function registration_entity_info() {
   );
 }
 
-function registration_uri($registration){
+function registration_uri($registration) {
   return array(
     'path' => 'registration/' . $registration->id,
   );
@@ -56,7 +56,7 @@ function registration_uri($registration){
  */
 class RegistrationEntityClass extends Entity {
 
-  public function __construct(array $values = array(), $entityType = NULL) {
+  public function __construct(array$values = array(), $entityType = NULL) {
     parent::__construct($values, 'registration');
   }
 
@@ -64,12 +64,13 @@ class RegistrationEntityClass extends Entity {
    * Override buildContent() to add registration properties.
    */
   public function buildContent($view_mode = 'full', $langcode = NULL) {
-		// invoke theme handler to return markup for registration properties
-		$content['registration'] = array(
-			'#markup' => theme('registration', array('registration' => $this))
-		);
+    // invoke theme handler to return markup for registration properties
+    $content['registration'] = array(
+      '#markup' => theme('registration', array('registration' => $this)),
+    );
 
-    return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode, $content);
+    return entity_get_controller($this->entityType)
+			->buildContent($this, $view_mode, $langcode, $content);
   }
 }
 
@@ -101,7 +102,6 @@ function registration_entity_property_info_alter(&$info) {
 
   return $info;
 }
-
 
 /**
  * Loads a registration by ID.
@@ -166,6 +166,7 @@ function registration_save($registration) {
   if (!isset($registration->created) || empty($registration->created)) {
     $registration->created = REQUEST_TIME;
   }
-  
+
   return entity_get_controller('registration')->save($registration);
 }
+

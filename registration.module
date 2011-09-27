@@ -340,8 +340,10 @@ function registration_node_settings($nid) {
 		->condition('nid', $nid, '=')
 		->execute()
 		->fetchAssoc();
-		
-	$result['settings'] = unserialize($result['settings']);
+
+	if ($result) {
+		$result['settings'] = unserialize($result['settings']);		
+	}
 	
   return $result;
 }
@@ -457,27 +459,16 @@ function registration_send_broadcast($node, $from, $subject, $message) {
  */
 function registration_update_node_settings($nid, $status, $capacity, $settings) {
   $fields = array(
-    'nid' => $nid,
     'status' => $status,
     'capacity' => $capacity,
 		'settings' => serialize($settings)
   );
 	
 	// insert or udpate registration node settings
-	// @TODO: probably a better way to handle this
-	$count = db_query("SELECT count(nid) FROM {registration_node} WHERE nid = :nid",
-	  array(':nid' => $nid))->fetchField();
-	if ($count > 0) {
-	  db_update('registration_node')
-			->fields($fields)
-			->condition('nid', $nid, '=')
-			->execute();
-	}
-	else {
-	  db_insert('registration_node')
-			->fields($fields)
-			->execute();
-	}
+	db_merge('registration_node')
+    ->key(array('nid' => $nid))
+	  ->fields($fields)
+	  ->execute();
 
   drupal_set_message(t('Registration settings have been saved.'));	
 }

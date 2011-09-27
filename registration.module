@@ -394,7 +394,11 @@ function registration_send_broadcast($node, $subject, $message) {
 
   // grab all registrations for this tour
   $query = new EntityFieldQuery();
-  $entities = $query->entityCondition('entity_type', 'registration')->entityCondition('bundle', 'registration')->propertyCondition('nid', $node->nid)->execute();
+  $entities = $query
+		->entityCondition('entity_type', 'registration')
+		->entityCondition('bundle', 'registration')
+		->propertyCondition('nid', $node->nid)
+		->execute();
 
   if (!empty($entities)) {
     $recipients = array();
@@ -416,15 +420,21 @@ function registration_send_broadcast($node, $subject, $message) {
       implode(', ', $recipients), $language, $params
     );
     if ($result['result']) {
-      drupal_set_message(t('The message has been sent to @count participants.',
-          array('@count' => count($recipients))
-        ));
+      drupal_set_message(t('The message has been sent to @count registrants.',
+        array('@count' => count($recipients))
+      ));
+			watchdog('registration', 'Registration email sent to @count registrants.',
+				array('@count' => count($recipients))
+			);
     }
     else {
       drupal_set_message(
         t('There was an error sending the message.'),
         $type = 'error'
       );
+			watchdog('registration', 'Failed to send registration broadcast email.',
+				array(), 'WATCHDOG_ERROR'
+			);
     }
   }
   else {

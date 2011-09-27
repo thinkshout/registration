@@ -205,50 +205,10 @@ function registration_registrations_broadcast_form($form, &$form_state, $node) {
  * Submit handler for registration_registrations_broadcast_form.
  */
 function registration_registrations_broadcast_form_submit($form, &$form_state) {
-  global $language;
-  $node = $form_state['node'];
-  
-  // grab all registrations for this tour
-  $query = new EntityFieldQuery();
-  $entities = $query->entityCondition('entity_type', 'registration')
-                    ->entityCondition('bundle', 'registration')
-                    ->propertyCondition('nid', $node->nid)
-                    ->execute();
-
-  if(!empty($entities)) {
-    $recipients = array();
-    
-    // load registrations and build an array of recipients
-    $registrations = registration_load_multiple(
-				array_keys($entities['registration']));    
-    foreach($registrations as $registration) {
-      if (isset($registration->email[LANGUAGE_NONE][0]['value'])) {
-        $recipients[] = $registration->email[LANGUAGE_NONE][0]['value'];        
-      }
-    }
-    
-    // send the email and communicate results
-    $params = array(
-      'subject' => $form_state['values']['subject'],
-      'message' => $form_state['values']['message'],      
-    );
-    $result = drupal_mail('registration', 'broadcast', 
-				implode(', ', $recipients), $language, $params);
-    if ($result['result']) {
-      drupal_set_message(t('The message has been sent to @count participants.', 
-        array('@count' => count($recipients))));
-    }
-    else {
-      drupal_set_message(
-        t('There was an error sending the message.'), 
-        $type = 'error');
-    }
-  }
-  else {
-    drupal_set_message(
-      t('There are no participants signed up for this tour.'), 
-      $type = 'warning');
-  }  
+  registration_send_broadcast(
+		$form_state['node'], 
+		$form_state['values']['subject'],
+		$form_state['values']['message']);
 }
 
 /**

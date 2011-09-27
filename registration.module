@@ -311,16 +311,6 @@ function registration_event_count($nid) {
 }
 
 /**
- * Implements hook_mail().
- */
-function registration_mail($key, &$message, $params) {
-  $subject = $params['subject'];
-  $body = $params['message'];
-  $message['subject'] .= str_replace(array("\r", "\n"), '', $subject);
-  $message['body'][] = drupal_html_to_text($body);
-}
-
-/**
  * Implements hook_node_insert().
  */
 function registration_node_insert($node) {
@@ -391,4 +381,63 @@ function theme_registration($variables) {
 	$output .= '<div><label>' . t('Created') . '</label>' . format_date($registration->created) . '</div>';
 	
 	return $output;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function registration_mail($key, &$message, $params) {
+  $subject = $params['subject'];
+  $body = $params['message'];
+  $message['subject'] .= str_replace(array("\r", "\n"), '', $subject);
+  $message['body'][] = drupal_html_to_text($body);
+}
+
+/**
+ * Send an email to all registrations for a given node.
+ *
+ * @param object $node 
+ */
+function registration_send_broadcast($node, $subject, $message) {
+	global $language;
+  
+  // grab all registrations for this tour
+  $query = new EntityFieldQuery();
+  $entities = $query->entityCondition('entity_type', 'registration')
+                    ->entityCondition('bundle', 'registration')
+                    ->propertyCondition('nid', $node->nid)
+                    ->execute();
+
+  if(!empty($entities)) {
+    $recipients = array();
+    
+    // load registrations and build an array of recipients
+    $registrations = registration_load_multiple(
+				array_keys($entities['registration']));    
+    foreach($registrations as $registration) {
+      $recipients[] = $registration->mail;
+    }
+    
+    // send the email and communicate results
+    $params = array(
+      'subject' => $subject,
+      'message' => $message, 
+    );
+    $result = drupal_mail('registration', 'broadcast', 
+				implode(', ', $recipients), $language, $params);
+    if ($result['result']) {
+      drupal_set_message(t('The message has been sent to @count participants.', 
+        array('@count' => count($recipients))));
+    }
+    else {
+      drupal_set_message(
+        t('There was an error sending the message.'), 
+        $type = 'error');
+    }
+  }
+  else {
+    drupal_set_message(
+      t('There are no participants signed up for this tour.'), 
+      $type = 'warning');
+  }  	
 }

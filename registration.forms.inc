@@ -37,6 +37,8 @@ function registration_form($form, &$form_state, $registration) {
     '#description' => t('Select the number of registrations you want to create.'),
     '#options' => $options,
     '#default_value' => 1,
+		'#access' => isset($settings['settings']['multiple_registrations']) ? 
+				$settings['settings']['multiple_registrations'] : FALSE
   );
 
 
@@ -253,8 +255,6 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
     ),
     '#default_value' => isset($settings['status']) ? $settings['status'] : -1,
   );
-
-
   $form['capacity'] = array(
     '#type' => 'textfield',
     '#title' => t('Capacity'),
@@ -264,6 +264,20 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
     '#maxlength' => 10,
     '#default_value' => isset($settings['capacity']) ? $settings['capacity'] : 0,
   );
+
+	$form['settings'] = array(
+	  '#type' => 'fieldset',
+	  '#title' => t('Additional Settings'),
+	  '#collapsible' => TRUE,
+	  '#collapsed' => FALSE,
+		'#tree' => TRUE
+	);
+	$form['settings']['multiple_registrations'] = array(
+	  '#type' => 'checkbox',
+	  '#title' => t('Allow multiple registrations'),
+		'#description' => t('If selected, users can register for more than one slot for this event.'),
+	  '#default_value' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : -1,
+	);
 
   $form['save'] = array(
     '#type' => 'submit',
@@ -283,7 +297,8 @@ function registration_registrations_settings_form_submit($form, &$form_state) {
   $nid = $form_state['nid'];
 	registration_update_node_settings($nid, 
 		$form_state['values']['status'], 
-		$form_state['values']['capacity']
+		$form_state['values']['capacity'],
+		$form_state['values']['settings']
 	);
   drupal_goto('node/' . $nid);
 }

@@ -103,6 +103,13 @@ function registration_schema() {
 	      'not null' => TRUE,
 	      'default' => 1,
 	    ),
+	    'settings' => array(
+	      'type' => 'blob',
+	      'not null' => TRUE,
+	      'size' => 'big',
+	      'serialize' => TRUE,
+	      'description' => 'A serialized object that stores additional registration settings.',
+	    ),
 	  ),
 	  'foreign keys' => array(
 	    'registration_node_node' => array(

@@ -334,7 +334,9 @@ function registration_node_settings($nid) {
 		->condition('nid', $nid, '=')
 		->execute()
 		->fetchAssoc();
-
+		
+	$result['settings'] = unserialize($result['settings']);
+	
   return $result;
 }
 
@@ -439,11 +441,20 @@ function registration_send_broadcast($node, $from, $subject, $message) {
   }
 }
 
-function registration_update_node_settings($nid, $status, $capacity) {
+/**
+ * Update a node's registration settings.
+ *
+ * @param int $nid 
+ * @param int $status 
+ * @param int $capacity 
+ * @param array $settings 
+ */
+function registration_update_node_settings($nid, $status, $capacity, $settings) {
   $fields = array(
     'nid' => $nid,
     'status' => $status,
     'capacity' => $capacity,
+		'settings' => serialize($settings)
   );
 	
 	// insert or udpate registration node settings

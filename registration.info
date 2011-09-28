@@ -6,4 +6,4 @@ core = 7.x
 dependencies[] = entity
 
 files[] = includes/registration.entity.inc
-files[] = registration.forms.inc
+files[] = includes/registration.forms.inc

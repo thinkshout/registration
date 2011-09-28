@@ -42,7 +42,7 @@ function registration_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('registration_form', 1),
     'access arguments' => array('administer registration'),
-    'file' => 'registration.forms.inc',
+    'file' => 'includes/registration.forms.inc',
     'weight' => 10,
     'type' => MENU_LOCAL_TASK,
   );
@@ -61,7 +61,7 @@ function registration_menu() {
     'page arguments' => array(1),
     'access callback' => 'registration_register_page_access',
     'access arguments' => array(1),
-    'file' => 'registration.forms.inc',
+    'file' => 'includes/registration.forms.inc',
     'type' => MENU_LOCAL_TASK,
   );
   $items['node/%node/registrations'] = array(
@@ -86,7 +86,7 @@ function registration_menu() {
     'page arguments' => array('registration_registrations_settings_form', 1),
     'access callback' => 'registration_administer_registrations_access',
     'access arguments' => array(1),
-    'file' => 'registration.forms.inc',
+    'file' => 'includes/registration.forms.inc',
     'weight' => 9,
     'type' => MENU_LOCAL_TASK,
   );
@@ -96,7 +96,7 @@ function registration_menu() {
     'page arguments' => array('registration_registrations_broadcast_form', 1),
     'access callback' => 'registration_administer_registrations_access',
     'access arguments' => array(1),
-    'file' => 'registration.forms.inc',
+    'file' => 'includes/registration.forms.inc',
     'weight' => 10,
     'type' => MENU_LOCAL_TASK,
   );

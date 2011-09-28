@@ -86,15 +86,25 @@ function registration_form_validate($form, &$form_state) {
 
   // verify the event hasn't sold out
   if (!registration_has_room($registration->nid)) {
-    drupal_set_message(t('Sorry, %name has sold out during your registration.',
-        array('%name' => $node->title)
-      ));
+    drupal_set_message(t('Sorry, this event has sold out during your registration.'));
   }
 
   // validate email address
   if (!valid_email_address($form_state['values']['mail'])) {
     form_set_error('mail', t('The email address is invalid.'));
   }
+	// check for duplicate registrations
+	else {
+		$count = db_query('SELECT count(nid) FROM {registration} WHERE nid = :nid AND mail = :mail', 
+			array(
+				':nid' => $registration->nid,
+				':mail' => $form_state['values']['mail']
+			))->fetchField();
+		if ($count > 0) {
+			form_set_error('mail', t('%mail is already registered for this event.', 
+				array('%mail' => $form_state['values']['mail'])));
+		}
+	}
 
   // Notify field widgets to validate their data.
   field_attach_form_validate('registration', $registration, $form, $form_state);

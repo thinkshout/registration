@@ -247,7 +247,7 @@ function registration_register_page($node) {
 }
 
 /**
- * Page callback for viewing a tour's registrations
+ * Page callback for viewing registrations
  */
 function registration_registrations_page($node) {
   $query = new EntityFieldQuery;
@@ -403,7 +403,7 @@ function registration_mail($key, &$message, $params) {
 function registration_send_broadcast($node, $from, $subject, $message) {
   global $language;
 
-  // grab all registrations for this tour
+  // grab all registrations
   $query = new EntityFieldQuery();
   $entities = $query
 		->entityCondition('entity_type', 'registration')
@@ -450,7 +450,7 @@ function registration_send_broadcast($node, $from, $subject, $message) {
   }
   else {
     drupal_set_message(
-      t('There are no participants signed up for this tour.'),
+      t('There are no participants registered for this %type.', array('%type' => $node->type)),
       $type = 'warning'
     );
   }

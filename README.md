@@ -15,6 +15,7 @@ Entity based registration system for Drupal.
 2. Per node registration settings.
 3. Broadcast emails to all event registrants.
 4. Associate any field types to a registration to collect the information needed for your event.
+5. Send reminders on a given date.
 
 # Integrations for more functionality
 ## [Fields](http://api.drupal.org/api/drupal/modules--field--field.module/group/field/7)

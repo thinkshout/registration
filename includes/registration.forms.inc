@@ -262,6 +262,7 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
 	 			for no limit.', array('%name' => $node->title)),
     '#size' => 5,
     '#maxlength' => 10,
+		'#required' => TRUE,
     '#default_value' => isset($settings['capacity']) ? $settings['capacity'] : 0,
   );
 
@@ -285,6 +286,20 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
   );
 
   return $form;
+}
+
+/**
+ * Submit handler for registration_registrations_settings_form().
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function registration_registrations_settings_form_validate($form, &$form_state) {
+	// ensure capacity is a positive integer
+	$capacity = $form_state['values']['capacity'];
+	if (!is_numeric($capacity) || ((int)$capacity != $capacity) || ($capacity < 0)) {
+		form_set_error('capacity', t('Capacity must be a positive integer.'));
+	}
 }
 
 /**

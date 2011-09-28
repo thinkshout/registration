@@ -400,9 +400,13 @@ function registration_mail($key, &$message, $params) {
  *
  * @param object $node
  */
-function registration_send_broadcast($node, $from, $subject, $message) {
+function registration_send_broadcast($node, $subject, $message) {
   global $language;
-
+	
+	// grab registration node settings
+	$settings = registration_node_settings($node->nid);
+	$from = $settings['settings']['from_address'];
+	
   // grab all registrations
   $query = new EntityFieldQuery();
   $entities = $query
@@ -460,22 +464,48 @@ function registration_send_broadcast($node, $from, $subject, $message) {
  * Update a node's registration settings.
  *
  * @param int $nid 
- * @param int $status 
- * @param int $capacity 
- * @param array $settings 
+ * @param array $settings
+ * 		Associative array containing additional node registration settings.
+ *    Keys are status, capacity, send_reminder, reminder_date, reminder_template
+ *    and an associatve array of additional settings.
  */
-function registration_update_node_settings($nid, $status, $capacity, $settings) {
-  $fields = array(
-    'status' => $status,
-    'capacity' => $capacity,
-		'settings' => serialize($settings)
-  );
-	
+function registration_update_node_settings($nid, $settings) {
 	// insert or udpate registration node settings
 	db_merge('registration_node')
     ->key(array('nid' => $nid))
-	  ->fields($fields)
+	  ->fields($settings)
 	  ->execute();
 
   drupal_set_message(t('Registration settings have been saved.'));	
+}
+
+/**
+ * Implements hook_cron().
+ */
+function registration_cron() {
+	//@TODO: need to have a sensible batch limit, passed in as a limit param
+	
+	// grab all registrations that have reminders set for this day
+	$results = db_select('registration_node', 'rn')
+		->fields('rn')
+		->condition('send_reminder', 1)
+		->condition('reminder_date', date('Y-m-d 00:00:00'))
+		->execute()
+		->fetchAssoc();
+
+	foreach ($results as $result) {
+		$node = node_load($result['nid']);
+		$message = $result['message'];
+		if (module_exists('token')) {
+			$message = token_replace($message, array('node' => $node));
+		}
+		$subject = 'Reminder for ' . $node->title;
+		registration_send_broadcast($node, $subject, $message);
+		
+		// set reminder flag to off
+		db_update('registration_node')
+			->fields(array('send_reminder' => 0))
+			->condition('nid', $node->nid)
+			->execute();
+	}
 }

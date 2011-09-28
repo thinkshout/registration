@@ -28,13 +28,13 @@ function registration_schema() {
       'nid' => array(
         'description' => 'The id of the entity this registration is associated with.',
         'type' => 'int',
-        'not null' => FALSE,
+        'not null' => TRUE,
         'default' => 0,
       ),
       'mail' => array(
         'type' => 'varchar',
         'length' => 254,
-        'not null' => FALSE,
+        'not null' => TRUE,
         'default' => '',
         'description' => "User's e-mail address.",
       ),
@@ -78,9 +78,11 @@ function registration_schema() {
         'columns' => array('author_uid' => 'uid'),
       ),
     ),
+	  'unique keys' => array(
+	    'nid_mail' => array('nid', 'mail'), 
+	  ), 
     'primary key' => array('registration_id'),
   );
-
 
   $schema['registration_node'] = array(
     'description' => 'Registration per-entity settings.',
@@ -103,6 +105,24 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+	    'send_reminder' => array(
+	      'description' => 'Boolean indicating whether reminder emails should be sent. This is set to 0 once the reminders are sent.',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	      'default' => 0,
+	    ),
+	    'reminder_date' => array(
+	      'description' => 'Date to send the reminder on.',
+				'mysql_type' => 'datetime',
+				'pgsql_type' => 'timestamp',
+	      'not null' => FALSE,
+	    ),
+	    'reminder_template' => array(
+	      'description' => 'Reminder email template.',
+        'type' => 'text',
+        'size' => 'big',
+	      'not null' => FALSE,
+	    ),	
       'settings' => array(
         'type' => 'blob',
         'not null' => TRUE,

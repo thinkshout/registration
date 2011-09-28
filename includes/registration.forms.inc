@@ -74,7 +74,6 @@ function registration_form($form, &$form_state, $registration) {
     '#href' => 'node/' . $registration->nid,
   );
 
-
   return $form;
 }
 
@@ -190,15 +189,6 @@ function registration_delete_confirm_submit($form, &$form_state) {
  */
 function registration_registrations_broadcast_form($form, &$form_state, $node) {
   $form_state['node'] = $node;
-
-	$form['from'] = array(
-	  '#type' => 'textfield',
-	  '#title' => t('From'),
-	  '#description' => t('Email address this message will come from.'),
-	  '#size' => 20,
-	  '#maxlength' => 40,
-		'#default_value' =>  variable_get('site_mail', ini_get('sendmail_from'))
-	);
 	
   $form['subject'] = array(
     '#type' => 'textfield',
@@ -225,21 +215,11 @@ function registration_registrations_broadcast_form($form, &$form_state, $node) {
 }
 
 /**
- * Validation handler for registration_registrations_broadcast_form().
- */
-function registration_registrations_broadcast_form_validate($form, &$form_state) {
-	if (!valid_email_address($form_state['values']['from'])) {
-		form_set_error('from', t('From email address is invalid.'));
-	}
-}
-
-/**
  * Submit handler for registration_registrations_broadcast_form.
  */
 function registration_registrations_broadcast_form_submit($form, &$form_state) {
   registration_send_broadcast(
     $form_state['node'],
-    $form_state['values']['from'],
     $form_state['values']['subject'],
     $form_state['values']['message']
   );
@@ -276,6 +256,59 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
     '#default_value' => isset($settings['capacity']) ? $settings['capacity'] : 0,
   );
 
+	$form['reminder'] = array(
+	  '#type' => 'fieldset',
+	  '#title' => t('Reminder'),
+	  '#collapsible' => TRUE,
+	  '#collapsed' => FALSE,
+	);
+	$form['reminder']['send_reminder'] = array(
+	  '#type' => 'checkbox',
+		'#title' => 'Send Reminder',
+		'#description' => 'If checked, a reminder will be sent to registrants on the following date.',
+	  '#default_value' => isset($settings['send_reminder']) ? $settings['send_reminder'] : -1,
+	);
+	
+	$reminder_date = array();
+	if (isset($settings['reminder_date'])) {
+		$datetime = strtotime($settings['reminder_date']);
+		$reminder_date = array(
+			'year' => date('Y', $datetime),
+			'month' => date('n', $datetime),
+			'day' => date('d', $datetime),
+		);		
+	}
+
+	$form['reminder']['reminder_settings'] = array(
+	  '#type' => 'fieldset',
+	  '#title' => t('Settings'),
+	  '#collapsible' => FALSE,
+		'#states' => array(
+		  'visible' => array(
+		    ':input[name="send_reminder"]' => array('checked' => TRUE),
+		  ),
+		)
+	);	
+	$form['reminder']['reminder_settings']['reminder_date'] = array(
+		'#type' => 'date',
+		'#title' => 'Reminder Date',
+	  '#default_value' => $reminder_date,
+	);	
+	$form['reminder']['reminder_settings']['reminder_template'] = array(
+		'#type' => 'textarea',
+		'#title' => 'Template',
+	  '#default_value' => isset($settings['reminder_template']) ? $settings['reminder_template'] : '',
+		'#description' => t('The reminder message sent to registrants. Tokens are supported if the module is enabled, E.g., [node:title].'),
+	);
+	// add token support
+	if (module_exists('token')) {
+	  $form['reminder']['reminder_settings']['token_tree'] = array(
+	    '#theme' => 'token_tree', 
+	    '#token_types' => array('node', 'content-type', 'current-page', 'registration'),
+			'#global_types' => FALSE,
+	  );
+	}
+
 	$form['settings'] = array(
 	  '#type' => 'fieldset',
 	  '#title' => t('Additional Settings'),
@@ -289,7 +322,16 @@ function registration_registrations_settings_form($form, &$form_state, $node) {
 		'#description' => t('If selected, users can register for more than one slot for this event.'),
 	  '#default_value' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : -1,
 	);
-
+	$form['settings']['from_address'] = array(
+	  '#type' => 'textfield',
+	  '#title' => t('From Address'),
+		'#description' => t('From email address to use for confirmations, reminders, and broadcast emails.'),
+		'#required' => TRUE,
+	  '#default_value' => isset($settings['settings']['from_address']) ? 
+				$settings['settings']['from_address'] : 
+				variable_get('site_mail', ini_get('sendmail_from')),
+	);
+	
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save Settings'),
@@ -310,6 +352,11 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
 	if (!is_numeric($capacity) || ((int)$capacity != $capacity) || ($capacity < 0)) {
 		form_set_error('capacity', t('Capacity must be a positive integer.'));
 	}
+	
+	// validate from address
+	if (!valid_email_address($form_state['values']['settings']['from_address'])) {
+		form_set_error('from', t('From email address is invalid.'));
+	}	
 }
 
 /**
@@ -320,11 +367,16 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
  */
 function registration_registrations_settings_form_submit($form, &$form_state) {
   $nid = $form_state['nid'];
-	registration_update_node_settings($nid, 
-		$form_state['values']['status'], 
-		$form_state['values']['capacity'],
-		$form_state['values']['settings']
-	);
+  $fields = array(
+    'status' => $form_state['values']['status'], 
+    'capacity' => $form_state['values']['capacity'], 
+		'send_reminder' => $form_state['values']['send_reminder'],
+		'settings' => serialize($form_state['values']['settings']),
+  );
+	if ($form_state['values']['send_reminder']) {
+		$fields['reminder_date'] = $form_state['values']['reminder_date']['year'] . '-' . $form_state['values']['reminder_date']['month'] . '-' . $form_state['values']['reminder_date']['day'];
+		$fields['reminder_template'] = $form_state['values']['reminder_template'];
+	}
+	registration_update_node_settings($nid, $fields);
   drupal_goto('node/' . $nid);
 }
-

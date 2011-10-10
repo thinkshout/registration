@@ -522,11 +522,11 @@ function registration_cron() {
 		->condition('send_reminder', 1)
 		->condition('reminder_date', date('Y-m-d 00:00:00'))
 		->execute()
-		->fetchAssoc();
+		->fetchAllAssoc('nid');
 
 	foreach ($results as $result) {
-		$node = node_load($result['nid']);
-		$message = $result['message'];
+		$node = node_load($result->nid);
+		$message = $result->reminder_template;
 		if (module_exists('token')) {
 			$message = token_replace($message, array('node' => $node));
 		}

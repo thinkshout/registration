@@ -250,10 +250,28 @@ function registration_register_page($node) {
  * Page callback for viewing registrations
  */
 function registration_registrations_page($node) {
+	$header = array(
+		array('data' => t('id'), 'field' => 'registration_id', 'type' => 'property', 
+				'specifier' => 'registration_id'),
+		array('data' => t('Email'), 'field' => 'mail', 'type' => 'property', 
+				'specifier' => 'mail'),
+		array('data' => t('Created By'), 'field' => 'author_uid', 
+				'type' => 'property', 'specifier' => 'author_uid'),
+		array('data' => t('Count'), 'field' => 'count', 'type' => 'property', 
+				'specifier' => 'count'),
+		array('data' => t('Created'), 'field' => 'created', 'sort' => 'desc', 
+				'type' => 'property', 'specifier' => 'created'),
+		array('data' => t('Actions')),
+	);
+	
   $query = new EntityFieldQuery;
-  $query->entityCondition('entity_type', 'registration')->propertyCondition('nid', $node->nid);
-  $result = $query->execute();
-
+  $result = $query
+		->entityCondition('entity_type', 'registration')
+		->propertyCondition('nid', $node->nid)
+		->pager(20)
+		->tableSort($header)
+		->execute();
+		
   if (!empty($result['registration'])) {
     $registrations = registration_load_multiple(array_keys($result['registration']));
 
@@ -279,14 +297,24 @@ function registration_registrations_page($node) {
       );
     }
 
+		$settings = registration_node_settings($node->nid);
+				
     $table = array(
-      'header' => array(t('id'), t('Email'), t('Created By'), t('Count'), t('Created'), t('Actions')),
+      'header' => $header,
       'rows' => $rows,
+			'caption' => t('List of registrations for %title. !count of !capacity slots are filled.', 
+				array(
+					'%title' => $node->title,
+ 					'!count' => '<strong>' . registration_event_count($node->nid) . '</strong>', 
+					'!capacity' => '<strong>' . $settings['capacity'] . '</strong>'
+				))
     );
-    $out = theme('table', $table);
+
+    $out = theme('table', $table) . theme('pager');
   }
   else {
-    $out = t('There are no registratrants for %name', array('%name' => $node->title));
+    $out = t('There are no registratrants for %name', 
+				array('%name' => $node->title));
   }
 
   return $out;
@@ -456,7 +484,8 @@ function registration_send_broadcast($node, $subject, $message) {
   }
   else {
     drupal_set_message(
-      t('There are no participants registered for this %type.', array('%type' => $node->type)),
+      t('There are no participants registered for this %type.', 
+					array('%type' => $node->type)),
       $type = 'warning'
     );
   }

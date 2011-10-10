@@ -1,5 +1,7 @@
 Entity based registration system for Drupal.
 
+# Active development is taking place in the 7.x-1.x branch!!!
+
 # Configuration
 1. Download and enable the module.
 2. Decide which content types you want to enable registrations for. The content type settings form will have an additional tab for Registrations where you can enable/disable registrations. The module provides an overview of all content types and their registration status at /admin/structure/registration/manage.

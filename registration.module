@@ -317,10 +317,12 @@ function registration_has_room($nid) {
  * @return int
  */
 function registration_event_count($nid) {
-	// @TODO: Add static variable
-  $count = db_query("SELECT sum(nid*count) FROM {registration} WHERE nid = :nid",
-    array(':nid' => $nid)
-  )->fetchField();
+	$count = &drupal_static(__FUNCTION__, FALSE);
+	if (!$count) {
+	  $count = db_query("SELECT sum(count) FROM {registration} WHERE nid = :nid",
+	    array(':nid' => $nid)
+	  )->fetchField();		
+	}
   return $count;
 }
 

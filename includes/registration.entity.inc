@@ -180,7 +180,7 @@ function registration_field_extra_fields() {
       'mail' => array(
         'label' => t('Email'),
         'description' => t('Registrant\'s email address.'),
-        'weight' => -4,
+        'weight' => 0,
       ),
     ),
     'display' => array(

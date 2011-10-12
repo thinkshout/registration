@@ -224,7 +224,7 @@ function registration_register_page_access($node) {
 function registration_administer_registrations_access($node) {
   $ret = FALSE;
   if (variable_get('registration_node_status_' . $node->type, 0)) {
-    if (user_access('administer mkc_registration')) {
+    if (user_access('administer registration')) {
       $ret = TRUE;
     }
   }

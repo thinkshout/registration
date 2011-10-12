@@ -448,37 +448,39 @@ function registration_send_broadcast($node, $subject, $message) {
   if (!empty($entities)) {
     $recipients = array();
 
-    // load registrations and build an array of recipients
-    $registrations = registration_load_multiple(
-      array_keys($entities['registration'])
-    );
-    foreach ($registrations as $registration) {
-      $recipients[] = $registration->mail;
-    }
-
-    // send the email and communicate results
     $params = array(
       'subject' => $subject,
       'message' => $message,
     );
-    $result = drupal_mail('registration', 'broadcast',
-      implode(', ', $recipients), $language, $params, $from
+
+    // load registrations and build an array of recipients
+    $registrations = registration_load_multiple(
+      array_keys($entities['registration'])
     );
-    if ($result['result']) {
-      drupal_set_message(t('The message has been sent to @count registrants.',
-        array('@count' => count($recipients))
-      ));
-			watchdog('registration', 'Registration email sent to @count registrants.',
-				array('@count' => count($recipients))
-			);
+
+    // send the email to each registrant and communicate results
+		$success_count = 0;
+    foreach ($registrations as $registration) {
+      $recipients[] = $registration->mail;
+	    $result = drupal_mail('registration', 'broadcast',
+	      $registration->mail, $language, $params, $from
+	    );
+    	if ($result['result']) {
+				$success_count++;
+			}
+			else {
+				watchdog('registration', 'Failed to send registration broadcast email to %email.',
+					array('%email' => $registration->mail), 'WATCHDOG_ERROR'
+				);
+			}
     }
-    else {
-      drupal_set_message(
-        t('There was an error sending the message.'),
-        $type = 'error'
-      );
-			watchdog('registration', 'Failed to send registration broadcast email.',
-				array(), 'WATCHDOG_ERROR'
+
+    if ($success_count) {
+      drupal_set_message(t('Registration broadcast sent to @count registrants.',
+        array('@count' => $success_count)
+      ));
+			watchdog('registration', 'Registration broadcast sent to @count registrants.',
+				array('@count' => $success_count)
 			);
     }
   }
@@ -521,6 +523,7 @@ function registration_cron() {
 		->fields('rn')
 		->condition('send_reminder', 1)
 		->condition('reminder_date', date('Y-m-d 00:00:00'))
+		->range(0, 10)
 		->execute()
 		->fetchAllAssoc('nid');
 

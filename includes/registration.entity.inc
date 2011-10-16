@@ -70,7 +70,7 @@ class RegistrationEntityClass extends Entity {
     );
 
     return entity_get_controller($this->entityType)
-			->buildContent($this, $view_mode, $langcode, $content);
+      ->buildContent($this, $view_mode, $langcode, $content);
   }
 }
 
@@ -174,7 +174,7 @@ function registration_save($registration) {
  * Implements hook_field_extra_fields().
  */
 function registration_field_extra_fields() {
-	// expose the email property on the fields and display settings forms.
+  // expose the email property on the fields and display settings forms.
   $extra['registration']['registration'] = array(
     'form' => array(
       'mail' => array(

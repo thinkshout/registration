@@ -47,7 +47,7 @@ function registration_entity_info() {
 
 function registration_uri($registration) {
   return array(
-    'path' => 'registration/' . $registration->id,
+    'path' => 'registration/' . $registration->registration_id,
   );
 }
 

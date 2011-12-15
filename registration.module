@@ -13,14 +13,14 @@ module_load_include('inc', 'registration', 'includes/registration.entity');
 function registration_menu() {
   $items['admin/structure/registration/manage'] = array(
     'title' => 'Registration',
-    'description' => 'Manage Registration structure',
+    'description' => 'Manage registration structure',
     'page callback' => 'registration_admin_page',
     'access arguments' => array('administer registration'),
     
   );
   $items['admin/structure/registration/manage/settings'] = array(
     'title' => 'Settings',
-    'description' => 'Manage Registration settings',
+    'description' => 'Manage registration settings',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
@@ -48,7 +48,7 @@ function registration_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['registration/%registration/delete'] = array(
-    'title' => 'Delete Registration',
+    'title' => 'Delete registration',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('registration_delete_confirm', 1),
     'access arguments' => array('administer registration'),
@@ -66,7 +66,7 @@ function registration_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['node/%node/registrations'] = array(
-    'title' => 'Manage Registrations',
+    'title' => 'Manage registrations',
     'page callback' => 'registration_registrations_page',
     'page arguments' => array(1),
     'access callback' => 'registration_administer_registrations_access',
@@ -92,7 +92,7 @@ function registration_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['node/%node/registrations/broadcast'] = array(
-    'title' => 'Email Registrants',
+    'title' => 'Email registrants',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('registration_registrations_broadcast_form', 1),
     'access callback' => 'registration_administer_registrations_access',
@@ -189,7 +189,7 @@ function registration_form_node_type_form_alter(&$form, &$form_state) {
     '#title' => t('Enable registrations for this content type'),
     '#default_value' => variable_get('registration_node_status_' . $type, 0),
     '#description' => t('If enabled, users will be allowed to register for this 
-      content type unless an administrator disbles registrations on specific 
+      content type unless an administrator disables registrations on specific 
       posts.'),
   );
 }
@@ -242,7 +242,7 @@ function registration_register_page($node) {
     return drupal_get_form('registration_form', $registration);
   }
   else {
-    return t('Sorry, %name is sold out', array('%name' => $node->title));
+    return t('Sorry, %name has reached its registration limit', array('%name' => $node->title));
   }
 }
 

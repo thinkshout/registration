@@ -88,7 +88,7 @@ function registration_form_validate($form, &$form_state) {
 
   // verify the event hasn't sold out
   if (!registration_has_room($registration->nid)) {
-    drupal_set_message(t('Sorry, this event has sold out during your registration.'));
+    drupal_set_message(t('Sorry, this event has reached this registration limit during your registration.'));
   }
 
   // validate email address
@@ -209,7 +209,7 @@ function registration_registrations_broadcast_form($form, &$form_state, $node) {
   $form['message'] = array(
     '#type' => 'textarea',
     '#title' => t('Message'),
-    '#description' => t('Enter the message you want to send to this tour\'s participants.'),
+    '#description' => t('Enter the message you want to send to this event\'s participants.'),
     '#required' => TRUE,
     '#cols' => 60,
     '#rows' => 5,

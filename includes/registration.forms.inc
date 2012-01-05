@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Form callback: create or edit a contact.
+ * Form callback: create or edit a registration.
  *
- * @param $contact
- *   The contact object to edit or for a create form an empty contact object
- *     with only a contact type defined.
+ * @param $registration
+ *   The registration object to edit or for a create form an empty registration
+ *   object with a node defined.
  */
 function registration_form($form, &$form_state, $registration) {
   $form_state['registration'] = $registration;
@@ -20,7 +20,6 @@ function registration_form($form, &$form_state, $registration) {
 		$mail = $user->mail;
 	}
 
-  global $user;
   $form['mail'] = array(
     '#type' => 'textfield',
     '#title' => t('Email'),
@@ -50,7 +49,6 @@ function registration_form($form, &$form_state, $registration) {
 		'#access' => isset($settings['settings']['multiple_registrations']) ? 
 				$settings['settings']['multiple_registrations'] : FALSE
   );
-
 
   field_attach_form('registration', $registration, $form, $form_state);
 

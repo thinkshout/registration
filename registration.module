@@ -16,7 +16,7 @@ function registration_menu() {
     'description' => 'Manage Registration structure',
     'page callback' => 'registration_admin_page',
     'access arguments' => array('administer registration'),
-		
+
   );
   $items['admin/structure/registration/manage/settings'] = array(
     'title' => 'Settings',
@@ -113,6 +113,11 @@ function registration_permission() {
     'administer registration' => array(
       'title' => t('Administer registration'),
       'description' => t('Perform administration tasks for Registrations.'),
+      'restrict access' => TRUE,
+    ),
+    'administer registration types' => array(
+      'title' => t('Administer registration types'),
+      'description' => t('Manage registration types, fields, and display settings.'),
       'restrict access' => TRUE,
     ),
     'view registration' => array(

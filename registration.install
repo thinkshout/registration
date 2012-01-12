@@ -25,11 +25,18 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'nid' => array(
+      'entity_id' => array(
         'description' => 'The id of the entity this registration is associated with.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type of the entity this registration is associated with.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
       ),
       'mail' => array(
         'type' => 'varchar',
@@ -69,28 +76,31 @@ function registration_schema() {
       'registration_type' => array(array('type', 4)),
     ),
     'foreign keys' => array(
-      'registration_node' => array(
-        'table' => 'node',
-        'columns' => array('nid' => 'nid'),
-      ),
       'registration_author' => array(
         'table' => 'users',
         'columns' => array('author_uid' => 'uid'),
       ),
     ),
 	  'unique keys' => array(
-	    'nid_mail' => array('nid', 'mail'), 
+	    'entity_id_mail' => array('entity_id', 'mail'),
 	  ), 
     'primary key' => array('registration_id'),
   );
 
-  $schema['registration_node'] = array(
+  $schema['registration_entity'] = array(
     'description' => 'Registration per-entity settings.',
     'fields' => array(
-      'nid' => array(
-        'description' => 'Node id these registration settings are for.',
+      'entity_id' => array(
+        'description' => 'Entity id these registration settings are for.',
         'type' => 'int',
         'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type of the entity these registration settings are for.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
       ),
       'capacity' => array(
         'description' => 'Maximum number of users who can signup for this event.',
@@ -137,7 +147,7 @@ function registration_schema() {
         'columns' => array('nid' => 'nid'),
       ),
     ),
-    'primary key' => array('nid'),
+    'primary key' => array('entity_id', 'entity_type'),
   );
 
   $schema['registration_type'] = array(

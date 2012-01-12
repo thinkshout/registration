@@ -238,24 +238,31 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
  * @param array $form_state
  * @param object $node
  */
-function registration_registrations_settings_form($form, &$form_state, $node) {
-  $form_state['nid'] = $node->nid;
+function registration_registrations_settings_form($form, &$form_state, $entity_type, $entity) {
+  list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
+  $label = entity_label($entity_type, $entity);
 
-  $settings = registration_node_settings($node->nid);
+  // we'll need this info when we submit the form
+  $form_state['entity'] = array(
+    'entity_id' => $entity_id,
+    'entity_type' => $entity_type
+  );
+
+  $settings = registration_entity_settings($entity_id, $entity_type);
 
   $form['status'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable'),
     '#description' => t('Check to enable registrations for %name.',
-      array('%name' => $node->title)
+      array('%name' => $label)
     ),
     '#default_value' => isset($settings['status']) ? $settings['status'] : -1,
   );
   $form['capacity'] = array(
     '#type' => 'textfield',
     '#title' => t('Capacity'),
-    '#description' => t('The maximum number of regsitrants for %name. Leave at 0
-	 			for no limit.', array('%name' => $node->title)),
+    '#description' => t('The maximum number of registrants for %name. Leave at 0
+	 			for no limit.', array('%name' => $label)),
     '#size' => 5,
     '#maxlength' => 10,
 		'#required' => TRUE,
@@ -372,7 +379,7 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
  * @param array $form_state
  */
 function registration_registrations_settings_form_submit($form, &$form_state) {
-  $nid = $form_state['nid'];
+  $entity = $form_state['entity'];
   $fields = array(
     'status' => $form_state['values']['status'], 
     'capacity' => $form_state['values']['capacity'], 
@@ -383,6 +390,9 @@ function registration_registrations_settings_form_submit($form, &$form_state) {
 		$fields['reminder_date'] = $form_state['values']['reminder_date']['year'] . '-' . $form_state['values']['reminder_date']['month'] . '-' . $form_state['values']['reminder_date']['day'];
 		$fields['reminder_template'] = $form_state['values']['reminder_template'];
 	}
-	registration_update_node_settings($nid, $fields);
-  drupal_goto('node/' . $nid);
+	registration_update_entity_settings($entity['entity_id'], $entity['entity_type'], $fields);
+
+  $uri = entity_uri($entity['entity_type'],
+      entity_load_single($entity['entity_type'], $entity['entity_id']));
+  drupal_goto($uri['path']);
 }

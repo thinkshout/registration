@@ -30,11 +30,11 @@ function registration_form($form, &$form_state, $registration) {
     '#required' => TRUE,
   );
 
-  $settings  = registration_node_settings($registration->nid);
+  $settings  = registration_entity_settings($registration->entity_id, $registration->entity_type);
   $capacity  = $settings['capacity'];
   $remaining = 20;
   if ($capacity) {
-    $remaining = $capacity - registration_event_count($registration->nid);
+    $remaining = $capacity - registration_event_count($registration->entity_id, $registration->entity_type);
   }
   $options = array();
   for ($i = 1; $i < $remaining + 1; $i++) {
@@ -69,10 +69,12 @@ function registration_form($form, &$form_state, $registration) {
     );
   }
 
+  $uri = entity_uri($registration->entity_type,
+      entity_load_single($registration->entity_type, $registration->entity_id));
   $form['actions']['cancel'] = array(
     '#type' => 'link',
     '#title' => t('Cancel'),
-    '#href' => 'node/' . $registration->nid,
+    '#href' => $uri['path'],
   );
 
   return $form;
@@ -85,7 +87,7 @@ function registration_form_validate($form, &$form_state) {
   $registration = $form_state['registration'];
 
   // verify the event hasn't sold out
-  if (!registration_has_room($registration->nid)) {
+  if (!registration_has_room($registration->entity_id, $registration->entity_type)) {
     drupal_set_message(t('Sorry, this event has sold out during your registration.'));
   }
 
@@ -96,7 +98,8 @@ function registration_form_validate($form, &$form_state) {
 	// check for duplicate registrations
 	else {
 		$query = db_select('registration', 'r')
-			->condition('nid', $registration->nid)
+			->condition('entity_id', $registration->entity_id)
+      ->condition('entity_type', $registration->entity_type)
 			->condition('mail', $form_state['values']['mail']);
 		
 		// exclude existing registration
@@ -133,7 +136,10 @@ function registration_form_submit($form, &$form_state) {
   // Save the registration and redirect to the tour node.
   if (registration_save($registration)) {
     drupal_set_message(t('Thanks you, your registration has been recieved!'));
-    $form_state['redirect'] = 'node/' . $registration->nid;
+    $uri = entity_uri($registration->entity_type,
+        entity_load_single($registration->entity_type, $registration->entity_id));
+
+    $form_state['redirect'] = $uri['path'];
   }
   else {
     drupal_set_message(t('Sorry, there has been a problem submitting your 

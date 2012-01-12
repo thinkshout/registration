@@ -60,7 +60,7 @@ function registration_menu() {
     'load arguments' => array('node'),
     'title' => 'Register',
     'page callback' => 'registration_register_page',
-    'page arguments' => array(1),
+    'page arguments' => array(0, 1),
     'access callback' => 'registration_register_page_access',
     'access arguments' => array(0, 1),
     'file' => 'includes/registration.forms.inc',
@@ -251,14 +251,17 @@ function registration_administer_registrations_access($entity_type, $entity) {
 /**
  * Page callback for adding a registration.
  */
-function registration_register_page($node) {
-  if (registration_has_room($node->nid)) {
-    $registration = entity_get_controller('registration')->create(array('type' => 'registration'));
-    $registration->nid = $node->nid;
+function registration_register_page($entity_type, $entity) {
+  list($entity_id, ,$bundle) = entity_extract_ids($entity_type, $entity);
+  if (registration_has_room($entity_id, $entity_type)) {
+    $registration_type = registration_get_entity_registration_type($entity_type, $bundle);
+    $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
+    $registration->entity_id = $entity_id;
+    $registration->entity_type = $entity_type;
     return drupal_get_form('registration_form', $registration);
   }
   else {
-    return t('Sorry, %name is sold out', array('%name' => $node->title));
+    return t('Sorry, %name is sold out', array('%name' => entity_label($entity_type, $entity)));
   }
 }
 
@@ -280,7 +283,7 @@ function registration_registrations_page($entity_type, $entity) {
 		array('data' => t('Actions')),
 	);
 
-  list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
+  list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
   $label = entity_label($entity_type, $entity);
 
   $query = new EntityFieldQuery;

@@ -578,8 +578,8 @@ function registration_cron() {
 		if (module_exists('token')) {
 			$message = token_replace($message, array($result->entity_type => $entity));
 		}
-		$subject = 'Reminder for ' . $entity->label();
-		registration_send_broadcast($entity, $subject, $message);
+		$subject = 'Reminder for ' . entity_label($result->entity_type, $entity);
+		registration_send_broadcast($result->entity_type, $result->entity_id, $subject, $message);
 		
 		// set reminder flag to off
 		db_update('registration_entity')
@@ -590,6 +590,14 @@ function registration_cron() {
 	}
 }
 
+/**
+ * Get the registration type for a given entity bundle.
+ *
+ * @param string $entity_type
+ * @param string $bundle
+ *
+ * @return string registration type
+ */
 function registration_get_entity_registration_type($entity_type, $bundle) {
   return variable_get("registration_{$entity_type}_{$bundle}_status", FALSE);
 }

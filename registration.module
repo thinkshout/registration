@@ -529,7 +529,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
   else {
     drupal_set_message(
       t('There are no participants registered for this %type.', 
-					array('%type' => $node->type)),
+					array('%type' => $entity_type)),
       $type = 'warning'
     );
   }

@@ -55,57 +55,62 @@ function registration_menu() {
     'file' => 'includes/registration.forms.inc',
   );
 
-  // node local tasks
-  $items['node/%entity_object/register'] = array(
-    'load arguments' => array('node'),
-    'title' => 'Register',
-    'page callback' => 'registration_register_page',
-    'page arguments' => array(0, 1),
-    'access callback' => 'registration_register_page_access',
-    'access arguments' => array(0, 1),
-    'file' => 'includes/registration.forms.inc',
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['node/%entity_object/registrations'] = array(
-    'load arguments' => array('node'),
-    'title' => 'Manage Registrations',
-    'page callback' => 'registration_registrations_page',
-    'page arguments' => array(0, 1),
-    'access callback' => 'registration_administer_registrations_access',
-    'access arguments' => array(0, 1),
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['node/%entity_object/registrations/list'] = array(
-    'load arguments' => array('node'),
-    'title' => 'Registrations',
-    'page callback' => 'registration_registrations_page',
-    'page arguments' => array(0, 1),
-    'access callback' => 'registration_administer_registrations_access',
-    'access arguments' => array(0, 1),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  $items['node/%entity_object/registrations/settings'] = array(
-    'load arguments' => array('node'),
-    'title' => 'Settings',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('registration_registrations_settings_form', 0, 1),
-    'access callback' => 'registration_administer_registrations_access',
-    'access arguments' => array(0, 1),
-    'file' => 'includes/registration.forms.inc',
-    'weight' => 9,
-    'type' => MENU_LOCAL_TASK,
-  );
-  $items['node/%entity_object/registrations/broadcast'] = array(
-    'load arguments' => array('node'),
-    'title' => 'Email Registrants',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('registration_registrations_broadcast_form', 1),
-    'access callback' => 'registration_administer_registrations_access',
-    'access arguments' => array(0, 1),
-    'file' => 'includes/registration.forms.inc',
-    'weight' => 10,
-    'type' => MENU_LOCAL_TASK,
-  );
+  // entity local tasks
+  $entities = entity_get_info();
+  foreach ($entities as $type => $data) {
+    if (!empty($data['bundles']) && !in_array($type, array('registration', 'registration_type'))) {
+      $items[$type . '/%entity_object/register'] = array(
+        'load arguments' => array($type),
+        'title' => 'Register',
+        'page callback' => 'registration_register_page',
+        'page arguments' => array(0, 1),
+        'access callback' => 'registration_register_page_access',
+        'access arguments' => array(0, 1),
+        'file' => 'includes/registration.forms.inc',
+        'type' => MENU_LOCAL_TASK,
+      );
+      $items[$type . '/%entity_object/registrations'] = array(
+        'load arguments' => array($type),
+        'title' => 'Manage Registrations',
+        'page callback' => 'registration_registrations_page',
+        'page arguments' => array(0, 1),
+        'access callback' => 'registration_administer_registrations_access',
+        'access arguments' => array(0, 1),
+        'type' => MENU_LOCAL_TASK,
+      );
+      $items[$type . '/%entity_object/registrations/list'] = array(
+        'load arguments' => array($type),
+        'title' => 'Registrations',
+        'page callback' => 'registration_registrations_page',
+        'page arguments' => array(0, 1),
+        'access callback' => 'registration_administer_registrations_access',
+        'access arguments' => array(0, 1),
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+      );
+      $items[$type . '/%entity_object/registrations/settings'] = array(
+        'load arguments' => array($type),
+        'title' => 'Settings',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('registration_registrations_settings_form', 0, 1),
+        'access callback' => 'registration_administer_registrations_access',
+        'access arguments' => array(0, 1),
+        'file' => 'includes/registration.forms.inc',
+        'weight' => 9,
+        'type' => MENU_LOCAL_TASK,
+      );
+      $items[$type . '/%entity_object/registrations/broadcast'] = array(
+        'load arguments' => array($type),
+        'title' => 'Email Registrants',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('registration_registrations_broadcast_form', 1),
+        'access callback' => 'registration_administer_registrations_access',
+        'access arguments' => array(0, 1),
+        'file' => 'includes/registration.forms.inc',
+        'weight' => 10,
+        'type' => MENU_LOCAL_TASK,
+      );
+    }
+  }
 
   return $items;
 }
@@ -174,9 +179,11 @@ function registration_page_view($registration, $view_mode = 'full') {
  */
 function registration_page_title($registration) {
   $title = '';
-  // use the node title in the registration page title
+  // use the entity title in the registration page title
   if ($entity = entity_load($registration->entity_type, $registration->entity_id)) {
-    $title = t('Registration for @title', array('@title' => $entity->label()));
+    $title = t('Registration for @title', array(
+      '@title' => entity_label($registration->entity_type, $entity))
+    );
   }
   return $title;
 }
@@ -361,7 +368,7 @@ function registration_has_room($entity_id, $entity_type) {
 }
 
 /**
- * Return the number of registrations for a given node.
+ * Return the number of registrations for a given entity.
  *
  * @param int $nid
  *
@@ -394,7 +401,7 @@ function registration_entity_delete($entity, $type) {
 }
 
 /**
- * Return all registration settings for a given node.
+ * Return all registration settings for a given entity.
  *
  * @param string $nid
  *
@@ -436,8 +443,11 @@ function registration_theme() {
 function theme_registration($variables) {
   $registration = $variables['registration'];
   $output = '<div><label>' . t('Email') . '</label>' . $registration->mail . '</div>';
-  if ($node = node_load($registration->nid)) {
-    $output .= '<div><label>' . $node->type . "</label>" . l($node->title, 'node/' . $registration->nid) . '</div>';
+  if ($entity = entity_load($registration->entity_type, $registration->entity_id)) {
+    $label = entity_label($registration->entity_type, $entity);
+    $uri = entity_uri($registration->entity_type, $entity);
+    $output .= '<div><label>' . $registration->entity_type . "</label>" .
+        l($label, $uri['path']) . '</div>';
   }
 
   $output .= '<div><label>' . t('Count') . '</label>' . $registration->count . '</div>';
@@ -457,23 +467,24 @@ function registration_mail($key, &$message, $params) {
 }
 
 /**
- * Send an email to all registrations for a given node.
+ * Send an email to all registrations for a given entity.
  *
- * @param object $node
+ * @param object $entity
  */
-function registration_send_broadcast($node, $subject, $message) {
+function registration_send_broadcast($entity_type, $entity_id, $subject, $message) {
   global $language;
-	
-	// grab registration node settings
-	$settings = registration_node_settings($node->nid);
+
+	// grab registration entity settings
+	$settings = registration_entity_settings($entity_id, $entity_type);
 	$from = $settings['settings']['from_address'];
-	
+
   // grab all registrations
   $query = new EntityFieldQuery();
   $entities = $query
 		->entityCondition('entity_type', 'registration')
 		->entityCondition('bundle', 'registration')
-		->propertyCondition('nid', $node->nid)
+		->propertyCondition('entity_id', $entity_id)
+    ->propertyCondition('entity_type', $entity_type)
 		->execute();
 
   if (!empty($entities)) {
@@ -525,16 +536,16 @@ function registration_send_broadcast($node, $subject, $message) {
 }
 
 /**
- * Update a node's registration settings.
+ * Update an entity's registration settings.
  *
  * @param int $nid 
  * @param array $settings
- * 		Associative array containing additional node registration settings.
+ * 		Associative array containing additional entity registration settings.
  *    Keys are status, capacity, send_reminder, reminder_date, reminder_template
- *    and an associatve array of additional settings.
+ *    and an associative array of additional settings.
  */
 function registration_update_entity_settings($entity_id, $entity_type, $settings) {
-	// insert or udpate registration node settings
+	// insert or update registration entity settings
 	db_merge('registration_entity')
     ->key(array(
       'entity_id' => $entity_id,

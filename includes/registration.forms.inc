@@ -199,9 +199,14 @@ function registration_delete_confirm_submit($form, &$form_state) {
 /**
  * Return a form for sending a broadcast email to participants.
  */
-function registration_registrations_broadcast_form($form, &$form_state, $node) {
-  $form_state['node'] = $node;
-	
+function registration_registrations_broadcast_form($form, &$form_state, $entity_type, $entity) {
+  // we'll need this info when we submit the form
+  list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
+  $form_state['entity'] = array(
+    'entity_id' => $entity_id,
+    'entity_type' => $entity_type
+  );
+
   $form['subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Subject'),
@@ -231,7 +236,8 @@ function registration_registrations_broadcast_form($form, &$form_state, $node) {
  */
 function registration_registrations_broadcast_form_submit($form, &$form_state) {
   registration_send_broadcast(
-    $form_state['node'],
+    $form_state['entity']['entity_type'],
+    $form_state['entity']['entity_id'],
     $form_state['values']['subject'],
     $form_state['values']['message']
   );

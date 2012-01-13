@@ -102,7 +102,7 @@ function registration_menu() {
         'load arguments' => array($type),
         'title' => 'Email Registrants',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('registration_registrations_broadcast_form', 1),
+        'page arguments' => array('registration_registrations_broadcast_form', 0, 1),
         'access callback' => 'registration_administer_registrations_access',
         'access arguments' => array(0, 1),
         'file' => 'includes/registration.forms.inc',
@@ -482,7 +482,6 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
   $query = new EntityFieldQuery();
   $entities = $query
 		->entityCondition('entity_type', 'registration')
-		->entityCondition('bundle', 'registration')
 		->propertyCondition('entity_id', $entity_id)
     ->propertyCondition('entity_type', $entity_type)
 		->execute();

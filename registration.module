@@ -168,7 +168,7 @@ function registration_admin_page() {
 }
 
 /**
- * Page for viewing a single registraiton.
+ * Page for viewing a single registration.
  */
 function registration_page_view($registration, $view_mode = 'full') {
   return entity_build_content('registration', $registration, $view_mode);
@@ -180,7 +180,7 @@ function registration_page_view($registration, $view_mode = 'full') {
 function registration_page_title($registration) {
   $title = '';
   // use the entity title in the registration page title
-  if ($entity = entity_load($registration->entity_type, $registration->entity_id)) {
+  if ($entity = entity_load_single($registration->entity_type, $registration->entity_id)) {
     $title = t('Registration for @title', array(
       '@title' => entity_label($registration->entity_type, $entity))
     );
@@ -443,7 +443,7 @@ function registration_theme() {
 function theme_registration($variables) {
   $registration = $variables['registration'];
   $output = '<div><label>' . t('Email') . '</label>' . $registration->mail . '</div>';
-  if ($entity = entity_load($registration->entity_type, $registration->entity_id)) {
+  if ($entity = entity_load_single($registration->entity_type, $registration->entity_id)) {
     $label = entity_label($registration->entity_type, $entity);
     $uri = entity_uri($registration->entity_type, $entity);
     $output .= '<div><label>' . $registration->entity_type . "</label>" .

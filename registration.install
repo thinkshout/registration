@@ -82,7 +82,7 @@ function registration_schema() {
       ),
     ),
 	  'unique keys' => array(
-	    'entity_id_mail' => array('entity_id', 'mail'),
+	    'entity_id_entity_type_mail' => array('entity_id', 'entity_type', 'mail'),
 	  ), 
     'primary key' => array('registration_id'),
   );
@@ -110,7 +110,7 @@ function registration_schema() {
         'default' => 0,
       ),
       'status' => array(
-        'description' => 'Boolean indicating if signups are open (1) or closed (0) for the given node',
+        'description' => 'Boolean indicating if signups are open (1) or closed (0) for the given entity',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,
@@ -139,12 +139,6 @@ function registration_schema() {
         'size' => 'big',
         'serialize' => TRUE,
         'description' => 'A serialized object that stores additional registration settings.',
-      ),
-    ),
-    'foreign keys' => array(
-      'registration_node_node' => array(
-        'table' => 'node',
-        'columns' => array('nid' => 'nid'),
       ),
     ),
     'primary key' => array('entity_id', 'entity_type'),

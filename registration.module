@@ -6,6 +6,7 @@
  */
 
 module_load_include('inc', 'registration', 'includes/registration.entity');
+module_load_include('inc', 'registration', 'includes/registration.field');
 
 /**
  * Implements hook_menu().

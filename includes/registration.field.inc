@@ -25,16 +25,7 @@ function registration_field_validate($entity_type, $entity, $field, $instance, $
 }
 
 /**
- * Define what constitutes an empty item for a field type.
- *
- * @param $item
- *   An item that may or may not be empty.
- * @param $field
- *   The field to which $item belongs.
- *
- * @return
- *   TRUE if $field's type considers $item not to contain any data;
- *   FALSE otherwise.
+ * Implements hook_field_is_empty().
  */
 function registration_field_is_empty($item, $field) {
   if (empty($item['registration_type']) && (string) $item['registration_type'] !== '') {
@@ -137,5 +128,65 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
   }
 
   return $element;
+}
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Hide the cardinality setting on the field settings for registration fields.
+ */
+function registration_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#field']['type'] == 'registration') {
+    $form['field']['cardinality']['#default_value'] = 1;
+    $form['field']['#access'] = FALSE;
+    $form['#validate'][] = 'registration_form_field_ui_field_edit_form_validate';
+  }
+}
+
+/**
+ * Validation handler for registration_form_field_ui_field_edit_form.
+ *
+ * Ensure cardinality is set to 1 on registration fields.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function registration_form_field_ui_field_edit_form_validate(&$form, &$form_state) {
+  if ($form['#field']['type'] == 'registration') {
+    if ($form_state['values']['field']['cardinality'] !== 1) {
+      form_set_error('cardinality', t('Cardinality on registration fields must be set to one.'));
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add a validation handler for registration_form_field_ui_field_overview_form().
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function registration_form_field_ui_field_overview_form_alter(&$form, &$form_state, $form_id) {
+  $form['#validate'][] = 'registration_form_field_ui_field_overview_form_validate';
+}
+
+/**
+ * Validation callback for registration_form_field_ui_field_overview_form().
+ *
+ * Ensure only one registration field is added per entity.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function registration_form_field_ui_field_overview_form_validate(&$form, &$form_state) {
+  $fields = $form_state['values']['fields'];
+  if ($fields['_add_new_field']['type'] == 'registration') {
+    foreach($form['#fields'] as $field_name) {
+      $field = field_info_field($field_name);
+      if ($field['type'] == 'registration') {
+        form_set_error('_add_new_field', t('An entity can only have one registration field.'));
+      }
+    }
+  }
 }

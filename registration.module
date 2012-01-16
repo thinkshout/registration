@@ -229,7 +229,7 @@ function registration_register_page_access($entity_type, $entity) {
 
   list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
 
-  if (registration_get_entity_registration_type($entity_type, $bundle)) {
+  if (registration_get_entity_registration_type($entity_type, $entity)) {
     if (user_access('administer registration') || user_access('add registration')) {
       $settings = registration_entity_settings($entity_id, $entity_type);
       if ($settings['status']) {
@@ -245,9 +245,8 @@ function registration_register_page_access($entity_type, $entity) {
  * Access callback for registration_registrations_page().
  */
 function registration_administer_registrations_access($entity_type, $entity) {
-  list(, , $bundle) = entity_extract_ids($entity_type, $entity);
   $ret = FALSE;
-  if (registration_get_entity_registration_type($entity_type, $bundle)) {
+  if (registration_get_entity_registration_type($entity_type, $entity)) {
     if (user_access('administer registration')) {
       $ret = TRUE;
     }
@@ -260,9 +259,9 @@ function registration_administer_registrations_access($entity_type, $entity) {
  * Page callback for adding a registration.
  */
 function registration_register_page($entity_type, $entity) {
-  list($entity_id, ,$bundle) = entity_extract_ids($entity_type, $entity);
+  list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
   if (registration_has_room($entity_id, $entity_type)) {
-    $registration_type = registration_get_entity_registration_type($entity_type, $bundle);
+    $registration_type = registration_get_entity_registration_type($entity_type, $entity);
     $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
     $registration->entity_id = $entity_id;
     $registration->entity_type = $entity_type;
@@ -591,13 +590,25 @@ function registration_cron() {
 }
 
 /**
- * Get the registration type for a given entity bundle.
+ * Get the registration type bundle for a given entity.
  *
  * @param string $entity_type
- * @param string $bundle
+ * @param object $entity
  *
  * @return string registration type
  */
-function registration_get_entity_registration_type($entity_type, $bundle) {
-  return variable_get("registration_{$entity_type}_{$bundle}_status", FALSE);
+function registration_get_entity_registration_type($entity_type, $entity) {
+  $ret = FALSE;
+  $fields = field_read_fields(array('type' => 'registration'));
+  foreach($fields as $field) {
+    if (isset($entity->{$field['field_name']})) {
+      $items = field_get_items($entity_type, $entity,$field['field_name']);
+      // we're assuming there's only a single value in this field
+      if (!empty($items) && count($items) == 1) {
+        $ret = $items[0]['registration_type'];
+      }
+    }
+  }
+
+  return $ret;
 }

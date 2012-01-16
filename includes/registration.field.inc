@@ -119,7 +119,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
         // enable registration link if accessible
         if (registration_register_page_access($entity_type, $entity)) {
           $uri = entity_uri($entity_type, $entity);
-          $element[0] = array('#markup' => l($reg_type->label, $uri['path']));
+          $element[0] = array('#markup' => l($reg_type->label, $uri['path']. '/register'));
         }
         break;
       case 'registration_form':

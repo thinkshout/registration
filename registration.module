@@ -149,38 +149,6 @@ function registration_page_title($registration) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
- * 	 Add registration options to node type form.
- */
-function registration_form_node_type_form_alter(&$form, &$form_state) {
-  $type = $form['#node_type']->type;
-
-  $form['registration'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Registration settings'),
-    '#group' => 'additional_settings',
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-  );
-
-  $form['registration']['registration_node_status'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable registrations for this content type'),
-    '#default_value' => variable_get('registration_node_status_' . $type, 0),
-    '#description' => t('If enabled, users will be allowed to register for this 
-			content type unless an administrator disbles registrations on specific 
-			posts.'),
-  );
-}
-
-/**
- * Implements hook_node_type_delete().
- */
-function registration_node_type_delete($info) {
-  variable_del('registration_node_status' . $info->type);
-}
-
-/**
  * Access callback for registration_register_page().
  */
 function registration_register_page_access($entity_type, $entity) {

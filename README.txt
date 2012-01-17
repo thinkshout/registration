@@ -7,7 +7,7 @@ Entity based registration system for Drupal.
 
 # Settings
 1. Enable: Turn registrations on / off for a given node.
-2. Capacity: The maximum number of regsitrants for a given node. Leave at 0 for no limit.
+2. Capacity: The maximum number of registrants for a given node. Leave at 0 for no limit.
 3. Allow Multiple: If selected, users can register for more than one slot for this event.
 
 # Usage / Features
@@ -30,7 +30,7 @@ Rules is a great companion for Registration to send confirmation emails, event n
 ## Registrants via [Field Collection](http://drupal.org/project/field_collection)
 Attaching a field collection field to a registration allows you to collect granular information for multiple registrants for a single registration. Here's how it works.
 
-1. Download and enbale Field Collection.
+1. Download and enable Field Collection.
 2. Add a field collection field to your registration entity.
 3. Add any fields that you want to collect to the field collection entity and configure widget and display settings. You might also want to consider field collection table to create tabular lists of registrants.
 

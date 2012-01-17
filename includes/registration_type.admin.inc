@@ -61,12 +61,12 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
 function registration_type_form_submit(&$form, &$form_state) {
   $registration_type = entity_ui_form_submit_build_entity($form, $form_state);
   $registration_type->save();
-  $form_state['redirect'] = 'admin/structure/registration/types';
+  $form_state['redirect'] = 'admin/structure/registration_types';
 }
 
 /**
  * Form API submit callback for the delete button.
  */
 function registration_type_form_submit_delete(&$form, &$form_state) {
-  $form_state['redirect'] = 'admin/structure/registration/types/manage/' . $form_state['registration_type']->type . '/delete';
+  $form_state['redirect'] = 'admin/structure/registration_types/manage/' . $form_state['registration_type']->type . '/delete';
 }

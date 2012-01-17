@@ -258,14 +258,22 @@ function registration_registrations_page($entity_type, $entity) {
         
     $table = array(
       'header' => $header,
-      'rows' => $rows,
-      'caption' => t('List of registrations for %title. !count of !capacity slots are filled.', 
+      'rows' => $rows
+    );
+    if ($settings['capacity'] != 0) {
+      $table['caption'] = t('List of registrations for %title. !count of !capacity slots are filled.', 
         array(
           '%title' => $label,
           '!count' => '<strong>' . registration_event_count($entity_id, $entity_type) . '</strong>',
           '!capacity' => '<strong>' . $settings['capacity'] . '</strong>'
-        ))
-    );
+        ));
+    } else {
+      $table['caption'] = t('List of registrations for %title. !count slots are filled.', 
+        array(
+          '%title' => $label,
+          '!count' => '<strong>' . registration_event_count($entity_id, $entity_type) . '</strong>',
+        ));
+    }
 
     $out = theme('table', $table) . theme('pager');
   }

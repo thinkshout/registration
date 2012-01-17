@@ -12,19 +12,6 @@ module_load_include('inc', 'registration', 'includes/registration.field');
  * Implements hook_menu().
  */
 function registration_menu() {
-  $items['admin/structure/registration/manage'] = array(
-    'title' => 'Registration',
-    'description' => 'Manage Registration structure',
-    'page callback' => 'registration_admin_page',
-    'access arguments' => array('administer registration'),
-
-  );
-  $items['admin/structure/registration/manage/settings'] = array(
-    'title' => 'Settings',
-    'description' => 'Manage Registration settings',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-
   $items['registration/%registration'] = array(
     'title callback' => 'registration_page_title',
     'title arguments' => array(1),
@@ -138,34 +125,6 @@ function registration_permission() {
       'title' => t('Add registrations'),
     ),
   );
-}
-
-/**
- * Landing page for managing the structure of registrations.
- */
-function registration_admin_page() {
-  $rows = array();
-  foreach (node_type_get_names() as $type => $name) {
-    $rows[] = array(
-      l($name, 'admin/structure/types/manage/' . $type),
-      (variable_get('registration_node_status_' . $type, 0)) ? t('Enabled') :
-      t('Disabled'),
-    );
-  }
-
-  $table = array(
-    'header' => array(t('Content type'), t('Registration status')),
-    'rows' => $rows,
-  );
-  $out = theme('table', $table);
-
-  return t('The following table lists the registration status for each content 
-		type. You can enable/disable registrations from the content type settings 
-		page. You can also !manage_fields and their !display_settings.', 
-		array(
-			'!manage_fields' => l('manage registration fields', 'admin/structure/registration/manage/fields'),
-			'!display_settings' => l('display settings', 'admin/structure/registration/manage/display'),
-		)) . $out;
 }
 
 /**

@@ -507,7 +507,7 @@ function registration_cron() {
     ->fetchAllAssoc('entity_id');
 
   foreach ($results as $result) {
-    $entity = entity_load($result->entity_id, $result->entity_type);
+    $entity = entity_load_single($result->entity_type, $result->entity_id);
     $message = $result->reminder_template;
     if (module_exists('token')) {
       $message = token_replace($message, array($result->entity_type => $entity));

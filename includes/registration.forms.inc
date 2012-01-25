@@ -464,6 +464,12 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
     form_set_error('settings][open_date', t('Open date must be before the close date.'));
   }
 
+  // if we're sending a reminder, ensure there's  template
+  if ($form_state['values']['send_reminder'] &&
+    empty($form_state['values']['reminder_template'])) {
+    form_set_error('reminder_template', t('You must provide a reminder template.'));
+  }
+
 }
 
 /**

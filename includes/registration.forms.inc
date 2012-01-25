@@ -372,6 +372,33 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
 				variable_get('site_mail', ini_get('sendmail_from')),
 	);
 	
+	// Open Date
+	$form['settings']['set_open_date'] = array(
+	  '#type' => 'checkbox',
+		'#title' => 'Set open date for registrations',
+		'#description' => 'If checked, registrations will not be allowed until the number of days set below.',
+	  '#default_value' => isset($settings['settings']['set_open_date']) ? $settings['settings']['set_open_date'] : -1,
+	);
+	
+	$open_date_value = 0;
+	if (isset($settings['settings']['open_date'])) {
+	  $open_diff =  strtotime($settings['settings']['open_date']) - strtotime($settings['event_date']);
+	  $open_date_value = floor($open_diff / 86400);
+	}
+	
+	$form['settings']['open_date'] = array(
+		'#type' => 'select',
+		'#title' => t('Open Date'),
+		'#description' => t('The number of days before the event date that registrations should open.'),
+		'#options' => drupal_map_assoc(range(-30, 0)),
+	  '#default_value' => $open_date_value,
+	  '#states' => array(
+		  'visible' => array(
+		    ':input[name="settings[set_open_date]"]' => array('checked' => TRUE),
+		  ),
+		)
+	);
+	
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save Settings'),

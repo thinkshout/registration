@@ -450,7 +450,15 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
 	// validate from address
 	if (!valid_email_address($form_state['values']['settings']['from_address'])) {
 		form_set_error('from', t('From email address is invalid.'));
-	}	
+	}
+	
+	// ensure that the open_date is before the close date, if both are set
+	$open = $form_state['values']['settings']['open_date'];
+	$close = $form_state['values']['settings']['close_date'];
+	if ( ($open < 0) && ($close < 0) && ($open > $close) ) {
+	  form_set_error('settings][open_date', t('Open date must be before the close date.'));
+	}
+	
 }
 
 /**

@@ -399,6 +399,33 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
 		)
 	);
 	
+	// Close Date
+	$form['settings']['set_close_date'] = array(
+	  '#type' => 'checkbox',
+		'#title' => 'Set close date for registrations',
+		'#description' => 'If checked, registrations will not be allowed after the number of days before the event that is set below.',
+	  '#default_value' => isset($settings['settings']['set_close_date']) ? $settings['settings']['set_close_date'] : -1,
+	);
+	
+	$close_date_value = 0;
+	if (isset($settings['settings']['close_date'])) {
+	  $close_diff =  strtotime($settings['settings']['close_date']) - strtotime($settings['event_date']);
+	  $close_date_value = floor($close_diff / 86400);
+	}
+	
+	$form['settings']['close_date'] = array(
+		'#type' => 'select',
+		'#title' => t('Close Date'),
+		'#description' => t('The number of days before the event date that registrations should close.'),
+		'#options' => drupal_map_assoc(range(-30, 0)),
+	  '#default_value' => $close_date_value,
+	  '#states' => array(
+		  'visible' => array(
+		    ':input[name="settings[set_close_date]"]' => array('checked' => TRUE),
+		  ),
+		)
+	);
+	
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save Settings'),
@@ -440,6 +467,12 @@ function registration_registrations_settings_form_submit($form, &$form_state) {
 	  $open_date = new DateTime($event_date);
     $open_date->modify('+' . $form_state['values']['settings']['open_date'] . ' day');
 		$form_state['values']['settings']['open_date'] = $open_date->format('Y-m-d');
+	}
+	
+	if ($form_state['values']['settings']['set_close_date']) {
+	  $close_date = new DateTime($event_date);
+    $close_date->modify('+' . $form_state['values']['settings']['close_date'] . ' day');
+		$form_state['values']['settings']['close_date'] = $close_date->format('Y-m-d');
 	}
 
   $fields = array(

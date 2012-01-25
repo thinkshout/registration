@@ -10,15 +10,15 @@
 function registration_form($form, &$form_state, $registration) {
   $form_state['registration'] = $registration;
 
-	// default email from existing registraiton or authenticted user
+  // default email from existing registraiton or authenticted user
   global $user;
-	$mail = '';
-	if (isset($registration->registration_id)) {
-		$mail = $registration->mail;
-	}
-	else if ($user->uid) {
-		$mail = $user->mail;
-	}
+  $mail = '';
+  if (isset($registration->registration_id)) {
+    $mail = $registration->mail;
+  }
+  else if ($user->uid) {
+    $mail = $user->mail;
+  }
 
   $form['mail'] = array(
     '#type' => 'textfield',
@@ -30,11 +30,13 @@ function registration_form($form, &$form_state, $registration) {
     '#required' => TRUE,
   );
 
-  $settings  = registration_entity_settings($registration->entity_id, $registration->entity_type);
+  $settings  = registration_entity_settings($registration->entity_id,
+    $registration->entity_type);
   $capacity  = $settings['capacity'];
   $remaining = 20;
   if ($capacity) {
-    $remaining = $capacity - registration_event_count($registration->entity_id, $registration->entity_type);
+    $remaining = $capacity - registration_event_count($registration->entity_id,
+      $registration->entity_type);
   }
   $options = array();
   for ($i = 1; $i < $remaining + 1; $i++) {
@@ -46,8 +48,8 @@ function registration_form($form, &$form_state, $registration) {
     '#description' => t('Select the number of registrations you want to create.'),
     '#options' => $options,
     '#default_value' => 1,
-		'#access' => isset($settings['settings']['multiple_registrations']) ? 
-				$settings['settings']['multiple_registrations'] : FALSE
+    '#access' => isset($settings['settings']['multiple_registrations']) ?
+        $settings['settings']['multiple_registrations'] : FALSE
   );
 
   field_attach_form('registration', $registration, $form, $form_state);
@@ -95,24 +97,24 @@ function registration_form_validate($form, &$form_state) {
   if (!valid_email_address($form_state['values']['mail'])) {
     form_set_error('mail', t('The email address is invalid.'));
   }
-	// check for duplicate registrations
-	else {
-		$query = db_select('registration', 'r')
-			->condition('entity_id', $registration->entity_id)
+  // check for duplicate registrations
+  else {
+    $query = db_select('registration', 'r')
+      ->condition('entity_id', $registration->entity_id)
       ->condition('entity_type', $registration->entity_type)
-			->condition('mail', $form_state['values']['mail']);
-		
-		// exclude existing registration
-		if (isset($registration->registration_id)) {
-			$query->condition('registration_id', $registration->registration_id, '<>');
-		}
+      ->condition('mail', $form_state['values']['mail']);
 
-		$count = $query->countQuery()->execute()->fetchField();		
-		if ($count > 0) {
-			form_set_error('mail', t('%mail is already registered for this event.', 
-				array('%mail' => $form_state['values']['mail'])));
-		}
-	}
+    // exclude existing registration
+    if (isset($registration->registration_id)) {
+      $query->condition('registration_id', $registration->registration_id, '<>');
+    }
+
+    $count = $query->countQuery()->execute()->fetchField();
+    if ($count > 0) {
+      form_set_error('mail', t('%mail is already registered for this event.',
+        array('%mail' => $form_state['values']['mail'])));
+    }
+  }
 
   // Notify field widgets to validate their data.
   field_attach_form_validate('registration', $registration, $form, $form_state);
@@ -143,7 +145,7 @@ function registration_form_submit($form, &$form_state) {
   }
   else {
     drupal_set_message(t('Sorry, there has been a problem submitting your 
-				registration.'));
+        registration.'));
   }
 }
 
@@ -169,7 +171,7 @@ function registration_delete_confirm($form, &$form_state, $registration) {
   // Always provide entity id in the same form key as in the entity edit form.
   $form['registration'] = array(
     '#type' => 'value',
-		'#value' => $registration,
+    '#value' => $registration,
   );
   return confirm_form($form,
     t('Are you sure you want to delete registration %title?',
@@ -274,158 +276,161 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
     '#type' => 'textfield',
     '#title' => t('Capacity'),
     '#description' => t('The maximum number of registrants for %name. Leave at 0
-	 			for no limit.', array('%name' => $label)),
+      for no limit.', array('%name' => $label)),
     '#size' => 5,
     '#maxlength' => 10,
-		'#required' => TRUE,
+    '#required' => TRUE,
     '#default_value' => isset($settings['capacity']) ? $settings['capacity'] : 0,
   );
-  
+
   $event_date = array();
-	if (isset($settings['event_date'])) {
-		$datetime = strtotime($settings['event_date']);
-		$event_date = array(
-			'year' => date('Y', $datetime),
-			'month' => date('n', $datetime),
-			'day' => date('d', $datetime),
-		);		
-	}
-	
+  if (isset($settings['event_date'])) {
+    $datetime = strtotime($settings['event_date']);
+    $event_date = array(
+      'year' => date('Y', $datetime),
+      'month' => date('n', $datetime),
+      'day' => date('d', $datetime),
+    );
+  }
+
   $form['event_date'] = array(
-		'#type' => 'date',
-		'#title' => 'Event Date',
-	  '#default_value' => $event_date,
-	);
+    '#type' => 'date',
+    '#title' => 'Event Date',
+    '#default_value' => $event_date,
+  );
 
-	$form['reminder'] = array(
-	  '#type' => 'fieldset',
-	  '#title' => t('Reminder'),
-	  '#collapsible' => TRUE,
-	  '#collapsed' => FALSE,
-	);
-	$form['reminder']['send_reminder'] = array(
-	  '#type' => 'checkbox',
-		'#title' => 'Send Reminder',
-		'#description' => 'If checked, a reminder will be sent to registrants on the day calculated by the reminder date.',
-	  '#default_value' => isset($settings['send_reminder']) ? $settings['send_reminder'] : -1,
-	);
+  $form['reminder'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Reminder'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['reminder']['send_reminder'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Send Reminder',
+    '#description' => 'If checked, a reminder will be sent to registrants on the day calculated by the reminder date.',
+    '#default_value' => isset($settings['send_reminder']) ? $settings['send_reminder'] : -1,
+  );
 
-	$form['reminder']['reminder_settings'] = array(
-	  '#type' => 'fieldset',
-	  '#title' => t('Settings'),
-	  '#collapsible' => FALSE,
-		'#states' => array(
-		  'visible' => array(
-		    ':input[name="send_reminder"]' => array('checked' => TRUE),
-		  ),
-		)
-	);
-	
-	$reminder_date_value = 0;
-	if (isset($settings['reminder_date'])) {
-	  $reminder_diff =  strtotime($settings['reminder_date']) - strtotime($settings['event_date']);
-	  $reminder_date_value = floor($reminder_diff / 86400);
-	}
-	
-	$form['reminder']['reminder_settings']['reminder_date'] = array(
-		'#type' => 'select',
-		'#title' => t('Reminder Date'),
-		'#description' => t('The reminder message will be sent this many days before or after the event date'),
-		'#options' => drupal_map_assoc(range(-30, 30)),
-	  '#default_value' => $reminder_date_value,
-	);	
-	$form['reminder']['reminder_settings']['reminder_template'] = array(
-		'#type' => 'textarea',
-		'#title' => 'Template',
-	  '#default_value' => isset($settings['reminder_template']) ? $settings['reminder_template'] : '',
-		'#description' => t('The reminder message sent to registrants. Tokens are supported if the module is enabled, E.g., [node:title].'),
-	);
-	// add token support
-	if (module_exists('token')) {
-	  $form['reminder']['reminder_settings']['token_tree'] = array(
-	    '#theme' => 'token_tree', 
-	    '#token_types' => array('node', 'content-type', 'current-page', 'registration'),
-			'#global_types' => FALSE,
-	  );
-	}
+  $form['reminder']['reminder_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Settings'),
+    '#collapsible' => FALSE,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="send_reminder"]' => array('checked' => TRUE),
+      ),
+    )
+  );
 
-	$form['settings'] = array(
-	  '#type' => 'fieldset',
-	  '#title' => t('Additional Settings'),
-	  '#collapsible' => TRUE,
-	  '#collapsed' => FALSE,
-		'#tree' => TRUE
-	);
-	$form['settings']['multiple_registrations'] = array(
-	  '#type' => 'checkbox',
-	  '#title' => t('Allow multiple registrations'),
-		'#description' => t('If selected, users can register for more than one slot for this event.'),
-	  '#default_value' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : -1,
-	);
-	$form['settings']['from_address'] = array(
-	  '#type' => 'textfield',
-	  '#title' => t('From Address'),
-		'#description' => t('From email address to use for confirmations, reminders, and broadcast emails.'),
-		'#required' => TRUE,
-	  '#default_value' => isset($settings['settings']['from_address']) ? 
-				$settings['settings']['from_address'] : 
-				variable_get('site_mail', ini_get('sendmail_from')),
-	);
-	
-	// Open Date
-	$form['settings']['set_open_date'] = array(
-	  '#type' => 'checkbox',
-		'#title' => 'Set open date for registrations',
-		'#description' => 'If checked, registrations will not be allowed until the number of days set below.',
-	  '#default_value' => isset($settings['settings']['set_open_date']) ? $settings['settings']['set_open_date'] : -1,
-	);
-	
-	$open_date_value = 0;
-	if (isset($settings['settings']['open_date'])) {
-	  $open_diff =  strtotime($settings['settings']['open_date']) - strtotime($settings['event_date']);
-	  $open_date_value = floor($open_diff / 86400);
-	}
-	
-	$form['settings']['open_date'] = array(
-		'#type' => 'select',
-		'#title' => t('Open Date'),
-		'#description' => t('The number of days before the event date that registrations should open.'),
-		'#options' => drupal_map_assoc(range(-30, 0)),
-	  '#default_value' => $open_date_value,
-	  '#states' => array(
-		  'visible' => array(
-		    ':input[name="settings[set_open_date]"]' => array('checked' => TRUE),
-		  ),
-		)
-	);
-	
-	// Close Date
-	$form['settings']['set_close_date'] = array(
-	  '#type' => 'checkbox',
-		'#title' => 'Set close date for registrations',
-		'#description' => 'If checked, registrations will not be allowed after the number of days before the event that is set below.',
-	  '#default_value' => isset($settings['settings']['set_close_date']) ? $settings['settings']['set_close_date'] : -1,
-	);
-	
-	$close_date_value = 0;
-	if (isset($settings['settings']['close_date'])) {
-	  $close_diff =  strtotime($settings['settings']['close_date']) - strtotime($settings['event_date']);
-	  $close_date_value = floor($close_diff / 86400);
-	}
-	
-	$form['settings']['close_date'] = array(
-		'#type' => 'select',
-		'#title' => t('Close Date'),
-		'#description' => t('The number of days before the event date that registrations should close.'),
-		'#options' => drupal_map_assoc(range(-30, 0)),
-	  '#default_value' => $close_date_value,
-	  '#states' => array(
-		  'visible' => array(
-		    ':input[name="settings[set_close_date]"]' => array('checked' => TRUE),
-		  ),
-		)
-	);
-	
+  $reminder_date_value = 0;
+  if (isset($settings['reminder_date'])) {
+    $reminder_diff =  strtotime($settings['reminder_date']) - strtotime($settings['event_date']);
+    $reminder_date_value = floor($reminder_diff / 86400);
+  }
+
+  $form['reminder']['reminder_settings']['reminder_date'] = array(
+    '#type' => 'select',
+    '#title' => t('Reminder Date'),
+    '#description' => t('The reminder message will be sent this many days before or after the event date'),
+    '#options' => drupal_map_assoc(range(-30, 30)),
+    '#default_value' => $reminder_date_value,
+  );
+  $form['reminder']['reminder_settings']['reminder_template'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Template',
+    '#default_value' => isset($settings['reminder_template']) ? $settings['reminder_template'] : '',
+    '#description' => t('The reminder message sent to registrants. Tokens are supported if the module is enabled, E.g., [node:title].'),
+  );
+  // add token support
+  if (module_exists('token')) {
+    $form['reminder']['reminder_settings']['token_tree'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array('node', 'content-type', 'current-page', 'registration'),
+      '#global_types' => FALSE,
+    );
+  }
+
+  $form['settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Additional Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE
+  );
+  $form['settings']['multiple_registrations'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow multiple registrations'),
+    '#description' => t('If selected, users can register for more than one slot for this event.'),
+    '#default_value' => isset($settings['settings']['multiple_registrations']) ?
+      $settings['settings']['multiple_registrations'] : -1,
+  );
+  $form['settings']['from_address'] = array(
+    '#type' => 'textfield',
+    '#title' => t('From Address'),
+    '#description' => t('From email address to use for confirmations, reminders, and broadcast emails.'),
+    '#required' => TRUE,
+    '#default_value' => isset($settings['settings']['from_address']) ?
+        $settings['settings']['from_address'] :
+        variable_get('site_mail', ini_get('sendmail_from')),
+  );
+
+  // Open Date
+  $form['settings']['set_open_date'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Set open date for registrations',
+    '#description' => 'If checked, registrations will not be allowed until the number of days set below.',
+    '#default_value' => isset($settings['settings']['set_open_date']) ?
+      $settings['settings']['set_open_date'] : -1,
+  );
+
+  $open_date_value = 0;
+  if (isset($settings['settings']['open_date'])) {
+    $open_diff =  strtotime($settings['settings']['open_date']) - strtotime($settings['event_date']);
+    $open_date_value = floor($open_diff / 86400);
+  }
+
+  $form['settings']['open_date'] = array(
+    '#type' => 'select',
+    '#title' => t('Open Date'),
+    '#description' => t('The number of days before the event date that registrations should open.'),
+    '#options' => drupal_map_assoc(range(-30, 0)),
+    '#default_value' => $open_date_value,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="settings[set_open_date]"]' => array('checked' => TRUE),
+      ),
+    )
+  );
+
+  // Close Date
+  $form['settings']['set_close_date'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Set close date for registrations',
+    '#description' => 'If checked, registrations will not be allowed after the number of days before the event that is set below.',
+    '#default_value' => isset($settings['settings']['set_close_date']) ?
+      $settings['settings']['set_close_date'] : -1,
+  );
+
+  $close_date_value = 0;
+  if (isset($settings['settings']['close_date'])) {
+    $close_diff =  strtotime($settings['settings']['close_date']) - strtotime($settings['event_date']);
+    $close_date_value = floor($close_diff / 86400);
+  }
+
+  $form['settings']['close_date'] = array(
+    '#type' => 'select',
+    '#title' => t('Close Date'),
+    '#description' => t('The number of days before the event date that registrations should close.'),
+    '#options' => drupal_map_assoc(range(-30, 0)),
+    '#default_value' => $close_date_value,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="settings[set_close_date]"]' => array('checked' => TRUE),
+      ),
+    )
+  );
+
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save Settings'),
@@ -441,24 +446,24 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
  * @param array $form_state
  */
 function registration_registrations_settings_form_validate($form, &$form_state) {
-	// ensure capacity is a positive integer
-	$capacity = $form_state['values']['capacity'];
-	if (!is_numeric($capacity) || ((int)$capacity != $capacity) || ($capacity < 0)) {
-		form_set_error('capacity', t('Capacity must be a positive integer.'));
-	}
-	
-	// validate from address
-	if (!valid_email_address($form_state['values']['settings']['from_address'])) {
-		form_set_error('from', t('From email address is invalid.'));
-	}
-	
-	// ensure that the open_date is before the close date, if both are set
-	$open = $form_state['values']['settings']['open_date'];
-	$close = $form_state['values']['settings']['close_date'];
-	if ( ($open < 0) && ($close < 0) && ($open > $close) ) {
-	  form_set_error('settings][open_date', t('Open date must be before the close date.'));
-	}
-	
+  // ensure capacity is a positive integer
+  $capacity = $form_state['values']['capacity'];
+  if (!is_numeric($capacity) || ((int)$capacity != $capacity) || ($capacity < 0)) {
+    form_set_error('capacity', t('Capacity must be a positive integer.'));
+  }
+
+  // validate from address
+  if (!valid_email_address($form_state['values']['settings']['from_address'])) {
+    form_set_error('from', t('From email address is invalid.'));
+  }
+
+  // ensure that the open_date is before the close date, if both are set
+  $open = $form_state['values']['settings']['open_date'];
+  $close = $form_state['values']['settings']['close_date'];
+  if ( ($open < 0) && ($close < 0) && ($open > $close) ) {
+    form_set_error('settings][open_date', t('Open date must be before the close date.'));
+  }
+
 }
 
 /**
@@ -469,34 +474,36 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
  */
 function registration_registrations_settings_form_submit($form, &$form_state) {
   $entity = $form_state['entity'];
-  $event_date = $form_state['values']['event_date']['year'] . '-' . $form_state['values']['event_date']['month'] . '-' . $form_state['values']['event_date']['day'];
+  $event_date = $form_state['values']['event_date']['year'] . '-' .
+    $form_state['values']['event_date']['month'] . '-' .
+    $form_state['values']['event_date']['day'];
 
-	if ($form_state['values']['settings']['set_open_date']) {
-	  $open_date = new DateTime($event_date);
+  if ($form_state['values']['settings']['set_open_date']) {
+    $open_date = new DateTime($event_date);
     $open_date->modify('+' . $form_state['values']['settings']['open_date'] . ' day');
-		$form_state['values']['settings']['open_date'] = $open_date->format('Y-m-d');
-	}
-	
-	if ($form_state['values']['settings']['set_close_date']) {
-	  $close_date = new DateTime($event_date);
+    $form_state['values']['settings']['open_date'] = $open_date->format('Y-m-d');
+  }
+
+  if ($form_state['values']['settings']['set_close_date']) {
+    $close_date = new DateTime($event_date);
     $close_date->modify('+' . $form_state['values']['settings']['close_date'] . ' day');
-		$form_state['values']['settings']['close_date'] = $close_date->format('Y-m-d');
-	}
+    $form_state['values']['settings']['close_date'] = $close_date->format('Y-m-d');
+  }
 
   $fields = array(
     'status' => $form_state['values']['status'], 
     'capacity' => $form_state['values']['capacity'],
     'event_date' => $event_date,
-		'send_reminder' => $form_state['values']['send_reminder'],
-		'settings' => serialize($form_state['values']['settings']),
+    'send_reminder' => $form_state['values']['send_reminder'],
+    'settings' => serialize($form_state['values']['settings']),
   );
-	if ($form_state['values']['send_reminder']) {
-	  $reminder_date = new DateTime($event_date);
+  if ($form_state['values']['send_reminder']) {
+    $reminder_date = new DateTime($event_date);
     $reminder_date->modify('+' . $form_state['values']['reminder_date'] . ' day');
-		$fields['reminder_date'] = $reminder_date->format('Y-m-d');
-		$fields['reminder_template'] = $form_state['values']['reminder_template'];
-	}
-	registration_update_entity_settings($entity['entity_id'], $entity['entity_type'], $fields);
+    $fields['reminder_date'] = $reminder_date->format('Y-m-d');
+    $fields['reminder_template'] = $form_state['values']['reminder_template'];
+  }
+  registration_update_entity_settings($entity['entity_id'], $entity['entity_type'], $fields);
 
   $uri = entity_uri($entity['entity_type'],
       entity_load_single($entity['entity_type'], $entity['entity_id']));

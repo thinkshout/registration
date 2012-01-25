@@ -81,9 +81,9 @@ function registration_schema() {
         'columns' => array('author_uid' => 'uid'),
       ),
     ),
-	  'unique keys' => array(
-	    'entity_id_entity_type_mail' => array('entity_id', 'entity_type', 'mail'),
-	  ), 
+    'unique keys' => array(
+      'entity_id_entity_type_mail' => array('entity_id', 'entity_type', 'mail'),
+    ),
     'primary key' => array('registration_id'),
   );
 
@@ -116,29 +116,29 @@ function registration_schema() {
         'default' => 1,
       ),
       'event_date' => array(
-	      'description' => 'Date of the event. Reminder, open and close dates are based on this.',
-				'mysql_type' => 'datetime',
-				'pgsql_type' => 'timestamp',
-	      'not null' => FALSE,
-	    ),
-	    'send_reminder' => array(
-	      'description' => 'Boolean indicating whether reminder emails should be sent. This is set to 0 once the reminders are sent.',
-	      'type' => 'int',
-	      'not null' => TRUE,
-	      'default' => 0,
-	    ),
-	    'reminder_date' => array(
-	      'description' => 'Date to send the reminder on.',
-				'mysql_type' => 'datetime',
-				'pgsql_type' => 'timestamp',
-	      'not null' => FALSE,
-	    ),
-	    'reminder_template' => array(
-	      'description' => 'Reminder email template.',
+        'description' => 'Date of the event. Reminder, open and close dates are based on this.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp',
+        'not null' => FALSE,
+      ),
+      'send_reminder' => array(
+        'description' => 'Boolean indicating whether reminder emails should be sent. This is set to 0 once the reminders are sent.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'reminder_date' => array(
+        'description' => 'Date to send the reminder on.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp',
+        'not null' => FALSE,
+      ),
+      'reminder_template' => array(
+        'description' => 'Reminder email template.',
         'type' => 'text',
         'size' => 'big',
-	      'not null' => FALSE,
-	    ),
+        'not null' => FALSE,
+      ),
       'settings' => array(
         'type' => 'blob',
         'not null' => TRUE,
@@ -244,5 +244,4 @@ function registration_field_schema($field) {
     'foreign keys' => $foreign_keys,
   );
 }
-
 

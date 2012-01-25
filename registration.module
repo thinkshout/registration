@@ -187,21 +187,22 @@ function registration_administer_registrations_access($entity_type, $entity) {
  */
 function registration_register_page($entity_type, $entity) {
   list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
-  
+
   if (!registration_is_open($entity_id, $entity_type)) {
-    return t('Sorry, %name is not accepting registrations', array('%name' => entity_label($entity_type, $entity)));
+    return t('Sorry, %name is not accepting registrations',
+      array('%name' => entity_label($entity_type, $entity)));
   }
-    
+
   if (!registration_has_room($entity_id, $entity_type)) {
     return t('Sorry, %name is sold out', array('%name' => entity_label($entity_type, $entity)));
   }
-  
+
   $registration_type = registration_get_entity_registration_type($entity_type, $entity);
   $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
   $registration->entity_id = $entity_id;
   $registration->entity_type = $entity_type;
   return drupal_get_form('registration_form', $registration);
-    
+
 }
 
 /**
@@ -233,7 +234,7 @@ function registration_registrations_page($entity_type, $entity) {
     ->pager(20)
     ->tableSort($header)
     ->execute();
-    
+
   if (!empty($result['registration'])) {
     $registrations = registration_load_multiple(array_keys($result['registration']));
 
@@ -260,7 +261,7 @@ function registration_registrations_page($entity_type, $entity) {
     }
 
     $settings = registration_entity_settings($entity_id, $entity_type);
-        
+
     $table = array(
       'header' => $header,
       'rows' => $rows
@@ -378,7 +379,7 @@ function registration_entity_settings($entity_id, $entity_type) {
   if ($result) {
     $result['settings'] = unserialize($result['settings']);   
   }
-  
+
   return $result;
 }
 
@@ -409,8 +410,10 @@ function theme_registration($variables) {
         l($label, $uri['path']) . '</div>';
   }
 
-  $output .= '<div><label>' . t('Count') . '</label>' . $registration->count . '</div>';
-  $output .= '<div><label>' . t('Created') . '</label>' . format_date($registration->created) . '</div>';
+  $output .= '<div><label>' . t('Count') . '</label>' .
+    $registration->count . '</div>';
+  $output .= '<div><label>' . t('Created') . '</label>' .
+    format_date($registration->created) . '</div>';
 
   return $output;
 }
@@ -520,7 +523,7 @@ function registration_update_entity_settings($entity_id, $entity_type, $settings
  */
 function registration_cron() {
   //@TODO: need to have a sensible batch limit, passed in as a limit param
-  
+
   // grab all registrations that have reminders set for this day
   $results = db_select('registration_entity', 're')
     ->fields('re')
@@ -537,8 +540,9 @@ function registration_cron() {
       $message = token_replace($message, array($result->entity_type => $entity));
     }
     $subject = 'Reminder for ' . entity_label($result->entity_type, $entity);
-    registration_send_broadcast($result->entity_type, $result->entity_id, $subject, $message);
-    
+    registration_send_broadcast($result->entity_type, $result->entity_id,
+      $subject, $message);
+
     // set reminder flag to off
     db_update('registration_entity')
       ->fields(array('send_reminder' => 0))

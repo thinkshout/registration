@@ -435,6 +435,13 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
 function registration_registrations_settings_form_submit($form, &$form_state) {
   $entity = $form_state['entity'];
   $event_date = $form_state['values']['event_date']['year'] . '-' . $form_state['values']['event_date']['month'] . '-' . $form_state['values']['event_date']['day'];
+
+	if ($form_state['values']['settings']['set_open_date']) {
+	  $open_date = new DateTime($event_date);
+    $open_date->modify('+' . $form_state['values']['settings']['open_date'] . ' day');
+		$form_state['values']['settings']['open_date'] = $open_date->format('Y-m-d');
+	}
+
   $fields = array(
     'status' => $form_state['values']['status'], 
     'capacity' => $form_state['values']['capacity'],

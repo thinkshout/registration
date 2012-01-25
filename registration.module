@@ -187,16 +187,21 @@ function registration_administer_registrations_access($entity_type, $entity) {
  */
 function registration_register_page($entity_type, $entity) {
   list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
-  if (registration_has_room($entity_id, $entity_type)) {
-    $registration_type = registration_get_entity_registration_type($entity_type, $entity);
-    $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
-    $registration->entity_id = $entity_id;
-    $registration->entity_type = $entity_type;
-    return drupal_get_form('registration_form', $registration);
+  
+  if (!registration_is_open($entity_id, $entity_type)) {
+    return t('Sorry, %name is not accepting registrations', array('%name' => entity_label($entity_type, $entity)));
   }
-  else {
+    
+  if (!registration_has_room($entity_id, $entity_type)) {
     return t('Sorry, %name is sold out', array('%name' => entity_label($entity_type, $entity)));
   }
+  
+  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+  $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
+  $registration->entity_id = $entity_id;
+  $registration->entity_type = $entity_type;
+  return drupal_get_form('registration_form', $registration);
+    
 }
 
 /**
@@ -317,6 +322,25 @@ function registration_event_count($entity_id, $entity_type) {
     )->fetchField();    
   }
   return $count;
+}
+
+/**
+ * Helper to determine if an entity is currently open.
+ */
+function registration_is_open($entity_id, $entity_type) {
+  $ret      = TRUE;
+  $settings = registration_entity_settings($entity_id, $entity_type);
+  $now = strtotime("today");
+  $set_open = $settings['settings']['set_open_date'];
+  $set_close = $settings['settings']['set_close_date'];
+  $open = strtotime($settings['settings']['open_date']);
+  $close = strtotime($settings['settings']['close_date']);
+
+  if ( (($set_open) && ($open > $now)) || (($set_close) &&  ($close < $now)) ) {
+    $ret = FALSE;
+  }
+
+  return $ret;
 }
 
 /**

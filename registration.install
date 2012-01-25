@@ -115,6 +115,12 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'event_date' => array(
+	      'description' => 'Date of the event. Reminder, open and close dates are based on this.',
+				'mysql_type' => 'datetime',
+				'pgsql_type' => 'timestamp',
+	      'not null' => FALSE,
+	    ),
 	    'send_reminder' => array(
 	      'description' => 'Boolean indicating whether reminder emails should be sent. This is set to 0 once the reminders are sent.',
 	      'type' => 'int',
@@ -238,3 +244,5 @@ function registration_field_schema($field) {
     'foreign keys' => $foreign_keys,
   );
 }
+
+

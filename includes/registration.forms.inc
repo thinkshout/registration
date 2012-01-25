@@ -280,6 +280,22 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
 		'#required' => TRUE,
     '#default_value' => isset($settings['capacity']) ? $settings['capacity'] : 0,
   );
+  
+  $event_date = array();
+	if (isset($settings['event_date'])) {
+		$datetime = strtotime($settings['event_date']);
+		$event_date = array(
+			'year' => date('Y', $datetime),
+			'month' => date('n', $datetime),
+			'day' => date('d', $datetime),
+		);		
+	}
+	
+  $form['event_date'] = array(
+		'#type' => 'date',
+		'#title' => 'Event Date',
+	  '#default_value' => $event_date,
+	);
 
 	$form['reminder'] = array(
 	  '#type' => 'fieldset',
@@ -290,19 +306,9 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
 	$form['reminder']['send_reminder'] = array(
 	  '#type' => 'checkbox',
 		'#title' => 'Send Reminder',
-		'#description' => 'If checked, a reminder will be sent to registrants on the following date.',
+		'#description' => 'If checked, a reminder will be sent to registrants on the day calculated by the reminder date.',
 	  '#default_value' => isset($settings['send_reminder']) ? $settings['send_reminder'] : -1,
 	);
-	
-	$reminder_date = array();
-	if (isset($settings['reminder_date'])) {
-		$datetime = strtotime($settings['reminder_date']);
-		$reminder_date = array(
-			'year' => date('Y', $datetime),
-			'month' => date('n', $datetime),
-			'day' => date('d', $datetime),
-		);		
-	}
 
 	$form['reminder']['reminder_settings'] = array(
 	  '#type' => 'fieldset',
@@ -313,11 +319,20 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
 		    ':input[name="send_reminder"]' => array('checked' => TRUE),
 		  ),
 		)
-	);	
+	);
+	
+	$reminder_date_value = 0;
+	if (isset($settings['reminder_date'])) {
+	  $reminder_diff =  strtotime($settings['reminder_date']) - strtotime($settings['event_date']);
+	  $reminder_date_value = floor($reminder_diff / 86400);
+	}
+	
 	$form['reminder']['reminder_settings']['reminder_date'] = array(
-		'#type' => 'date',
-		'#title' => 'Reminder Date',
-	  '#default_value' => $reminder_date,
+		'#type' => 'select',
+		'#title' => t('Reminder Date'),
+		'#description' => t('The reminder message will be sent this many days before or after the event date'),
+		'#options' => drupal_map_assoc(range(-30, 30)),
+	  '#default_value' => $reminder_date_value,
 	);	
 	$form['reminder']['reminder_settings']['reminder_template'] = array(
 		'#type' => 'textarea',
@@ -392,14 +407,18 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
  */
 function registration_registrations_settings_form_submit($form, &$form_state) {
   $entity = $form_state['entity'];
+  $event_date = $form_state['values']['event_date']['year'] . '-' . $form_state['values']['event_date']['month'] . '-' . $form_state['values']['event_date']['day'];
   $fields = array(
     'status' => $form_state['values']['status'], 
-    'capacity' => $form_state['values']['capacity'], 
+    'capacity' => $form_state['values']['capacity'],
+    'event_date' => $event_date,
 		'send_reminder' => $form_state['values']['send_reminder'],
 		'settings' => serialize($form_state['values']['settings']),
   );
 	if ($form_state['values']['send_reminder']) {
-		$fields['reminder_date'] = $form_state['values']['reminder_date']['year'] . '-' . $form_state['values']['reminder_date']['month'] . '-' . $form_state['values']['reminder_date']['day'];
+	  $reminder_date = new DateTime($event_date);
+    $reminder_date->modify('+' . $form_state['values']['reminder_date'] . ' day');
+		$fields['reminder_date'] = $reminder_date->format('Y-m-d');
 		$fields['reminder_template'] = $form_state['values']['reminder_template'];
 	}
 	registration_update_entity_settings($entity['entity_id'], $entity['entity_type'], $fields);

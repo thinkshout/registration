@@ -324,13 +324,14 @@ function registration_event_count($entity_id, $entity_type) {
  */
 function registration_is_open($settings) {
   $ret      = TRUE;
-  $now = strtotime("today");
-  $set_open = $settings['settings']['set_open_date'];
-  $set_close = $settings['settings']['set_close_date'];
-  $open = strtotime($settings['settings']['open_date']);
-  $close = strtotime($settings['settings']['close_date']);
 
-  if ( (($set_open) && ($open > $now)) || (($set_close) &&  ($close <= $now)) ) {
+  $open = $settings['settings']['open_date'];
+  $close = $settings['settings']['close_date'];
+
+  // number days between today and the event date
+  $now = floor((strtotime("today") - strtotime($settings['event_date'])) / 86400);
+
+  if ( ((isset($open)) && ($open > $now)) || ((isset($close)) &&  ($close <= $now)) ) {
     $ret = FALSE;
   }
 

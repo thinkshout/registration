@@ -375,21 +375,21 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
         $settings['settings']['from_address'] :
         variable_get('site_mail', ini_get('sendmail_from')),
   );
-  $form['settings']['open_date'] = array(
+  $form['settings']['open_relative_day'] = array(
     '#type' => 'select',
-    '#title' => t('Open Date'),
+    '#title' => t('Open Relative Day'),
     '#description' => t('The number of days before the event date that registrations should open.'),
     '#options' => drupal_map_assoc(array_merge(array('' => ''), range(-30, 0))),
-    '#default_value' => isset($settings['settings']['open_date']) ?
-      $settings['settings']['open_date'] : '',
+    '#default_value' => isset($settings['settings']['open_relative_day']) ?
+      $settings['settings']['open_relative_day'] : '',
   );
-  $form['settings']['close_date'] = array(
+  $form['settings']['close_relative_day'] = array(
     '#type' => 'select',
-    '#title' => t('Close Date'),
+    '#title' => t('Close Relative Day'),
     '#description' => t('The number of days before the event date that registrations should close.'),
     '#options' => drupal_map_assoc(array_merge(array('' => ''), range(-30, 0))),
-    '#default_value' => isset($settings['settings']['close_date']) ?
-      $settings['settings']['close_date'] : '',
+    '#default_value' => isset($settings['settings']['close_relative_day']) ?
+      $settings['settings']['close_relative_day'] : '',
   );
 
   $form['save'] = array(
@@ -418,11 +418,12 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
     form_set_error('from', t('From email address is invalid.'));
   }
 
-  // ensure that the open_date is before the close date, if both are set
-  $open = $form_state['values']['settings']['open_date'];
-  $close = $form_state['values']['settings']['close_date'];
-  if ( ($open < 0) && ($close < 0) && ($open > $close) ) {
-    form_set_error('settings][open_date', t('Open date must be before the close date.'));
+  // ensure that the open_relative_day is before the close date, if both are set
+  $open = $form_state['values']['settings']['open_relative_day'];
+  $close = $form_state['values']['settings']['close_relative_day'];
+
+  if ( ($open !== '') && ($close !== '') && ($open >= $close) ) {
+    form_set_error('settings][open_relative_day', t('Open relative day must be before the close relative day.'));
   }
 
   // if we're sending a reminder, ensure there's  template

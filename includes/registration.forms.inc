@@ -333,7 +333,7 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
   $form['reminder']['reminder_settings']['reminder_date'] = array(
     '#type' => 'select',
     '#title' => t('Reminder Date'),
-    '#description' => t('The reminder message will be sent this many days before or after the event date'),
+    '#description' => t('The reminder message will be sent this many days before or after the event date. Negative numbers indicate days before the event date and positive numbers indicate days after the event date.'),
     '#options' => drupal_map_assoc(range(-30, 30)),
     '#default_value' => $reminder_date_value,
   );

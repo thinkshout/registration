@@ -296,6 +296,7 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
   $form['event_date'] = array(
     '#type' => 'date',
     '#title' => 'Event Date',
+    '#description' => t('The primary date for the registration. Reminder, open, and close dates are calculated from this value. Typically the actual date of an event.'),
     '#default_value' => $event_date,
   );
 
@@ -308,7 +309,7 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
   $form['reminder']['send_reminder'] = array(
     '#type' => 'checkbox',
     '#title' => 'Send Reminder',
-    '#description' => 'If checked, a reminder will be sent to registrants on the day calculated by the reminder date.',
+    '#description' => t('If checked, a reminder will be sent to registrants on the day calculated by the reminder date.'),
     '#default_value' => isset($settings['send_reminder']) ? $settings['send_reminder'] : -1,
   );
 

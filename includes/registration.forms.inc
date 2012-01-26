@@ -378,7 +378,7 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
   $form['settings']['open_relative_day'] = array(
     '#type' => 'select',
     '#title' => t('Relative Day to Open Registrations'),
-    '#description' => t('The number of days before the event date that registrations should open. Registrations will be allowed on the date selected.'),
+    '#description' => t('The number of days before the event date that registrations should open. Registrations will be allowed on the day selected.'),
     '#options' => drupal_map_assoc(array_merge(array('' => ''), range(-30, 0))),
     '#default_value' => isset($settings['settings']['open_relative_day']) ?
       $settings['settings']['open_relative_day'] : '',
@@ -386,7 +386,7 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
   $form['settings']['close_relative_day'] = array(
     '#type' => 'select',
     '#title' => t('Relative Day to Close Registrations'),
-    '#description' => t('The number of days before the event date that registrations should close. Registrations will be closed on the date selected.'),
+    '#description' => t('The number of days before the event date that registrations should close. Registrations will be closed on the day selected.'),
     '#options' => drupal_map_assoc(array_merge(array('' => ''), range(-30, 0))),
     '#default_value' => isset($settings['settings']['close_relative_day']) ?
       $settings['settings']['close_relative_day'] : '',

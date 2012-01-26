@@ -330,7 +330,7 @@ function registration_is_open($settings) {
   $open = strtotime($settings['settings']['open_date']);
   $close = strtotime($settings['settings']['close_date']);
 
-  if ( (($set_open) && ($open > $now)) || (($set_close) &&  ($close < $now)) ) {
+  if ( (($set_open) && ($open > $now)) || (($set_close) &&  ($close <= $now)) ) {
     $ret = FALSE;
   }
 

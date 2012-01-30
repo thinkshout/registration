@@ -191,9 +191,10 @@ function registration_delete_confirm_submit($form, &$form_state) {
     registration_delete_multiple(array($registration->registration_id));
     watchdog('registration', 'Registration %id deleted.', array('%id' => $registration->registration_id));
     drupal_set_message(t('Registration %id has been deleted.', array('%id' => $registration->registration_id)));
-  }
 
-  $form_state['redirect'] = 'node/' . $registration->nid;
+    $uri = entity_uri('registration', $registration);
+    $form_state['redirect'] = $uri['path'];
+  }
 }
 
 /**

@@ -138,7 +138,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
 function registration_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
   if ($form['#field']['type'] == 'registration') {
     $form['field']['cardinality']['#default_value'] = 1;
-    $form['field']['#access'] = FALSE;
+    $form['field']['cardinality']['#access'] = FALSE;
     $form['#validate'][] = 'registration_form_field_ui_field_edit_form_validate';
   }
 }

@@ -381,7 +381,7 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
 	
 	// validate from address
 	if (!valid_email_address($form_state['values']['settings']['from_address'])) {
-		form_set_error('from', t('From email address is invalid.'));
+		form_set_error('settings][from_address', t('From email address is invalid.'));
 	}	
 }
 

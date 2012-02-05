@@ -158,10 +158,10 @@ function registration_page_view($registration, $view_mode = 'full') {
 /**
  * Page title callback.
  */
-function registration_page_title($registration) {
+function registration_page_title(RegistrationEntity $registration) {
   $title = '';
   // use the entity title in the registration page title
-  if ($entity = entity_load_single($registration->entity_type, $registration->entity_id)) {
+  if ($entity = $registration->entity) {
     $title = t('Registration for @title', array(
       '@title' => entity_label($registration->entity_type, $entity))
     );

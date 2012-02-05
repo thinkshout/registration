@@ -399,7 +399,7 @@ function registration_theme() {
 function theme_registration($variables) {
   $registration = $variables['registration'];
   $output = '<div><label>' . t('Email') . '</label>' . $registration->mail . '</div>';
-  if ($entity = entity_load_single($registration->entity_type, $registration->entity_id)) {
+  if ($entity = $registration->entity) {
     $label = entity_label($registration->entity_type, $entity);
     $uri = entity_uri($registration->entity_type, $entity);
     $output .= '<div><label>' . $registration->entity_type . "</label>" .

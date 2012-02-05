@@ -190,3 +190,33 @@ function registration_form_field_ui_field_overview_form_validate(&$form, &$form_
     }
   }
 }
+
+/**
+ * Implements hook_field_create_instance().
+ */
+function registration_field_create_instance($instance) {
+  // rebuild menu to recognize registration paths.
+  _registration_menu_rebuild($instance);
+}
+
+
+/**
+ * Implements hook_field_delete_instance().
+ */
+function registration_field_delete_instance($instance) {
+  // remove registration paths from menu router
+  _registration_menu_rebuild($instance);
+}
+
+/**
+ * Rebuild the menu for a given registraiton field instance.
+ *
+ * @param $instance
+ *   Field instance being added or deleted.
+ */
+function _registration_menu_rebuild($instance) {
+  $registration_fields = field_read_fields(array('type' => 'registration'));
+  if (in_array($instance['field_name'], array_keys($registration_fields))) {
+    menu_rebuild();
+  }
+}

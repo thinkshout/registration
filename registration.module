@@ -44,9 +44,13 @@ function registration_menu() {
   );
 
   // entity local tasks
-  $entities = entity_get_info();
-  foreach ($entities as $type => $data) {
-    if (!empty($data['bundles']) && !in_array($type, array('registration', 'registration_type'))) {
+  $registration_fields = field_read_fields(array('type' => 'registration'));
+  $registration_instances = field_read_instances(array(
+    'field_name' => array_keys($registration_fields)
+  ));
+  foreach ($registration_instances as $instance) {
+    $type = $instance['entity_type'];
+    if (!in_array($type, array('registration', 'registration_type'))) {
       $items[$type . '/%entity_object/register'] = array(
         'load arguments' => array($type),
         'title' => 'Register',

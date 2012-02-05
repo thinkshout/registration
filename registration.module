@@ -564,3 +564,13 @@ function registration_get_entity_registration_type($entity_type, $entity) {
 
   return $ret;
 }
+
+/**
+ * Implements hook_views_api().
+ */
+function registration_views_api() {
+  return array(
+    'api' => 2, 
+    'path' => drupal_get_path('module', 'registration') . '/includes/views',
+  );
+}

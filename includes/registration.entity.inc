@@ -15,6 +15,7 @@ function registration_entity_info() {
       'plural label' => t('Registrations'),
       'controller class' => 'EntityAPIController',
       'entity class' => 'RegistrationEntityClass',
+      'views controller class' => 'RegistrationViewsController',
       'base table' => 'registration',
       'fieldable' => TRUE,
       'entity keys' => array(

@@ -8,3 +8,6 @@ dependencies[] = entity
 files[] = includes/registration.entity.inc
 files[] = includes/registration.forms.inc
 files[] = includes/registration.field.inc
+files[] = includes/registration.views.inc
+
+files[] = includes/views/registration_handler_relationship.inc

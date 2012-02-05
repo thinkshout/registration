@@ -574,3 +574,33 @@ function registration_views_api() {
     'path' => drupal_get_path('module', 'registration') . '/includes/views',
   );
 }
+
+/**
+ * Implement hook_token_info().
+ */
+function registration_token_info() {
+  $registration['entity'] = array(
+    'name' => t("Registration Host Entity"),
+    'description' => t("The host entity for the registration."),
+  );
+  return array(
+    'types' => array(),
+    'tokens' => array('registration' => $registration),
+  );
+}
+
+
+/**
+ * Implements hook_tokens().
+ */
+function registration_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  if ($type == 'registration' && !empty($data['registration'])) {
+    $registration = $data['registration'];
+    $wrapper = entity_metadata_wrapper('registration', $data['registration']);
+
+    if ($entity_tokens = token_find_with_prefix($tokens, 'entity')) {
+      $entity = $wrapper->entity->value();
+      return token_generate($registration->entity_type, $entity_tokens, array($registration->entity_type => $entity), $options);
+    }
+  }
+}

@@ -102,8 +102,13 @@ function registration_uri($registration) {
  */
 class RegistrationEntity extends Entity {
 
+  public $entity, $author;
+
   public function __construct(array$values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
+
+    $this->author = $this->author();
+    $this->entity = $this->entity();
   }
 
   /**
@@ -128,7 +133,11 @@ class RegistrationEntity extends Entity {
   }
 
   public function entity() {
-    return entity_load_single($this->entity_type, $this->entity_id);
+    $ret = FALSE;
+    if (isset($this->entity_id) && isset($this->entity_type)) {
+      $ret = entity_load_single($this->entity_type, $this->entity_id);
+    }
+    return $ret;
   }
 
   public function author() {

@@ -70,7 +70,7 @@ function registration_form($form, &$form_state, $registration) {
   }
 
   $uri = entity_uri($registration->entity_type,
-      entity_load_single($registration->entity_type, $registration->entity_id));
+      $registration->entity);
   $form['actions']['cancel'] = array(
     '#type' => 'link',
     '#title' => t('Cancel'),
@@ -136,8 +136,7 @@ function registration_form_submit($form, &$form_state) {
   // Save the registration and redirect to the tour node.
   if (registration_save($registration)) {
     drupal_set_message(t('Thanks you, your registration has been recieved!'));
-    $uri = entity_uri($registration->entity_type,
-        entity_load_single($registration->entity_type, $registration->entity_id));
+    $uri = entity_uri($registration->entity_type, $registration->entity);
 
     $form_state['redirect'] = $uri['path'];
   }

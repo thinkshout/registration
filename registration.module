@@ -213,6 +213,7 @@ function registration_register_page($entity_type, $entity) {
     $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
     $registration->entity_id = $entity_id;
     $registration->entity_type = $entity_type;
+    $registration->entity = entity_load_single($entity_type, $entity_id);
     return drupal_get_form('registration_form', $registration);
   }
   else {

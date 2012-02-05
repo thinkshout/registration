@@ -15,6 +15,7 @@ function registration_entity_info() {
       'plural label' => t('Registrations'),
       'controller class' => 'EntityAPIController',
       'entity class' => 'RegistrationEntityClass',
+      'metadata controller class' => 'RegistrationMetadataController',
       'views controller class' => 'RegistrationViewsController',
       'base table' => 'registration',
       'fieldable' => TRUE,
@@ -125,37 +126,62 @@ class RegistrationEntityClass extends Entity {
     $type = entity_test_get_types($this->name);
     return $type->label;
   }
+
+  public function entity() {
+    return entity_load_single($this->entity_type, $this->entity_id);
+  }
+
+  public function author() {
+    return (isset($this->author_uid)) ? user_load($this->author_uid) : FALSE;
+  }
 }
 
 /**
- * Implements hook_entity_property_info_alter().
+ * @see hook_entity_property_info().
  */
-function registration_entity_property_info_alter(&$info) {
-  $properties = &$info['registration']['properties'];
+class RegistrationMetadataController extends EntityDefaultMetadataController {
+  public function entityPropertyInfo() {
+    $info = parent::entityPropertyInfo();
+    $properties = &$info[$this->type]['properties'];
 
-  // Convert timestamps props to dates
-  $properties['created'] = array(
-    'label' => t("Created"),
-    'description' => t("The date the registration was created."),
-    'type' => 'date',
-    'schema field' => 'created',
-  );
-  $properties['updated'] = array(
-    'label' => t("Updated"),
-    'description' => t("The date the registration was updated."),
-    'type' => 'date',
-    'schema field' => 'updated',
-  );
-  // convert author uid to a drupal user
-  $properties['author'] = array(
-    'label' => t('Registration Author'),
-    'description' => t('Drupal user who created this registration.'),
-    'type' => 'user',
-    'schema field' => 'author_uid'
-  );
+    $properties['created'] = array(
+      'label' => t("Created"),
+      'description' => t("The date the registration was created."),
+      'type' => 'date',
+      'schema field' => 'created',
+    );
+    $properties['updated'] = array(
+      'label' => t("Updated"),
+      'description' => t("The date the registration was updated."),
+      'type' => 'date',
+      'schema field' => 'updated',
+    );
+    $properties['entity'] = array(
+      'label' => t('Entity'),
+      'type' => 'entity',
+      'schema field' => 'entity_id',
+      'description' => t('The entity the registration belongs to.'),
+      'getter callback' => 'registration_get_properties',
+    );
+    $properties['author'] = array(
+      'label' => t("Author"),
+      'type' => 'user',
+      'description' => t("The author of the registration."),
+      'schema field' => 'author_uid'
+    );
 
-  return $info;
+    return $info;
+  }
 }
+
+function registration_get_properties($entity, array $options, $name, $type) {
+  switch ($name) {
+    case 'entity':
+      return entity_metadata_wrapper($entity->entity_type, entity_load_single($entity->entity_type, $entity->entity_id));
+      break;
+  }
+}
+
 
 /**
  * Loads a registration by ID.

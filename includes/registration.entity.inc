@@ -217,7 +217,7 @@ function registration_load($registration_id) {
  *   Whether to reset the internal registration loading cache.
  *
  * @return
- *   An array of contact objects indexed by registration_id.
+ *   An array of registration objects indexed by registration_id.
  */
 function registration_load_multiple($registration_ids = array(), $conditions = array(), $reset = FALSE) {
   if (empty($registration_ids) && empty($conditions)) {
@@ -250,7 +250,7 @@ function registration_delete_multiple($registration_ids) {
  * Saves a registration.
  *
  * @param $registration
- *   The full contact object to save.
+ *   The full registration object to save.
  *
  * @return
  *   The saved registration object.

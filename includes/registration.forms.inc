@@ -124,7 +124,7 @@ function registration_form_validate($form, &$form_state) {
 function registration_form_submit($form, &$form_state) {
   $registration = $form_state['registration'];
 
-  // Set the contact's author uid
+  // Set the registration's author uid
   global $user;
   $registration->author_uid = $user->uid;
   $registration->mail = $form_state['values']['mail'];

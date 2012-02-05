@@ -14,7 +14,7 @@ function registration_entity_info() {
       'label' => t('Registration'),
       'plural label' => t('Registrations'),
       'controller class' => 'EntityAPIController',
-      'entity class' => 'RegistrationEntityClass',
+      'entity class' => 'RegistrationEntity',
       'metadata controller class' => 'RegistrationMetadataController',
       'views controller class' => 'RegistrationViewsController',
       'base table' => 'registration',
@@ -100,7 +100,7 @@ function registration_uri($registration) {
 /**
  * Main class for test entities.
  */
-class RegistrationEntityClass extends Entity {
+class RegistrationEntity extends Entity {
 
   public function __construct(array$values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);

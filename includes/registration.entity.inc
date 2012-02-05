@@ -145,6 +145,13 @@ function registration_entity_property_info_alter(&$info) {
     'type' => 'date',
     'schema field' => 'updated',
   );
+  // convert author uid to a drupal user
+  $properties['author'] = array(
+    'label' => t('Registration Author'),
+    'description' => t('Drupal user who created this registration.'),
+    'type' => 'user',
+    'schema field' => 'author_uid'
+  );
 
   return $info;
 }

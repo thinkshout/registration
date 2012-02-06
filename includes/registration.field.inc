@@ -125,6 +125,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
           $registration = entity_get_controller('registration')->create(array('type' => $reg_type->name));
           $registration->entity_id = $entity_id;
           $registration->entity_type = $entity_type;
+          $registration->entity = entity_load_single($entity_type, $entity_id);
           $element[0] = drupal_get_form('registration_form', $registration);
         }
         break;

@@ -386,7 +386,10 @@ function registration_entity_settings($entity_id, $entity_type) {
 function registration_theme() {
   return array(
     'registration' => array(
-      'arguments' => array('registration' => NULL),
+      'variables' => array('registration' => NULL),
+    ),
+    'registration_link' => array(
+      'variables' => array('label' => NULL, 'path' => NULL),
     ),
   );
 }
@@ -409,6 +412,22 @@ function theme_registration($variables) {
 
   $output .= '<div><label>' . t('Count') . '</label>' . $registration->count . '</div>';
   $output .= '<div><label>' . t('Created') . '</label>' . format_date($registration->created) . '</div>';
+
+  return $output;
+}
+
+/**
+ * Theme handler for registration links.
+ *
+ * @param array $variables
+ *   Contains the label and path for the link.
+ */
+function theme_registration_link($variables) {
+  $output = '';
+  $registration_label = $variables['label'];
+  $registration_path = $variables['path'];
+  
+  $output .= l($registration_label, $registration_path);
 
   return $output;
 }

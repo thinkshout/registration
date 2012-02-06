@@ -206,6 +206,8 @@ function registration_field_create_instance($instance) {
 function registration_field_delete_instance($instance) {
   // remove registration paths from menu router
   _registration_menu_rebuild($instance);
+
+  // @TODO: should we delete all registrations at this point?
 }
 
 /**

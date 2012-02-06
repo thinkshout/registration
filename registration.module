@@ -609,3 +609,26 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
     }
   }
 }
+
+/**
+ * Determine is a given email is already registered for an event.
+ *
+ * @param RegistrationEntity $registration
+ * @param string $mail
+ *
+ * @return bool
+ */
+function registration_is_registered(RegistrationEntity $registration, $mail) {
+  $query = db_select('registration', 'r')
+			->condition('entity_id', $registration->entity_id)
+      ->condition('entity_type', $registration->entity_type)
+			->condition('mail', $mail);
+
+  // exclude existing registration
+  if (isset($registration->registration_id)) {
+    $query->condition('registration_id', $registration->registration_id, '<>');
+  }
+
+  $count = $query->countQuery()->execute()->fetchField();
+  return $count > 0;
+}

@@ -125,8 +125,11 @@ function registration_form_submit($form, &$form_state) {
   $registration = $form_state['registration'];
 
   // Set the registration's author uid
-  global $user;
-  $registration->author_uid = $user->uid;
+  if (!isset($registration->registration_id)) {
+    global $user;
+    $registration->author_uid = $user->uid;
+  }
+
   $registration->mail = $form_state['values']['mail'];
   $registration->count = $form_state['values']['count'];
 

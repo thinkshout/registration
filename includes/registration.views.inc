@@ -19,10 +19,7 @@ class RegistrationViewsController extends EntityDefaultViewsController {
  * Create relationships between registrations, and their related entities.
  */
 function registration_views_data_alter(&$data) {
-  $registration_fields = field_read_fields(array('type' => 'registration'));
-  $registration_instances = field_read_instances(array(
-    'field_name' => array_keys($registration_fields)
-  ));
+  $registration_instances =  registration_get_registration_instances();
   $entity_info = entity_get_info();
 
   foreach ($registration_instances as $instance) {

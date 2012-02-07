@@ -44,11 +44,7 @@ function registration_menu() {
   );
 
   // entity local tasks
-  $registration_fields = field_read_fields(array('type' => 'registration'));
-  $registration_instances = field_read_instances(array(
-    'field_name' => array_keys($registration_fields)
-  ));
-  foreach ($registration_instances as $instance) {
+  foreach (registration_get_registration_instances() as $instance) {
     $type = $instance['entity_type'];
     if (!in_array($type, array('registration', 'registration_type'))) {
       $items[$type . '/%entity_object/register'] = array(
@@ -587,6 +583,24 @@ function registration_get_entity_registration_type($entity_type, $entity) {
   }
 
   return $ret;
+}
+
+/**
+ * Return all registration field instances.
+ * 
+ * @return array list of field instances
+ */
+function registration_get_registration_instances() {
+  $registration_fields = field_read_fields(array('type' => 'registration'));
+
+  $registration_instances = array();
+  if (!empty($registration_fields)) {
+    $registration_instances = field_read_instances(array(
+      'field_name' => array_keys($registration_fields)
+    ));
+  }
+
+  return $registration_instances;
 }
 
 /**

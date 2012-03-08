@@ -110,7 +110,7 @@ class RegistrationEntity extends Entity {
     $created,
     $updated;
 
-  public function __construct(array$values = array(), $entityType = NULL) {
+  public function __construct(array $values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
 
     $this->author = $this->author();

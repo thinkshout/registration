@@ -125,7 +125,7 @@ function registration_form_submit($form, &$form_state) {
   // Notify field widgets.
   field_attach_submit('registration', $registration, $form, $form_state);
 
-  // Save the registration and redirect to the tour node.
+  // Save the registration and redirect to the parent entity.
   if (registration_save($registration)) {
     drupal_set_message(t('Thanks you, your registration has been recieved!'));
     $uri = entity_uri($registration->entity_type, $registration->entity);
@@ -210,7 +210,10 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
   $form['message'] = array(
     '#type' => 'textarea',
     '#title' => t('Message'),
-    '#description' => t('Enter the message you want to send to this tour\'s participants.'),
+    '#description' => t(
+      'Enter the message you want to send to @name registrants.',
+      array('@name' => entity_label($entity_type, $entity))
+    ),
     '#required' => TRUE,
     '#cols' => 60,
     '#rows' => 5,

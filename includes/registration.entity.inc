@@ -23,6 +23,7 @@ function registration_entity_info() {
         'id' => 'registration_id',
         'bundle' => 'type',
       ),
+      'access callback' => 'registration_entity_access',
       'bundle keys' => array(
         'bundle' => 'name',
       ),
@@ -280,6 +281,28 @@ function registration_save($registration) {
 }
 
 /**
+ * Access callback for the entity API.
+ */
+function registration_entity_access($op, $entity_type, $entity = NULL, $account = NULL) {
+  switch ($op) {
+    case 'view':
+      return user_access('view registration', $account) ||
+        user_access('administer registration', $account);
+    case 'update':
+      return ($entity->author->uid == $account->uid) ||
+        user_access('administer registration', $account);
+    case 'create':
+      return user_access('add registration', $account) ||
+        user_access('administer registration', $account);
+    case 'delete':
+      return  user_access('administer registration', $account) || (
+        ($entity->author->uid == $account->uid) &&
+          user_access('delete own registration', $account)
+      );
+  }
+}
+
+/**
  * Implements hook_field_extra_fields().
  */
 function registration_field_extra_fields() {
@@ -363,7 +386,7 @@ function registration_type_load($type) {
 /**
  * Access callback for the entity API.
  */
-function registration_type_access($op, $type = NULL, $account = NULL) {
+function registration_type_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
   return user_access('administer registration types', $account);
 }
 

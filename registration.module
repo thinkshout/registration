@@ -141,6 +141,9 @@ function registration_permission() {
     'add registration' => array(
       'title' => t('Add registrations'),
     ),
+    'delete own registration' => array(
+      'title' => t('Delete own registrations'),
+    ),
   );
 }
 

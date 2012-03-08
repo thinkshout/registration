@@ -102,7 +102,12 @@ function registration_uri($registration) {
  */
 class RegistrationEntity extends Entity {
 
-  public $entity, $author;
+  public
+    $entity,
+    $author,
+    $registration_id,
+    $created,
+    $updated;
 
   public function __construct(array$values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
@@ -132,7 +137,7 @@ class RegistrationEntity extends Entity {
     return $type->label;
   }
 
-  public function entity() {
+  protected function entity() {
     $ret = FALSE;
     if (isset($this->entity_id) && isset($this->entity_type)) {
       $ret = entity_load_single($this->entity_type, $this->entity_id);
@@ -140,9 +145,23 @@ class RegistrationEntity extends Entity {
     return $ret;
   }
 
-  public function author() {
+  protected function author() {
     return (isset($this->author_uid)) ? user_load($this->author_uid) : FALSE;
   }
+
+  /**
+   * Save registration.
+   *
+   * @return mixed
+   */
+  public function save() {
+    $this->updated = REQUEST_TIME;
+    if (!$this->registration_id) {
+      $this->created = REQUEST_TIME;
+    }
+    return parent::save();
+  }
+
 }
 
 /**
@@ -253,21 +272,11 @@ function registration_delete_multiple($registration_ids) {
  *   The full registration object to save.
  *
  * @return
- *   The saved registration object.
+ *   If the record insert or update failed, returns FALSE. If it succeeded,
+ *   returns SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
  */
 function registration_save($registration) {
-  $registration->updated = REQUEST_TIME;
-  // Set the creation timestamp if not set.
-  if (!isset($registration->created) || empty($registration->created)) {
-    $registration->created = REQUEST_TIME;
-  }
-
-  $ret = entity_get_controller('registration')->save($registration);
-
-  // Let other modules act on a registration save
-  module_invoke_all('registration_save', $ret);
-
-  return $ret;
+  return entity_get_controller('registration')->save($registration);
 }
 
 /**

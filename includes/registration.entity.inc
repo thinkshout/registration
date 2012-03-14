@@ -209,15 +209,6 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
   }
 }
 
-function registration_get_properties($entity, array $options, $name, $type) {
-  switch ($name) {
-    case 'entity':
-      return entity_metadata_wrapper($entity->entity_type, $entity->entity);
-      break;
-  }
-}
-
-
 /**
  * Loads a registration by ID.
  */

@@ -34,7 +34,7 @@ function registration_entity_info() {
           'custom settings' => FALSE,
         ),
       ),
-      'uri callback' => 'registration_uri',
+      'uri callback' => 'entity_class_uri',
       'token type' => 'registration',
       'module' => 'registration',
     ),
@@ -90,12 +90,6 @@ function registration_entity_info_alter(&$entity_info) {
       ),
     );
   }
-}
-
-function registration_uri($registration) {
-  return array(
-    'path' => 'registration/' . $registration->registration_id,
-  );
 }
 
 /**
@@ -161,6 +155,13 @@ class Registration extends Entity {
       $this->created = REQUEST_TIME;
     }
     return parent::save();
+  }
+
+  /**
+   * Specifify URI
+   */
+  protected function defaultUri() {
+    return array('path' => 'registration/' . $this->internalIdentifier());
   }
 
 }

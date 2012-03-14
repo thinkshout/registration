@@ -15,13 +15,13 @@ function registration_menu() {
   $items['registration/%registration'] = array(
     'title callback' => 'registration_page_title',
     'title arguments' => array(1),
-    'page callback' => 'registration_page_view',
+    'page callback' => 'registration_view',
     'page arguments' => array(1),
     'access arguments' => array('view registration'),
   );
   $items['registration/%registration/view'] = array(
     'title' => 'View',
-    'page callback' => 'registration_page_view',
+    'page callback' => 'registration_view',
     'page arguments' => array(1),
     'access arguments' => array('view registration'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -148,12 +148,16 @@ function registration_permission() {
 }
 
 /**
- * Page for viewing a single registration.
+ * Display a registration.
+ *
+ * @param  $registration
+ *   A Fully loaded registration object.
+ *
+ * @return array()
  */
-function registration_page_view($registration, $view_mode = 'full') {
-  return entity_build_content('registration', $registration, $view_mode);
+function registration_view(Registration $registration) {
+  return $registration->view();
 }
-
 /**
  * Page title callback.
  */

@@ -174,11 +174,10 @@ function registration_page_title(RegistrationEntity $registration) {
 function registration_register_page_access($entity_type, $entity) {
   $ret = FALSE;
 
-  list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
-
   if (registration_get_entity_registration_type($entity_type, $entity)) {
     if (user_access('administer registration') || user_access('add registration')) {
-      $settings = registration_entity_settings($entity_id, $entity_type);
+      list($id,,) = entity_extract_ids($entity_type, $entity);
+      $settings = registration_entity_settings($id, $entity_type);
       if ($settings['status']) {
         $ret = TRUE;
       }
@@ -207,7 +206,7 @@ function registration_administer_registrations_access($entity_type, $entity) {
  */
 function registration_register_page($entity_type, $entity) {
   list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
-  if (registration_has_room($entity_id, $entity_type)) {
+  if (registration_status($entity_type, $entity_id)) {
     $registration_type = registration_get_entity_registration_type($entity_type, $entity);
     $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
     $registration->entity_id = $entity_id;
@@ -216,7 +215,8 @@ function registration_register_page($entity_type, $entity) {
     return drupal_get_form('registration_form', $registration);
   }
   else {
-    return t('Sorry, %name is sold out', array('%name' => entity_label($entity_type, $entity)));
+    return t('Sorry, registrations are no longer available for %name',
+      array('%name' => entity_label($entity_type, $entity)));
   }
 }
 
@@ -308,13 +308,19 @@ function registration_registrations_page($entity_type, $entity) {
 
 /**
  * Helper to determine if an entity has any slots left.
+ *
+ * @param $entity_id
+ * @param $entity_type
+ * @param int $slots
+ *   Used if validating a new registration. The number of slots attemping to fill.
+ * @return bool
  */
-function registration_has_room($entity_id, $entity_type) {
+function registration_has_room($entity_id, $entity_type, $slots = 0) {
   $ret      = TRUE;
   $settings = registration_entity_settings($entity_id, $entity_type);
   $capacity = $settings['capacity'];
   if ($capacity) {
-    $count = registration_event_count($entity_id, $entity_type);
+    $count = registration_event_count($entity_id, $entity_type) + $slots;
     if (($capacity - $count) < 1) {
       $ret = FALSE;
     }
@@ -565,6 +571,62 @@ function registration_cron() {
 }
 
 /**
+ * Check status of registrations on an entity based on status, open, and close
+ * dates, and capacity.
+ *
+ * Modules may implement hook_registration_status() to alter the status at
+ * runtime.
+ *
+ * @param $entity_type Entity type of entity to check status.
+ * @param $entity_id Entity ID of entity to check status.
+ * @param $reset Whether to recheck status for the same page session.
+ *
+ * @return Whether new registrations are accepted.
+ */
+function registration_status($entity_type, $entity_id, $reset = FALSE) {
+  $checked = &drupal_static(__FUNCTION__, array());
+
+  if (!$reset && isset($checked[$entity_type][$entity_id])) {
+    return $checked[$entity_type][$entity_id];
+  }
+
+  $settings = registration_entity_settings($entity_id, $entity_type);
+  $status = $settings['status'];
+  $open = isset($settings['open']) ? strtotime($settings['open']) : NULL;
+  $close = isset($settings['close']) ?  strtotime($settings['close']) : NULL;
+  $now = REQUEST_TIME;
+
+  // only explore other settings if main status is enabled
+  if ($status) {
+    // check capacity
+    if (!registration_has_room($entity_id, $entity_type)) {
+      $status = FALSE;
+    }
+    // check open/close date range
+    else if(
+      (isset($open) && isset($close)) &&
+      !($now >= $open && $now <= $close)) {
+      $status = FALSE;
+    }
+  }
+
+
+  // allow other mods to override status
+  $context = array(
+    'entity_type' => $entity_type,
+    'entity_id' => $entity_id,
+    'settings' => $settings
+  );
+  if ($altered = drupal_alter('registration_status', $status, $context)) {
+    $status = $altered;
+  }
+
+  $checked[$entity_type][$entity_id] = $status;
+
+  return $status;
+}
+
+/**
  * Get the registration type bundle for a given entity.
  *
  * @param string $entity_type
@@ -641,7 +703,8 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
 
     if ($entity_tokens = token_find_with_prefix($tokens, 'entity')) {
       $entity = $wrapper->entity->value();
-      return token_generate($registration->entity_type, $entity_tokens, array($registration->entity_type => $entity), $options);
+      return token_generate($registration->entity_type, $entity_tokens,
+        array($registration->entity_type => $entity), $options);
     }
   }
 }

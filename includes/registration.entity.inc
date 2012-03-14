@@ -93,7 +93,7 @@ function registration_entity_info_alter(&$entity_info) {
 }
 
 /**
- * Main class for test entities.
+ * Main class for Registration entities.
  */
 class Registration extends Entity {
 

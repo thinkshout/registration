@@ -98,9 +98,14 @@ function registration_entity_info_alter(&$entity_info) {
 class Registration extends Entity {
 
   public
-    $entity,
-    $author,
     $registration_id,
+    $entity_id,
+    $entity_type,
+    $entity,
+    $mail,
+    $count,
+    $author,
+    $author_uid,
     $created,
     $updated;
 

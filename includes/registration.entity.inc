@@ -14,7 +14,7 @@ function registration_entity_info() {
       'label' => t('Registration'),
       'plural label' => t('Registrations'),
       'controller class' => 'EntityAPIController',
-      'entity class' => 'RegistrationEntity',
+      'entity class' => 'Registration',
       'metadata controller class' => 'RegistrationMetadataController',
       'views controller class' => 'RegistrationViewsController',
       'base table' => 'registration',
@@ -101,7 +101,7 @@ function registration_uri($registration) {
 /**
  * Main class for test entities.
  */
-class RegistrationEntity extends Entity {
+class Registration extends Entity {
 
   public
     $entity,
@@ -276,8 +276,8 @@ function registration_delete_multiple($registration_ids) {
  *   If the record insert or update failed, returns FALSE. If it succeeded,
  *   returns SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
  */
-function registration_save($registration) {
-  return entity_get_controller('registration')->save($registration);
+function registration_save(Registration $registration) {
+  return $registration->save();
 }
 
 /**

@@ -157,7 +157,7 @@ function registration_page_view($registration, $view_mode = 'full') {
 /**
  * Page title callback.
  */
-function registration_page_title(RegistrationEntity $registration) {
+function registration_page_title(Registration $registration) {
   $title = '';
   // use the entity title in the registration page title
   if ($entity = $registration->entity) {
@@ -211,7 +211,7 @@ function registration_register_page($entity_type, $entity) {
     $registration = entity_get_controller('registration')->create(array('type' => $registration_type));
     $registration->entity_id = $entity_id;
     $registration->entity_type = $entity_type;
-    $registration->entity = entity_load_single($entity_type, $entity_id);
+    $registration->entity = $entity;
     return drupal_get_form('registration_form', $registration);
   }
   else {
@@ -712,12 +712,12 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
 /**
  * Determine is a given email is already registered for an event.
  *
- * @param RegistrationEntity $registration
+ * @param Registration $registration
  * @param string $mail
  *
  * @return bool
  */
-function registration_is_registered(RegistrationEntity $registration, $mail) {
+function registration_is_registered(Registration $registration, $mail) {
   $query = db_select('registration', 'r')
 			->condition('entity_id', $registration->entity_id)
       ->condition('entity_type', $registration->entity_type)

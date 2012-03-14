@@ -44,6 +44,7 @@ function registration_form($form, &$form_state, $registration) {
     '#default_value' => 1,
     '#size' => strlen($remaining),
     '#access' => isset($settings['settings']['multiple_registrations']),
+    '#element_validate' => array('element_validate_integer_positive')
   );
 
   field_attach_form('registration', $registration, $form, $form_state);
@@ -89,15 +90,8 @@ function registration_form_validate($form, &$form_state) {
       array('%label' => $label)));
   }
 
-  $count = 0;
-  if (is_integer($form_state['values']['count']) && $form_state['values']['count'] > 0) {
-    $count = $form_state['values']['count'];
-  }
-  else {
-    form_set_error('count', t('Please enter a positive number.'));
-  }
-
   // verify the event hasn't sold out
+  $count = $form_state['values']['count'];
   if (!registration_has_room($registration->entity_id, $registration->entity_type, $count)) {
     drupal_set_message(t('Sorry, there are insufficient slots remaining for this event.'));
   }

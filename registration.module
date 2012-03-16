@@ -621,9 +621,8 @@ function registration_status($entity_type, $entity_id, $reset = FALSE) {
     'entity_id' => $entity_id,
     'settings' => $settings
   );
-  if ($altered = drupal_alter('registration_status', $status, $context)) {
-    $status = $altered;
-  }
+
+  drupal_alter('registration_status', $status, $context);
 
   $checked[$entity_type][$entity_id] = $status;
 

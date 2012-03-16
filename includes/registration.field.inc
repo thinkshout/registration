@@ -119,9 +119,9 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
         break;
       case 'registration_form':
         // enable registration link if accessible
-        if (registration_register_page_access($entity_type, $entity)) {
+        list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
+        if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
           module_load_include('inc', 'registration', 'includes/registration.forms');
-          list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
           $registration = entity_get_controller('registration')->create(array('type' => $reg_type->name));
           $registration->entity_id = $entity_id;
           $registration->entity_type = $entity_type;
@@ -203,7 +203,6 @@ function registration_field_create_instance($instance) {
   // rebuild menu to recognize registration paths.
   _registration_menu_rebuild($instance);
 }
-
 
 /**
  * Implements hook_field_delete_instance().

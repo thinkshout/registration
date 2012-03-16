@@ -210,6 +210,24 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
 }
 
 /**
+ * Required by RegistrationMetadataController for Views integration.
+ *
+ * @param $entity
+ * @param array $options
+ * @param $name
+ * @param $type
+ *
+ * @return EntityMetadataWrapper
+ */
+function registration_get_properties($entity, array $options, $name, $type) {
+  switch ($name) {
+    case 'entity':
+      return entity_metadata_wrapper($entity->entity_type, $entity->entity);
+      break;
+  }
+}
+
+/**
  * Loads a registration by ID.
  */
 function registration_load($registration_id) {
@@ -400,3 +418,4 @@ function registration_type_save(RegistrationType $type) {
 function registration_type_delete(RegistrationType $type) {
   $type->delete();
 }
+

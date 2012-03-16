@@ -43,7 +43,7 @@ function registration_form($form, &$form_state, $registration) {
     '#description' => t('The number of slots you wish to occupy. @slots_remaining slots remaining.', array('@slots_remaining' => $remaining)),
     '#default_value' => 1,
     '#size' => strlen($remaining),
-    '#access' => isset($settings['settings']['multiple_registrations']),
+    '#access' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : FALSE,
     '#element_validate' => array('element_validate_integer_positive')
   );
 

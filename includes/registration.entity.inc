@@ -23,7 +23,7 @@ function registration_entity_info() {
         'id' => 'registration_id',
         'bundle' => 'type',
       ),
-      'access callback' => 'registration_entity_access',
+      'access callback' => 'registration_access',
       'bundle keys' => array(
         'bundle' => 'name',
       ),
@@ -298,22 +298,26 @@ function registration_save(Registration $registration) {
 /**
  * Access callback for the entity API.
  */
-function registration_entity_access($op, $entity_type, $entity = NULL, $account = NULL) {
+function registration_access($op, $registration = NULL, $account = NULL, $entity_type) {
+  $account = isset($account) ? $account : $GLOBALS['user'];
+
+  // bypass further access checks if user can administer registration
+  if (user_access('administer registration', $account)) {
+    return TRUE;
+  }
+
+  $account_own = (isset($registration->author->uid) && ($registration->author->uid == $account->uid));
+
+  $type = $registration->type;
   switch ($op) {
     case 'view':
-      return user_access('view registration', $account) ||
-        user_access('administer registration', $account);
+      return ($account_own && user_access("view own $type registration", $account)) || user_access("view $type registration", $account);
     case 'update':
-      return ($entity->author->uid == $account->uid) ||
-        user_access('administer registration', $account);
+      return ($account_own && user_access("update own $type registration", $account)) || user_access("update any $type registration", $account);
     case 'create':
-      return user_access('add registration', $account) ||
-        user_access('administer registration', $account);
+      return user_access("create $type registration", $account);
     case 'delete':
-      return  user_access('administer registration', $account) || (
-        ($entity->author->uid == $account->uid) &&
-          user_access('delete own registration', $account)
-      );
+      return ($account_own && user_access("delete own $type registration", $account)) || user_access("delete any $type registration", $account);
   }
 }
 

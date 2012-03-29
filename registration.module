@@ -17,29 +17,34 @@ function registration_menu() {
     'title arguments' => array(1),
     'page callback' => 'registration_view',
     'page arguments' => array(1),
-    'access arguments' => array('view registration'),
+    'access callback' => 'entity_access',
+    'access arguments' => array('view', 'registration', 1),
   );
   $items['registration/%registration/view'] = array(
     'title' => 'View',
     'page callback' => 'registration_view',
     'page arguments' => array(1),
-    'access arguments' => array('view registration'),
+    'access callback' => 'entity_access',
+    'access arguments' => array('view', 'registration', 1),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['registration/%registration/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('registration_form', 1),
-    'access arguments' => array('administer registration'),
+    'access callback' => 'entity_access',
+    'access arguments' => array('update', 'registration', 1),
     'file' => 'includes/registration.forms.inc',
     'weight' => 10,
     'type' => MENU_LOCAL_TASK,
   );
   $items['registration/%registration/delete'] = array(
-    'title' => 'Delete Registration',
+    'title' => 'Delete',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('registration_delete_confirm', 1),
-    'access arguments' => array('administer registration'),
+    'access callback' => 'entity_access',
+    'access arguments' => array('delete', 'registration', 1),
+    'type' => MENU_CALLBACK,
     'file' => 'includes/registration.forms.inc',
   );
 
@@ -124,25 +129,61 @@ function registration_menu() {
  * Implements hook_permission().
  */
 function registration_permission() {
-  return array(
-    'administer registration' => array(
-      'title' => t('Administer registration'),
-      'description' => t('Perform administration tasks for Registrations.'),
-      'restrict access' => TRUE,
-    ),
+  $permissions = array(
     'administer registration types' => array(
       'title' => t('Administer registration types'),
       'description' => t('Manage registration types, fields, and display settings.'),
       'restrict access' => TRUE,
     ),
-    'view registration' => array(
-      'title' => t('View registrations'),
+    'administer registration' => array(
+      'title' => t('Administer registration'),
+      'description' => t('View, edit, delete, and manage all registrations, regardless of type.'),
+      'restrict access' => TRUE,
     ),
-    'add registration' => array(
-      'title' => t('Add registrations'),
+  );
+
+  foreach(registration_get_types() as $type_info) {
+    $permissions += registration_permission_list($type_info);
+  }
+
+  return $permissions;
+}
+
+/**
+ * Builds permissions for a registration type.
+ *
+ * @param $registration_type
+ * @return array
+ *   An array of permission names and descriptions.
+ */
+function registration_permission_list($info) {
+  $type = $info->name;
+
+  return array(
+    "administer $type registration" => array(
+      'title' => t('%type_name: Administer settings', array('%type_name' => $info->label)),
+      'description' => t('Allow changing registration settings for entities with this type.'),
     ),
-    'delete own registration' => array(
-      'title' => t('Delete own registrations'),
+    "view $type registration" => array(
+      'title' => t('%type_name: View all registrations', array('%type_name' => $info->label)),
+    ),
+    "view own $type registration" => array(
+      'title' => t('%type_name: View own registrations', array('%type_name' => $info->label)),
+    ),
+    "create $type registration" => array(
+      'title' => t('%type_name: Create new registration', array('%type_name' => $info->label)),
+    ),
+    "update own $type registration" => array(
+      'title' => t('%type_name: Edit own registrations', array('%type_name' => $info->label)),
+    ),
+    "update any $type registration" => array(
+      'title' => t('%type_name: Edit any registrations', array('%type_name' => $info->label)),
+    ),
+    "delete own $type registration" => array(
+      'title' => t('%type_name: Delete own registrations', array('%type_name' => $info->label)),
+    ),
+    "delete any $type registration" => array(
+      'title' => t('%type_name: Delete any registrations', array('%type_name' => $info->label)),
     ),
   );
 }
@@ -176,33 +217,31 @@ function registration_page_title(Registration $registration) {
  * Access callback for registration_register_page().
  */
 function registration_register_page_access($entity_type, $entity) {
-  $ret = FALSE;
+  list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
 
-  if (registration_get_entity_registration_type($entity_type, $entity)) {
-    if (user_access('administer registration') || user_access('add registration')) {
-      list($id,,) = entity_extract_ids($entity_type, $entity);
-      $settings = registration_entity_settings($id, $entity_type);
+  if ($type = registration_get_entity_registration_type($entity_type, $entity)) {
+    $registration = entity_get_controller('registration')->create(array('type' => $type));
+    if (entity_access('create', 'registration', $registration)) {
+      $settings = registration_entity_settings($entity_id, $entity_type);
       if ($settings['status']) {
-        $ret = TRUE;
+        return TRUE;
       }
     }
   }
 
-  return $ret;
+  return FALSE;
 }
 
 /**
  * Access callback for registration_registrations_page().
  */
 function registration_administer_registrations_access($entity_type, $entity) {
-  $ret = FALSE;
-  if (registration_get_entity_registration_type($entity_type, $entity)) {
-    if (user_access('administer registration')) {
-      $ret = TRUE;
-    }
+  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+  if ($registration_type) {
+    return user_access("administer registration $registration_type");
   }
 
-  return $ret;
+  return FALSE;
 }
 
 /**

@@ -56,9 +56,7 @@ function registration_form($form, &$form_state, $registration) {
   );
 
   // add a delete button for existing registration
-  if (isset($registration->registration_id) &&
-    user_access('administer registration')
-  ) {
+  if (isset($registration->registration_id) && entity_access('delete', 'registration', $registration)) {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),

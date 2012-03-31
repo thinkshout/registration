@@ -10,24 +10,62 @@
 function registration_form($form, &$form_state, $registration) {
   $form_state['registration'] = $registration;
 
-	// default email from existing registraiton or authenticted user
   global $user;
-	$mail = '';
-	if (isset($registration->registration_id)) {
-		$mail = $registration->mail;
-	}
-	else if ($user->uid) {
-		$mail = $user->mail;
-	}
 
-  $form['mail'] = array(
+  $mail_access = $user_access = FALSE;
+
+  $who_options = array();
+
+  if (!$user->uid || user_access("register anon $registration->type")) {
+    $who_options['anon'] = t('Anonymous user');
+    $mail_access = TRUE;
+  }
+
+  if ($user->uid) {
+    $who_options['me'] = t('Myself');
+  }
+
+  if (user_access("register users $registration->type")) {
+    $who_options['user'] = t('Registered user');
+    $user_access = TRUE;
+  }
+
+  $form['who_is_registering'] = array(
+    '#type' => 'select',
+    '#title' => t('This registration is for:'),
+    '#options' => $who_options,
+    '#access' => (count($who_options) > 1)
+  );
+
+  $form['user'] = array(
+    '#type' => 'textfield',
+    '#title' => t('User'),
+    '#default_value' => isset($registration->user) ? $registration->user->name : '',
+    '#maxlength' => 60,
+    '#size' => 30,
+    '#description' => t('Select a registered user by typing their username to get a list of matches.'),
+    '#autocomplete_path' => 'user/autocomplete',
+    '#access' => $user_access,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="who_is_registering"]' => array('value' => 'user'),
+      )
+    )
+  );
+
+  $form['anon_mail'] = array(
     '#type' => 'textfield',
     '#title' => t('Email'),
     '#description' => t('The email to associate with this registration.'),
-    '#default_value' => $mail,
+    '#default_value' => isset($registration->anon_mail) ? $registration->anon_mail : '',
     '#size' => 40,
     '#maxlength' => 255,
-    '#required' => TRUE,
+    '#access' => $mail_access,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="who_is_registering"]' => array('value' => 'anon'),
+      )
+    )
   );
 
   $settings  = registration_entity_settings($registration->entity_id, $registration->entity_type);
@@ -94,17 +132,35 @@ function registration_form_validate($form, &$form_state) {
     drupal_set_message(t('Sorry, there are insufficient slots remaining for this event.'));
   }
 
-  // validate email address
-  if (!valid_email_address($form_state['values']['mail'])) {
-    form_set_error('mail', t('The email address is invalid.'));
+  // validate according to who's registering
+  switch ($form_state['values']['who_is_registering'] ) {
+    case 'anon':
+      if (!valid_email_address($form_state['values']['anon_mail'])) {
+        form_set_error('anon_mail', t('The email address is invalid.'));
+      }
+      if (registration_is_registered($registration, $form_state['values']['anon_mail'])) {
+    			form_set_error('anon_mail', t('%mail is already registered for this event.',
+    				array('%mail' => $form_state['values']['anon_mail'])));
+    	}
+      break;
+    case 'me':
+      global $user;
+      if (registration_is_registered($registration, NULL, $user->uid)) {
+    			form_set_error('user', t('You are already registered for this event.'));
+    		}
+      break;
+    case 'user':
+      $user = user_load_by_name($form_state['values']['user']);
+      if ($user) {
+        if (registration_is_registered($registration, NULL, $user->uid)) {
+          form_set_error('user', t('%user is already registered for this event.', array('%user' => $user->name)));
+        }
+      }
+      else {
+        form_set_error('user', t('%user is not a valid user.', array('%user' => $form_state['values']['user'])));
+      }
+      break;
   }
-	else {
-  	// check for duplicate registrations
-		if (registration_is_registered($registration, $form_state['values']['mail'])) {
-			form_set_error('mail', t('%mail is already registered for this event.', 
-				array('%mail' => $form_state['values']['mail'])));
-		}
-	}
 
   // Notify field widgets to validate their data.
   field_attach_form_validate('registration', $registration, $form, $form_state);
@@ -122,8 +178,22 @@ function registration_form_submit($form, &$form_state) {
     $registration->author_uid = $user->uid;
   }
 
-  $registration->mail = $form_state['values']['mail'];
   $registration->count = $form_state['values']['count'];
+
+  switch ($form_state['values']['who_is_registering']) {
+    case 'anon':
+      $registration->anon_mail = $form_state['values']['anon_mail'];
+      break;
+    case 'me':
+      global $user;
+      $registration->user_uid = $user->uid;
+      break;
+    case 'user':
+      if ($reg_user = user_load_by_name($form_state['values']['user'])) {
+        $registration->user_uid = $reg_user->uid;
+      }
+      break;
+  }
 
   // Notify field widgets.
   field_attach_submit('registration', $registration, $form, $form_state);

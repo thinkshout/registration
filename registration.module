@@ -158,32 +158,39 @@ function registration_permission() {
  */
 function registration_permission_list($info) {
   $type = $info->name;
+  $label = $info->label;
 
   return array(
     "administer $type registration" => array(
-      'title' => t('%type_name: Administer settings', array('%type_name' => $info->label)),
+      'title' => t('%type_name: Administer settings', array('%type_name' => $label)),
       'description' => t('Allow changing registration settings for entities with this type.'),
     ),
     "view $type registration" => array(
-      'title' => t('%type_name: View all registrations', array('%type_name' => $info->label)),
+      'title' => t('%type_name: View all registrations', array('%type_name' => $label)),
     ),
     "view own $type registration" => array(
-      'title' => t('%type_name: View own registrations', array('%type_name' => $info->label)),
+      'title' => t('%type_name: View own registrations', array('%type_name' => $label)),
     ),
     "create $type registration" => array(
-      'title' => t('%type_name: Create new registration', array('%type_name' => $info->label)),
+      'title' => t('%type_name: Create new registration', array('%type_name' => $label)),
     ),
     "update own $type registration" => array(
-      'title' => t('%type_name: Edit own registrations', array('%type_name' => $info->label)),
+      'title' => t('%type_name: Edit own registrations', array('%type_name' => $label)),
     ),
     "update any $type registration" => array(
-      'title' => t('%type_name: Edit any registrations', array('%type_name' => $info->label)),
+      'title' => t('%type_name: Edit any registrations', array('%type_name' => $label)),
     ),
     "delete own $type registration" => array(
-      'title' => t('%type_name: Delete own registrations', array('%type_name' => $info->label)),
+      'title' => t('%type_name: Delete own registrations', array('%type_name' => $label)),
     ),
     "delete any $type registration" => array(
-      'title' => t('%type_name: Delete any registrations', array('%type_name' => $info->label)),
+      'title' => t('%type_name: Delete any registrations', array('%type_name' => $label)),
+    ),
+    "register users $type" => array(
+      'title' => t('%type_name: Register other users', array('%type_name' => $label)),
+    ),
+    "register anon $type" => array(
+      'title' => t('%type_name: Register other anonymous registrants', array('%type_name' => $label)),
     ),
   );
 }
@@ -759,11 +766,23 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
  *
  * @return bool
  */
-function registration_is_registered(Registration $registration, $mail) {
+function registration_is_registered(Registration $registration, $anon_mail = NULL, $uid = NULL) {
+  // must provide an UID or anon_mail
+  // @todo: better course of action here?
+  if (!$anon_mail && !$uid) {
+    return FALSE;
+  }
+
   $query = db_select('registration', 'r')
 			->condition('entity_id', $registration->entity_id)
-      ->condition('entity_type', $registration->entity_type)
-			->condition('mail', $mail);
+      ->condition('entity_type', $registration->entity_type);
+
+  if ($anon_mail) {
+    $query->condition('anon_mail', $anon_mail);
+  }
+  else if ($uid) {
+    $query->condition('user_uid', $uid);
+  }
 
   // exclude existing registration
   if (isset($registration->registration_id)) {
@@ -772,4 +791,11 @@ function registration_is_registered(Registration $registration, $mail) {
 
   $count = $query->countQuery()->execute()->fetchField();
   return $count > 0;
+}
+
+function registration_user_field_access() {
+  global $user;
+  if (user_access()) {
+
+  }
 }

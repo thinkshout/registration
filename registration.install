@@ -38,18 +38,24 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'mail' => array(
+      'anon_mail' => array(
         'type' => 'varchar',
         'length' => 254,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
-        'description' => "User's e-mail address.",
+        'description' => "Anonymous registrant's e-mail address.",
       ),
       'count' => array(
         'description' => 'How many slots this registration should use towards the total capacity for this event.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,
+      ),
+      'user_uid' => array(
+        'description' => 'The uid of the user associated with this registration.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
       ),
       'author_uid' => array(
         'description' => 'The uid of the user who created this registration.',
@@ -80,10 +86,15 @@ function registration_schema() {
         'table' => 'users',
         'columns' => array('author_uid' => 'uid'),
       ),
+      'registration_user' => array(
+        'table' => 'users',
+        'columns' => array('user_uid' => 'uid'),
+      ),
     ),
 	  'unique keys' => array(
-	    'entity_id_entity_type_mail' => array('entity_id', 'entity_type', 'mail'),
-	  ), 
+	    'entity_id_entity_type_anon_mail' => array('entity_id', 'entity_type', 'anon_mail'),
+      'entity_id_entity_type_user' => array('entity_id', 'entity_type', 'user_uid'),
+	  ),
     'primary key' => array('registration_id'),
   );
 

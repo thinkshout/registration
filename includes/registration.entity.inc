@@ -103,6 +103,9 @@ class Registration extends Entity {
     $entity_type,
     $entity,
     $mail,
+    $anon_mail = '',
+    $user_uid = NULL,
+    $user = NULL,
     $count,
     $author,
     $author_uid,
@@ -114,6 +117,10 @@ class Registration extends Entity {
 
     $this->author = $this->author();
     $this->entity = $this->entity();
+    if ($this->user_uid) {
+      $this->user = user_load($this->user_uid);
+    }
+    $this->mail = $this->mail();
   }
 
   /**
@@ -169,6 +176,15 @@ class Registration extends Entity {
     return array('path' => 'registration/' . $this->internalIdentifier());
   }
 
+  protected function mail() {
+    if ($this->user) {
+      return $this->user->mail;
+    }
+    else {
+      return $this->anon_mail;
+    }
+  }
+
 }
 
 /**
@@ -203,6 +219,12 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'type' => 'user',
       'description' => t("The author of the registration."),
       'schema field' => 'author_uid'
+    );
+    $properties['user'] = array(
+      'label' => t("User"),
+      'type' => 'user',
+      'description' => t("The user associated with the registration."),
+      'schema field' => 'user_uid'
     );
 
     return $info;

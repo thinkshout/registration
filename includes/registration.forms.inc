@@ -29,12 +29,24 @@ function registration_form($form, &$form_state, $registration) {
     $who_options['user'] = t('Registered user');
     $user_access = TRUE;
   }
+  
+  // get default value of who's registering field
+  $default_who = 'anon';
+  if ($registration->registration_id) {
+    if ($user->uid && $user->uid === $registration->user_uid) {
+      $default_who = 'me';      
+    }
+    else if($registration->user_uid) {
+      $default_who = 'user';
+    }
+  }
 
   $form['who_is_registering'] = array(
     '#type' => 'select',
     '#title' => t('This registration is for:'),
     '#options' => $who_options,
-    '#access' => (count($who_options) > 1)
+    '#access' => (count($who_options) > 1),
+    '#default_value' => $default_who
   );
 
   $form['user'] = array(

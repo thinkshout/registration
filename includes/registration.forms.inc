@@ -16,18 +16,18 @@ function registration_form($form, &$form_state, $registration) {
 
   $who_options = array();
 
-  if (!$user->uid || user_access("register anon $registration->type")) {
-    $who_options['anon'] = t('Anonymous user');
-    $mail_access = TRUE;
-  }
-
   if ($user->uid) {
     $who_options['me'] = t('Myself');
   }
 
   if (user_access("register users $registration->type")) {
-    $who_options['user'] = t('Registered user');
+    $who_options['user'] = t('Other account');
     $user_access = TRUE;
+  }
+
+  if (!$user->uid || user_access("register anon $registration->type")) {
+    $who_options['anon'] = t('Other person');
+    $mail_access = TRUE;
   }
   
   // get default value of who's registering field

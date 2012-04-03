@@ -42,7 +42,6 @@ function registration_schema() {
         'type' => 'varchar',
         'length' => 254,
         'not null' => FALSE,
-        'default' => '',
         'description' => "Anonymous registrant's e-mail address.",
       ),
       'count' => array(

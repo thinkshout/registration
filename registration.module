@@ -186,11 +186,11 @@ function registration_permission_list($info) {
     "delete any $type registration" => array(
       'title' => t('%type_name: Delete any registrations', array('%type_name' => $label)),
     ),
-    "register users $type" => array(
-      'title' => t('%type_name: Register other users', array('%type_name' => $label)),
+    "create $type registration other users" => array(
+      'title' => t('%type_name: Register other accounts', array('%type_name' => $label)),
     ),
-    "register anon $type" => array(
-      'title' => t('%type_name: Register other anonymous registrants', array('%type_name' => $label)),
+    "create $type registration other anonymous" => array(
+      'title' => t('%type_name: Register other people', array('%type_name' => $label)),
     ),
   );
 }

@@ -20,12 +20,12 @@ function registration_form($form, &$form_state, $registration) {
     $who_options['me'] = t('Myself');
   }
 
-  if (user_access("register users $registration->type")) {
+  if (user_access("create $registration->type registration other users")) {
     $who_options['user'] = t('Other account');
     $user_access = TRUE;
   }
 
-  if (!$user->uid || user_access("register anon $registration->type")) {
+  if (!$user->uid || user_access("create $registration->type registration other anonymous")) {
     // the label will vary if this is an anon user or not
     $label = !$user->uid ? t('Myself') : t('Other person');
     $who_options['anon'] = $label;

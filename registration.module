@@ -778,7 +778,13 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
       ->condition('entity_type', $registration->entity_type);
 
   if ($anon_mail) {
-    $query->condition('anon_mail', $anon_mail);
+    // there's a user with this email, check to make sure they're not registered
+    if ($user = user_load_by_mail($anon_mail)) {
+      $query->condition(db_or()->condition('anon_mail', $anon_mail)->condition('user_uid', $user->uid));
+    }
+    else {
+      $query->condition('anon_mail', $anon_mail);
+    }
   }
   else if ($uid) {
     $query->condition('user_uid', $uid);
@@ -791,11 +797,4 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
 
   $count = $query->countQuery()->execute()->fetchField();
   return $count > 0;
-}
-
-function registration_user_field_access() {
-  global $user;
-  if (user_access()) {
-
-  }
 }

@@ -26,7 +26,9 @@ function registration_form($form, &$form_state, $registration) {
   }
 
   if (!$user->uid || user_access("register anon $registration->type")) {
-    $who_options['anon'] = t('Other person');
+    // the label will vary if this is an anon user or not
+    $label = !$user->uid ? t('Myself') : t('Other person');
+    $who_options['anon'] = $label;
     $mail_access = TRUE;
   }
   

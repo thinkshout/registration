@@ -279,7 +279,9 @@ function registration_registrations_page($entity_type, $entity) {
         'specifier' => 'registration_id'),
     array('data' => t('Email'), 'field' => 'mail', 'type' => 'property', 
         'specifier' => 'mail'),
-    array('data' => t('Created By'), 'field' => 'author_uid', 
+    array('data' => t('User'), 'field' => 'user_uid', 'type' => 'property',
+        'specifier' => 'user'),
+    array('data' => t('Created By'), 'field' => 'author_uid',
         'type' => 'property', 'specifier' => 'author_uid'),
     array('data' => t('Count'), 'field' => 'count', 'type' => 'property', 
         'specifier' => 'count'),
@@ -305,20 +307,31 @@ function registration_registrations_page($entity_type, $entity) {
 
     $rows = array();
     foreach ($registrations as $registration) {
-      $author = '';
+      $author_col = '';
       if ($registration->author_uid) {
         $author = user_load($registration->author_uid);
-        $author = l($author->name, 'user/' . $author->uid);
+        $uri = entity_uri('user', $author);
+        $author_col = l($author->name, $uri['path']);
       }
+
+      $user_col = '';
+      if ($registration->user_uid) {
+        $user = user_load($registration->user_uid);
+        $uri = entity_uri('user', $user);
+        $user_col = l($user->name, $uri['path']);
+      }
+
       $actions = array(
         l('View', 'registration/' . $registration->registration_id),
         l('Edit', 'registration/' . $registration->registration_id . '/edit'),
         l('Delete', 'registration/' . $registration->registration_id . '/delete'),
       );
+
       $rows[] = array(
         l($registration->registration_id, 'registration/' . $registration->registration_id),
         l($registration->mail, 'mailto:' . $registration->mail),
-        $author,
+        $user_col,
+        $author_col,
         $registration->count,
         format_date($registration->created),
         implode(' | ', $actions)

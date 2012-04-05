@@ -103,7 +103,7 @@ class Registration extends Entity {
     $entity_type,
     $entity,
     $mail,
-    $anon_mail = '',
+    $anon_mail = NULL,
     $user_uid = NULL,
     $user = NULL,
     $count,

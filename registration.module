@@ -612,6 +612,7 @@ function registration_cron() {
     ->condition('send_reminder', 1)
     ->condition('reminder_date', date('Y-m-d 00:00:00'))
     ->range(0, 10)
+    ->addTag('registration_cron_select')
     ->execute()
     ->fetchAllAssoc('entity_id');
 

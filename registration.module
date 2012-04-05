@@ -245,7 +245,7 @@ function registration_register_page_access($entity_type, $entity) {
 function registration_administer_registrations_access($entity_type, $entity) {
   $registration_type = registration_get_entity_registration_type($entity_type, $entity);
   if ($registration_type) {
-    return user_access("administer registration $registration_type");
+    return user_access("administer $registration_type registration");
   }
 
   return FALSE;

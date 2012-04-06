@@ -512,5 +512,6 @@ function registration_registrations_settings_form_submit($form, &$form_state) {
 
   $uri = entity_uri($entity['entity_type'],
       entity_load_single($entity['entity_type'], $entity['entity_id']));
-  drupal_goto($uri['path']);
+
+  $form_state['redirect'] = $uri['path'];
 }

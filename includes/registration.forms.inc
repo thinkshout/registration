@@ -372,8 +372,8 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
 	);
 	$form['reminder']['send_reminder'] = array(
 	  '#type' => 'checkbox',
-		'#title' => 'Send Reminder',
-		'#description' => 'If checked, a reminder will be sent to registrants on the following date.',
+		'#title' => t('Send Reminder'),
+		'#description' => t('If checked, a reminder will be sent to registrants on the following date.'),
 	  '#default_value' => isset($settings['send_reminder']) ? $settings['send_reminder'] : -1,
 	);
 	

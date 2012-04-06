@@ -294,12 +294,6 @@ function registration_load_multiple($registration_ids = array(), $conditions = a
  *   TRUE on success, FALSE otherwise.
  */
 function registration_delete_multiple($registration_ids) {
-  // Let modules act on a registration about to be deleted.
-  foreach ($registration_ids as $regid) {
-    $reg = registration_load($regid);
-    module_invoke_all('registration_delete', $reg);
-  }
-
   return entity_get_controller('registration')->delete($registration_ids);
 }
 

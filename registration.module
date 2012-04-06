@@ -672,14 +672,15 @@ function registration_status($entity_type, $entity_id, $reset = FALSE) {
     if (!registration_has_room($entity_id, $entity_type)) {
       $status = FALSE;
     }
-    // check open/close date range
-    else if(
-      (isset($open) && isset($close)) &&
-      !($now >= $open && $now <= $close)) {
+    // check open date range
+    else if (isset($open) && ($now < $open)) {
+      $status = FALSE;
+    }
+    // check close date range
+    else if (isset($close) && ($now >= $close)) {
       $status = FALSE;
     }
   }
-
 
   // allow other mods to override status
   $context = array(

@@ -7,48 +7,18 @@
  *   The registration object to edit or for a create form an empty registration
  *   object with a node defined.
  */
-function registration_form($form, &$form_state, $registration) {
+function registration_form($form, &$form_state, Registration $registration) {
+  global $user;
   $form_state['registration'] = $registration;
 
-  global $user;
-
-  $mail_access = $user_access = FALSE;
-
-  $who_options = array();
-
-  if ($user->uid) {
-    $who_options['me'] = t('Myself');
-  }
-
-  if (user_access("create $registration->type registration other users")) {
-    $who_options['user'] = t('Other account');
-    $user_access = TRUE;
-  }
-
-  if (!$user->uid || user_access("create $registration->type registration other anonymous")) {
-    // the label will vary if this is an anon user or not
-    $label = !$user->uid ? t('Myself') : t('Other person');
-    $who_options['anon'] = $label;
-    $mail_access = TRUE;
-  }
-  
-  // get default value of who's registering field
-  $default_who = 'anon';
-  if ($registration->registration_id) {
-    if ($user->uid && $user->uid === $registration->user_uid) {
-      $default_who = 'me';      
-    }
-    else if($registration->user_uid) {
-      $default_who = 'user';
-    }
-  }
+  $who_options = registration_access_people($registration);
 
   $form['who_is_registering'] = array(
     '#type' => 'select',
     '#title' => t('This registration is for:'),
     '#options' => $who_options,
-    '#access' => (count($who_options) > 1),
-    '#default_value' => $default_who
+    '#default_value' => (isset($registration->registration_id) ? $registration->registrant_type($user) : NULL),
+    '#required' => TRUE,
   );
 
   $form['user'] = array(
@@ -57,12 +27,12 @@ function registration_form($form, &$form_state, $registration) {
     '#default_value' => isset($registration->user) ? $registration->user->name : '',
     '#maxlength' => 60,
     '#size' => 30,
-    '#description' => t('Select a registered user by typing their username to get a list of matches.'),
+    '#description' => t('Select a user by typing their username to get a list of matches.'),
     '#autocomplete_path' => 'user/autocomplete',
-    '#access' => $user_access,
+    '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_USER]),
     '#states' => array(
       'visible' => array(
-        ':input[name="who_is_registering"]' => array('value' => 'user'),
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
       )
     )
   );
@@ -74,10 +44,10 @@ function registration_form($form, &$form_state, $registration) {
     '#default_value' => isset($registration->anon_mail) ? $registration->anon_mail : '',
     '#size' => 40,
     '#maxlength' => 255,
-    '#access' => $mail_access,
+    '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_ANON]),
     '#states' => array(
       'visible' => array(
-        ':input[name="who_is_registering"]' => array('value' => 'anon'),
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_ANON),
       )
     )
   );
@@ -148,7 +118,7 @@ function registration_form_validate($form, &$form_state) {
 
   // validate according to who's registering
   switch ($form_state['values']['who_is_registering'] ) {
-    case 'anon':
+    case REGISTRATION_REGISTRANT_TYPE_ANON:
       if (!valid_email_address($form_state['values']['anon_mail'])) {
         form_set_error('anon_mail', t('The email address is invalid.'));
       }
@@ -157,13 +127,13 @@ function registration_form_validate($form, &$form_state) {
     				array('%mail' => $form_state['values']['anon_mail'])));
     	}
       break;
-    case 'me':
+    case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
       if (registration_is_registered($registration, NULL, $user->uid)) {
     			form_set_error('user', t('You are already registered for this event.'));
     		}
       break;
-    case 'user':
+    case REGISTRATION_REGISTRANT_TYPE_USER:
       $user = user_load_by_name($form_state['values']['user']);
       if ($user) {
         if (registration_is_registered($registration, NULL, $user->uid)) {
@@ -195,14 +165,14 @@ function registration_form_submit($form, &$form_state) {
   $registration->count = $form_state['values']['count'];
 
   switch ($form_state['values']['who_is_registering']) {
-    case 'anon':
+    case REGISTRATION_REGISTRANT_TYPE_ANON:
       $registration->anon_mail = $form_state['values']['anon_mail'];
       break;
-    case 'me':
+    case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
       $registration->user_uid = $user->uid;
       break;
-    case 'user':
+    case REGISTRATION_REGISTRANT_TYPE_USER:
       if ($reg_user = user_load_by_name($form_state['values']['user'])) {
         $registration->user_uid = $reg_user->uid;
       }

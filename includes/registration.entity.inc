@@ -185,6 +185,28 @@ class Registration extends Entity {
     }
   }
 
+  /**
+   * Determine registrant type relative to a given account
+   * 
+   * @param $account
+   *   A Drupal user
+   *
+   * @return string
+   *   Can be me, user, or anon.
+   */
+  public function registrant_type($account) {
+    if (!empty($account)) {
+      if ($account->uid && $account->uid === $this->user_uid) {
+        return REGISTRATION_REGISTRANT_TYPE_ME;
+      }
+      else if($this->user_uid) {
+        return REGISTRATION_REGISTRANT_TYPE_USER;
+      }
+      else if(!empty($this->anon_mail)) {
+        return REGISTRATION_REGISTRANT_TYPE_ANON;
+      }
+    }
+  }
 }
 
 /**
@@ -339,9 +361,13 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
     case 'view':
       return ($account_own && user_access("view own $type registration", $account)) || user_access("view $type registration", $account);
     case 'update':
-      return ($account_own && user_access("update own $type registration", $account)) || user_access("update any $type registration", $account);
+      if (($account_own && user_access("update own $type registration", $account)) || user_access("update any $type registration", $account)) {
+        $people = registration_access_people($registration);
+        $registrant_type = $registration->registrant_type($account);
+        return (isset($registrant_type) && isset($people[$registrant_type]));
+      }
     case 'create':
-      return user_access("create $type registration", $account);
+      return (user_access("create $type registration", $account) && (count(registration_access_people($registration)) > 0));
     case 'delete':
       return ($account_own && user_access("delete own $type registration", $account)) || user_access("delete any $type registration", $account);
   }

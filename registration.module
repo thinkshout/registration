@@ -8,6 +8,10 @@
 module_load_include('inc', 'registration', 'includes/registration.entity');
 module_load_include('inc', 'registration', 'includes/registration.field');
 
+define('REGISTRATION_REGISTRANT_TYPE_ME', 'registration_registrant_type_me');
+define('REGISTRATION_REGISTRANT_TYPE_USER', 'registration_registrant_type_user');
+define('REGISTRATION_REGISTRANT_TYPE_ANON', 'registration_registrant_type_anon');
+
 /**
  * Implements hook_menu().
  */
@@ -228,6 +232,8 @@ function registration_register_page_access($entity_type, $entity) {
 
   if ($type = registration_get_entity_registration_type($entity_type, $entity)) {
     $registration = entity_get_controller('registration')->create(array('type' => $type));
+    $registration->entity_id = $entity_id;
+    $registration->entity_type = $entity_type;
     if (entity_access('create', 'registration', $registration)) {
       $settings = registration_entity_settings($entity_id, $entity_type);
       if ($settings['status']) {
@@ -811,4 +817,39 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
 
   $count = $query->countQuery()->execute()->fetchField();
   return $count > 0;
+}
+
+/**
+ * Determine people types user may register for an entity.
+ * 
+ * This will take into account if a user already has a registration for an
+ * entity.
+ * 
+ * @param Registration $registration
+ *   A registration entity.
+ * @param $account
+ *   An account, or omit to get logged in user.
+ * @return array
+ *   Array keyed with people types, with descriptions.
+ */
+function registration_access_people(Registration $registration, $account = NULL) {
+  $account = isset($account) ? $account : $GLOBALS['user'];
+  $people = array();
+
+  // Me
+  if ($account->uid && ($account->uid === $registration->user_uid || !registration_is_registered($registration, NULL, $account->uid))) {
+    $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
+  }
+
+  // Other users
+  if (user_access("create $registration->type registration other users", $account)) {
+    $people[REGISTRATION_REGISTRANT_TYPE_USER] = t('Other account');
+  }
+
+  // Anonymous people
+  if (user_access("create $registration->type registration other anonymous", $account)) {
+    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = (empty($account->uid)) ? t('Myself') : t('Other person');;
+  }
+
+  return $people;
 }

@@ -406,7 +406,7 @@ function registration_has_room($entity_id, $entity_type, $slots = 0) {
  * @return int
  */
 function registration_event_count($entity_id, $entity_type) {
-  $count = &drupal_static(__FUNCTION__, FALSE);
+  $count = &drupal_static(__FUNCTION__ . '_' . $entity_type . '_' . $entity_id, FALSE);
   if (!$count) {
     $count = db_query("SELECT sum(count) FROM {registration} WHERE entity_id = :entity_id AND entity_type = :entity_type",
       array(':entity_id' => $entity_id, ':entity_type' => $entity_type)

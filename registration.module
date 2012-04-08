@@ -720,6 +720,48 @@ function registration_views_api() {
 }
 
 /**
+ * Implements hook_views_data().
+ */
+function registration_views_data() {
+  $data = array();
+
+  $data['registration_entity']['table']['group'] = t('Registration Settings');
+  $data['registration_entity']['table']['base'] = array(
+    'field' => 'entity_id',
+    'title' => t('Registration Settings'), 
+    'help' => t('Contains information about registration settings for entities.'), 
+    'weight' => -10,
+  );
+
+  $data['registration_entity']['open'] = array(
+    'title' => t('Open Date'),
+    'help' => t('When the entity will open for registrations.'),
+    'field' => array(
+      'handler' => 'registration_handler_field_entity_datetime',
+    ),
+  );
+
+  $data['registration_entity']['close'] = array(
+    'title' => t('Close Date'),
+    'help' => t('When the entity will no longer accept registrations.'),
+    'field' => array(
+      'handler' => 'registration_handler_field_entity_datetime',
+    ),
+  );
+
+  $data['registration_entity']['capacity_total'] = array(
+    'real field' => 'capacity',
+    'title' => t('Slots Total'),
+    'help' => t('Maximum number of slots for an entity.'),
+    'field' => array(
+      'handler' => 'registration_handler_field_entity_capacity_total',
+    ),
+  );
+
+  return $data;
+}
+
+/**
  * Implement hook_token_info().
  */
 function registration_token_info() {

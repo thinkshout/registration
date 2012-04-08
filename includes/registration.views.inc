@@ -9,6 +9,30 @@ class RegistrationViewsController extends EntityDefaultViewsController {
   public function views_data() {
     $data = parent::views_data();
 
+    $data['registration']['view_registration'] = array(
+      'field' => array(
+        'title' => t('View link'),
+        'help' => t('Provide a link to view a registration.'),
+        'handler' => 'registration_handler_field_registration_link',
+      ),
+    );
+
+    $data['registration']['edit_registration'] = array(
+      'field' => array(
+        'title' => t('Edit link'),
+        'help' => t('Provide a link to edit a registration.'),
+        'handler' => 'registration_handler_field_registration_link_edit',
+      ),
+    );
+
+    $data['registration']['delete_registration'] = array(
+      'field' => array(
+        'title' => t('Delete link'),
+        'help' => t('Provide a link to delete a registration.'),
+        'handler' => 'registration_handler_field_registration_link_delete',
+      ),
+    );
+
     return $data;
   }
 }
@@ -17,6 +41,7 @@ class RegistrationViewsController extends EntityDefaultViewsController {
  * Implement hook_views_data_alter().
  * 
  * Create relationships between registrations, and their related entities.
+ * Provide additional fields for entities with registrations.
  */
 function registration_views_data_alter(&$data) {
   $registration_instances =  registration_get_registration_instances();
@@ -41,6 +66,54 @@ function registration_views_data_alter(&$data) {
         'base' => 'registration',
         'base field' => 'entity_id',
         'relationship field' => $info['entity keys']['id'],
+      ),
+    );
+
+    // relate entities to registration settings.
+    $data[$info['base table']]['registration_settings_rel'] = array(
+      'group' => t('Registration Settings'),
+      'title' => t('@entity to Registration Settings', array('@entity' => ucfirst($info['label']))),
+      'help' => t('The Registration settings associated with the @entity entity.', array('@entity' => ucfirst($info['label']))),
+      'relationship' => array(
+        'entity' => $entity_type,
+        'handler' => 'registration_handler_relationship',
+        'label' => t('@entity being the Registration', array('@entity' => $entity_type)),
+        'base' => 'registration_entity',
+        'base field' => 'entity_id',
+        'relationship field' => $info['entity keys']['id'],
+      ),
+    );
+
+    // host entity: registration settings link
+    $data[$info['base table']]['registration_settings'] = array(
+      'real field' => $info['entity keys']['id'],
+      'group' => t('Registration Settings'),
+      'title' => t('Registration Settings Link'),
+      'help' => t('Provide a link to edit registration settings for an entity.'),
+      'field' => array(
+        'handler' => 'registration_handler_field_entity_settings_link',
+      ),
+    );
+
+    // host entity: registration status
+    $data[$info['base table']]['registration_status'] = array(
+      'real field' => $info['entity keys']['id'],
+      'group' => t('Registration Settings'),
+      'title' => t('Registration Status'),
+      'help' => t('Show registration status for an entity.'),
+      'field' => array(
+        'handler' => 'registration_handler_field_entity_registration_status',
+      ),
+    );
+
+    // host entity: used slots
+    $data[$info['base table']]['capacity_used'] = array(
+      'real field' => $info['entity keys']['id'],
+      'group' => t('Registration Settings'),
+      'title' => t('Slots Used'),
+      'help' => t('Current number of slots used for this entity.'),
+      'field' => array(
+        'handler' => 'registration_handler_field_entity_capacity_used',
       ),
     );
 

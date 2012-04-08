@@ -124,19 +124,6 @@ class Registration extends Entity {
   }
 
   /**
-   * Override buildContent() to add registration properties.
-   */
-  public function buildContent($view_mode = 'full', $langcode = NULL) {
-    // invoke theme handler to return markup for registration properties
-    $content['registration'] = array(
-      '#markup' => theme('registration', array('registration' => $this)),
-    );
-
-    return entity_get_controller($this->entityType)
-			->buildContent($this, $view_mode, $langcode, $content);
-  }
-
-  /**
    * Specifies the default label, which is picked up by label() by default.
    */
   protected function defaultLabel() {
@@ -154,6 +141,88 @@ class Registration extends Entity {
 
   protected function author() {
     return (isset($this->author_uid)) ? user_load($this->author_uid) : FALSE;
+  }
+
+  /**
+   * Build content for Registration.
+   *
+   * @return render array
+   */
+  public function buildContent($view_mode = 'full', $langcode = NULL) {
+    $build = parent::buildContent($view_mode, $langcode);
+
+    $host_entity_type_info = entity_get_info($this->entity_type);
+    $host_entity = entity_load_single($this->entity_type, $this->entity_id);
+    list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
+
+    $host_label = entity_label($this->entity_type, $host_entity);
+    $host_uri = entity_uri($this->entity_type, $host_entity);
+
+    // Mail
+    $build['mail'] = array(
+      '#prefix' => '<div class="field registration-mail"><div class="field-label">' . t('Email Address') . '</div>',
+      '#markup' => $this->mail,
+      '#suffix' => '</div>',
+    );
+
+    // Link to host entity
+    $host_entity_link_label = (isset($host_entity_type_info['bundles'][$host_entity_bundle]['label'])) ? '<div class="field-label">' . $host_entity_type_info['bundles'][$host_entity_bundle]['label'] . '</div>' : '';
+    $build['host_entity_link'] = array(
+      '#prefix' => '<div class="field registration-entity-link">' . $host_entity_link_label,
+      '#markup' => l($host_label, $host_uri['path']),
+      '#suffix' => '</div>',
+    );
+
+    // Date created
+    $build['created'] = array(
+      '#prefix' => '<div class="field registration-created"><div class="field-label">' . t('Created') . '</div>',
+      '#markup' => format_date($this->created),
+      '#suffix' => '</div>',
+    );
+
+    // Date updated
+    $build['updated'] = array(
+      '#prefix' => '<div class="field registration-updated"><div class="field-label">' . t('Updated') . '</div>',
+      '#markup' => format_date($this->updated),
+      '#suffix' => '</div>',
+    );
+
+    // Slots used
+    $build['slots'] = array(
+      '#prefix' => '<div class="field registration-slots"><div class="field-label">' . t('Slots Used') . '</div>',
+      '#markup' => $this->count,
+      '#suffix' => '</div>',
+    );
+
+    // Registration authored by
+    if ($this->author_uid) {
+      $author = user_load($this->author_uid);
+      if ($author) {
+        $author_uri = user_uri($author);
+      }
+    }
+
+    $build['author'] = array(
+      '#prefix' => '<div class="field registration-author"><div class="field-label">' . t('Author') . '</div>',
+      '#markup' => (isset($author_uri['path']) ? l($author->name, $author_uri['path']) : t('Anonymous')),
+      '#suffix' => '</div>',
+    );
+
+    // Registration belongs to
+    if ($this->user_uid) {
+      $account = user_load($this->user_uid);
+      if ($account) {
+        $account_uri = user_uri($account);
+      }
+    }
+
+    $build['user'] = array(
+      '#prefix' => '<div class="field registration-user"><div class="field-label">' . t('User') . '</div>',
+      '#markup' => (isset($account_uri['path']) ? l($account->name, $account_uri['path']) : t('Anonymous')),
+      '#suffix' => '</div>',
+    );
+
+    return $build;
   }
 
   /**
@@ -371,34 +440,6 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
     case 'delete':
       return ($account_own && user_access("delete own $type registration", $account)) || user_access("delete any $type registration", $account);
   }
-}
-
-/**
- * Implements hook_field_extra_fields().
- */
-function registration_field_extra_fields() {
-	// expose the email property on the fields and display settings forms.
-  $extra = array();
-  foreach (registration_get_types() as $type => $reg_type) {
-    $extra['registration'][$type] = array(
-      'form' => array(
-        'mail' => array(
-          'label' => t('Email'),
-          'description' => t('Registrant\'s email address.'),
-          'weight' => 0,
-        ),
-      ),
-      'display' => array(
-        'mail' => array(
-          'label' => t('Email'),
-          'description' => t('Registrant\'s email address.'),
-          'weight' => 0,
-        ),
-      )
-    );
-  }
-
-  return $extra;
 }
 
 /**

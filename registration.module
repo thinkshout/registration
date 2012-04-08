@@ -455,35 +455,10 @@ function registration_entity_settings($entity_id, $entity_type) {
  */
 function registration_theme() {
   return array(
-    'registration' => array(
-      'variables' => array('registration' => NULL),
-    ),
     'registration_link' => array(
       'variables' => array('label' => NULL, 'path' => NULL),
     ),
   );
-}
-
-/**
- * Theme handler for registrations.
- *
- * @param array $variables
- *   Contains a complete registration object.
- */
-function theme_registration($variables) {
-  $registration = $variables['registration'];
-  $output = '<div><label>' . t('Email') . '</label>' . $registration->mail . '</div>';
-  if ($entity = $registration->entity) {
-    $label = entity_label($registration->entity_type, $entity);
-    $uri = entity_uri($registration->entity_type, $entity);
-    $output .= '<div><label>' . $registration->entity_type . "</label>" .
-        l($label, $uri['path']) . '</div>';
-  }
-
-  $output .= '<div><label>' . t('Count') . '</label>' . $registration->count . '</div>';
-  $output .= '<div><label>' . t('Created') . '</label>' . format_date($registration->created) . '</div>';
-
-  return $output;
 }
 
 /**
@@ -849,4 +824,62 @@ function registration_access_people(Registration $registration, $account = NULL)
   }
 
   return $people;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function registration_field_extra_fields() {
+  // expose the email property on the fields and display settings forms.
+  $extra = array();
+  foreach (registration_get_types() as $type => $reg_type) {
+    $extra['registration'][$type] = array(
+      'form' => array(
+        'anon_mail' => array(
+          'label' => t('Email'),
+          'description' => t('Registrant\'s email address.'),
+          'weight' => 0,
+        ),
+      ),
+      'display' => array(
+        'mail' => array(
+          'label' => t('Email'),
+          'description' => t('Registrant\'s email address.'),
+          'weight' => 0,
+        ),
+        'host_entity_link' => array(
+          'label' => t('Entity Link'),
+          'description' => t('Link to host entity.'),
+          'weight' => 0,
+        ),
+        'created' => array(
+          'label' => t('Created'),
+          'description' => t('When the registration was created.'),
+          'weight' => 0,
+        ),
+        'updated' => array(
+          'label' => t('Updated'),
+          'description' => t('When the registration was updated.'),
+          'weight' => 0,
+        ),
+        'slots' => array(
+          'label' => t('Slots Used'),
+          'description' => t('How many slots were used in this registration.'),
+          'weight' => 0,
+        ),
+        'author' => array(
+          'label' => t('Author'),
+          'description' => t('User who created the registration.'),
+          'weight' => 0,
+        ),
+        'user' => array(
+          'label' => t('User'),
+          'description' => t('User associated with this registration.'),
+          'weight' => 0,
+        ),
+      )
+    );
+  }
+
+  return $extra;
 }

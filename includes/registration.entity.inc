@@ -16,7 +16,6 @@ function registration_entity_info() {
       'controller class' => 'EntityAPIController',
       'entity class' => 'Registration',
       'metadata controller class' => 'RegistrationMetadataController',
-      'views controller class' => 'RegistrationViewsController',
       'base table' => 'registration',
       'fieldable' => TRUE,
       'entity keys' => array(

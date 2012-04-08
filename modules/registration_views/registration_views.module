@@ -2,8 +2,68 @@
 
 /**
  * @file
- * Provides integration with Views module.
+ * Entity Registration Views integration
  */
+
+/**
+ * Implements hook_views_api().
+ */
+function registration_views_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'registration_views') . '/includes',
+  );
+}
+
+/**
+ * Implements hook_views_data().
+ */
+function registration_views_views_data() {
+  $data = array();
+
+  $data['registration_entity']['table']['group'] = t('Registration Settings');
+  $data['registration_entity']['table']['base'] = array(
+    'field' => 'entity_id',
+    'title' => t('Registration Settings'),
+    'help' => t('Contains information about registration settings for entities.'),
+    'weight' => -10,
+  );
+
+  $data['registration_entity']['open'] = array(
+    'title' => t('Open Date'),
+    'help' => t('When the entity will open for registrations.'),
+    'field' => array(
+      'handler' => 'registration_handler_field_entity_datetime',
+    ),
+  );
+
+  $data['registration_entity']['close'] = array(
+    'title' => t('Close Date'),
+    'help' => t('When the entity will no longer accept registrations.'),
+    'field' => array(
+      'handler' => 'registration_handler_field_entity_datetime',
+    ),
+  );
+
+  $data['registration_entity']['capacity_total'] = array(
+    'real field' => 'capacity',
+    'title' => t('Slots Total'),
+    'help' => t('Maximum number of slots for an entity.'),
+    'field' => array(
+      'handler' => 'registration_handler_field_entity_capacity_total',
+    ),
+  );
+
+  return $data;
+}
+
+/**
+ * Imnplements hook_entity_info_alter().
+ */
+function registration_views_entity_info_alter(&$entity_info) {
+  // Set our custom Views controller class
+  $entity_info['registration']['views controller class'] = 'RegistrationViewsController';
+}
 
 class RegistrationViewsController extends EntityDefaultViewsController {
   public function views_data() {
@@ -39,11 +99,11 @@ class RegistrationViewsController extends EntityDefaultViewsController {
 
 /**
  * Implement hook_views_data_alter().
- * 
+ *
  * Create relationships between registrations, and their related entities.
  * Provide additional fields for entities with registrations.
  */
-function registration_views_data_alter(&$data) {
+function registration_views_views_data_alter(&$data) {
   $registration_instances =  registration_get_registration_instances();
   $entity_info = entity_get_info();
 

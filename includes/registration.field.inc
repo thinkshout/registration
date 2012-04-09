@@ -126,10 +126,11 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
         // enable registration link if accessible
         list($entity_id) = entity_extract_ids($entity_type, $entity);
         if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
-          $registration = entity_get_controller('registration')->create(array('type' => $reg_type->name));
-          $registration->entity_id = $entity_id;
-          $registration->entity_type = $entity_type;
-          $registration->entity = entity_load_single($entity_type, $entity_id);
+          $registration = entity_get_controller('registration')->create(array(
+            'entity_type' => $entity_type,
+            'entity_id' => $entity_id,
+            'type' => $reg_type->name,
+          ));
           $element[0] = drupal_get_form('registration_form', $registration);
         }
         break;

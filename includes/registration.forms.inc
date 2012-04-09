@@ -57,11 +57,11 @@ function registration_form($form, &$form_state, Registration $registration) {
     )
   );
 
-  $settings  = registration_entity_settings($registration->entity_id, $registration->entity_type);
+  $settings  = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $capacity  = $settings['capacity'];
   $remaining = 0;
   if ($capacity) {
-    $remaining = $capacity - registration_event_count($registration->entity_id, $registration->entity_type);
+    $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
   }
 
   $form['count'] = array(
@@ -117,7 +117,7 @@ function registration_form_validate($form, &$form_state) {
 
   // verify the event hasn't sold out
   $count = $form_state['values']['count'];
-  if (!registration_has_room($registration->entity_id, $registration->entity_type, $count)) {
+  if (!registration_has_room($registration->entity_type, $registration->entity_id, $count)) {
     drupal_set_message(t('Sorry, there are insufficient slots remaining for this event.'));
   }
 
@@ -316,7 +316,7 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
     'entity_type' => $entity_type
   );
 
-  $settings = registration_entity_settings($entity_id, $entity_type);
+  $settings = registration_entity_settings($entity_type, $entity_id);
 
   $form['status'] = array(
     '#type' => 'checkbox',
@@ -516,7 +516,7 @@ function registration_registrations_settings_form_submit($form, &$form_state) {
     $fields['close'] = date('Y-m-d H:i:s', strtotime($form_state['values']['scheduling']['close']));
   }
 
-  registration_update_entity_settings($entity['entity_id'], $entity['entity_type'], $fields);
+  registration_update_entity_settings($entity['entity_type'], $entity['entity_id'], $fields);
 
   $uri = entity_uri($entity['entity_type'], entity_load_single($entity['entity_type'], $entity['entity_id']));
 

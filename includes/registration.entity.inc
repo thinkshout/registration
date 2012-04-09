@@ -255,7 +255,7 @@ class Registration extends Entity {
 
   /**
    * Determine registrant type relative to a given account
-   * 
+   *
    * @param $account
    *   A Drupal user
    *
@@ -267,10 +267,10 @@ class Registration extends Entity {
       if ($account->uid && $account->uid === $this->user_uid) {
         return REGISTRATION_REGISTRANT_TYPE_ME;
       }
-      else if($this->user_uid) {
+      elseif ($this->user_uid) {
         return REGISTRATION_REGISTRANT_TYPE_USER;
       }
-      else if(!empty($this->anon_mail)) {
+      elseif (!empty($this->anon_mail)) {
         return REGISTRATION_REGISTRANT_TYPE_ANON;
       }
     }
@@ -278,7 +278,7 @@ class Registration extends Entity {
 }
 
 /**
- * @see hook_entity_property_info().
+ * @see hook_entity_property_info()
  */
 class RegistrationMetadataController extends EntityDefaultMetadataController {
   public function entityPropertyInfo() {
@@ -402,7 +402,26 @@ function registration_save(Registration $registration) {
 }
 
 /**
- * Access callback for the entity API.
+ * Access callback: Entity API for Registration entities.
+ *
+ * Checks if a user has permission to execute an operation on a registration
+ * entity.
+ *
+ * Implements hook_registration_access(). Modules may return a boolean value,
+ * or NULL if they do not care one way or the other.
+ *
+ * @param string $op
+ *   Operation user wishes to perform.
+ * @param object $registration
+ *   (optional) A Fully loaded registration object.
+ * @param object $account
+ *   (optional) An user object, or omit for logged in user.
+ * @param string $entity_type
+ *   (optional) Entity type of $registration. Usually 'registration'.
+ *
+ * @return bool
+ *
+ * @see registration_entity_info()
  */
 function registration_access($op, $registration = NULL, $account = NULL, $entity_type) {
   $account = isset($account) ? $account : $GLOBALS['user'];
@@ -465,8 +484,7 @@ class RegistrationTypeUIController extends EntityDefaultUIController {
    */
   public function hook_menu() {
     $items = parent::hook_menu();
-		$items[$this->path]['description'] = 'Manage registration entity types, including adding
-		and removing fields and the display of fields.';
+    $items[$this->path]['description'] = t('Manage registration entity types, including adding and removing fields and the display of fields.');
     return $items;
   }
 }

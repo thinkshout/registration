@@ -1,8 +1,7 @@
 <?php
-
 /**
  * @file
- * Display registration open or closing dates. 
+ * Display registration open or closing dates.
  */
 class registration_handler_field_entity_datetime extends views_handler_field_date {
   function render($values) {

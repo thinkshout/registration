@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * @file
  * Display maximum slots for an entity.

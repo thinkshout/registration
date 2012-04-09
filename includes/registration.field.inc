@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Field hooks.
+ */
+
+/**
  * Implements hook_field_info().
  */
 function registration_field_info() {
@@ -56,7 +61,7 @@ function registration_field_widget_info() {
  */
 function registration_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $options = array('' => t('-- Disable Registrations --'));
-  foreach(registration_get_types() as $type) {
+  foreach (registration_get_types() as $type) {
     $options[$type->name] = $type->label;
   }
   $element += array(
@@ -113,13 +118,13 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
           $element[0] = array('#markup' => theme('registration_link',
             array(
               'label' => $reg_type->label,
-              'path'  => $uri['path']. '/register')
+              'path'  => $uri['path'] . '/register')
           ));
         }
         break;
       case 'registration_form':
         // enable registration link if accessible
-        list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
+        list($entity_id) = entity_extract_ids($entity_type, $entity);
         if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
           $registration = entity_get_controller('registration')->create(array('type' => $reg_type->name));
           $registration->entity_id = $entity_id;
@@ -186,7 +191,7 @@ function registration_form_field_ui_field_overview_form_alter(&$form, &$form_sta
 function registration_form_field_ui_field_overview_form_validate(&$form, &$form_state) {
   $fields = $form_state['values']['fields'];
   if ($fields['_add_new_field']['type'] == 'registration') {
-    foreach($form['#fields'] as $field_name) {
+    foreach ($form['#fields'] as $field_name) {
       $field = field_info_field($field_name);
       if ($field['type'] == 'registration') {
         form_set_error('_add_new_field', t('An entity can only have one registration field.'));

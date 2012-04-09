@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * @file
  * Display registration status for host entity.

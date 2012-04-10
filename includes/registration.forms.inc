@@ -454,7 +454,7 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
   );
 
   // allow other modules to add their own custom settings
-  $form['settings'] += module_invoke_all('registration_entity_settings');
+  $form['settings'] += module_invoke_all('registration_entity_settings', $settings);
 
   $form['save'] = array(
     '#type' => 'submit',

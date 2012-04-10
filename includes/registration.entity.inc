@@ -36,6 +36,7 @@ function registration_entity_info() {
       'uri callback' => 'entity_class_uri',
       'token type' => 'registration',
       'module' => 'registration',
+      'label callback' => 'entity_class_label'
     ),
     'registration_type' => array(
       'label' => t('Registration type'),
@@ -126,8 +127,13 @@ class Registration extends Entity {
    * Specifies the default label, which is picked up by label() by default.
    */
   protected function defaultLabel() {
-    $type = entity_test_get_types($this->name);
-    return $type->label;
+    $label = '';
+    if ($this->entity) {
+      $label = t('Registration for @title', array(
+        '@title' => entity_label($this->entity_type, $this->entity))
+      );
+    }
+    return $label;
   }
 
   protected function entity() {

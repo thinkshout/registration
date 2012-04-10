@@ -100,7 +100,7 @@ function registration_menu() {
         'load arguments' => array($type),
         'title' => 'Settings',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('registration_registrations_settings_form', 0, 1),
+        'page arguments' => array('registration_entity_settings_form', 0, 1),
         'access callback' => 'registration_administer_registrations_access',
         'access arguments' => array(0, 1),
         'weight' => 9,

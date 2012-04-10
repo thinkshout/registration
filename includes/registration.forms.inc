@@ -300,13 +300,18 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
 }
 
 /**
- * Return a form for a node's registration settings.
+ * Return a form for an entity's registration settings.
  *
  * @param array $form
  * @param array $form_state
- * @param object $node
+ * @param object $entity_type
+ * @param object $entity
+ *
+ * @return array $form
+ *
+ * @see hook_registration_entity_settings().
  */
-function registration_registrations_settings_form($form, &$form_state, $entity_type, $entity) {
+function registration_entity_settings_form($form, &$form_state, $entity_type, $entity) {
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   $label = entity_label($entity_type, $entity);
 
@@ -448,6 +453,9 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
     '#default_value' => isset($settings['settings']['from_address']) ? $settings['settings']['from_address'] : variable_get('site_mail', ini_get('sendmail_from')),
   );
 
+  // allow other modules to add their own custom settings
+  $form['settings'] += module_invoke_all('registration_entity_settings');
+
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save Settings'),
@@ -457,12 +465,12 @@ function registration_registrations_settings_form($form, &$form_state, $entity_t
 }
 
 /**
- * Submit handler for registration_registrations_settings_form().
+ * Submit handler for registration_entity_settings_form().
  *
  * @param array $form
  * @param array $form_state
  */
-function registration_registrations_settings_form_validate($form, &$form_state) {
+function registration_entity_settings_form_validate($form, &$form_state) {
   // ensure capacity is a positive integer
   $capacity = $form_state['values']['capacity'];
   if (!is_numeric($capacity) || ((int)$capacity != $capacity) || ($capacity < 0)) {
@@ -486,12 +494,12 @@ function registration_registrations_settings_form_validate($form, &$form_state) 
 }
 
 /**
- * Submit handler for registration_registrations_settings_form().
+ * Submit handler for registration_entity_settings_form().
  *
  * @param array $form
  * @param array $form_state
  */
-function registration_registrations_settings_form_submit($form, &$form_state) {
+function registration_entity_settings_form_submit($form, &$form_state) {
   $entity = $form_state['entity'];
   $fields = array(
     'status' => $form_state['values']['status'],

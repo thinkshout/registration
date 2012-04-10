@@ -62,6 +62,12 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+//      'status' => array(
+//        'description' => 'Status of this registration.',
+//        'type' => 'int',
+//        'not null' => TRUE,
+//        'default' => 1,
+//      ),
       'created' => array(
         'description' => 'The Unix timestamp when the registration was created.',
         'type' => 'int',

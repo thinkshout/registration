@@ -233,18 +233,9 @@ function registration_view(Registration $registration) {
  *   A fully loaded registration object.
  *
  * @return string
- *
- * @see registration_menu()
  */
 function registration_page_title(Registration $registration) {
-  $title = '';
-  // use the entity title in the registration page title
-  if ($entity = $registration->entity) {
-    $title = t('Registration for @title', array(
-      '@title' => entity_label($registration->entity_type, $entity))
-    );
-  }
-  return $title;
+  return $registration->label();
 }
 
 /**

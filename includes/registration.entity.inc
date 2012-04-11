@@ -440,6 +440,22 @@ function registration_save(Registration $registration) {
 function registration_access($op, $registration = NULL, $account = NULL, $entity_type) {
   $account = isset($account) ? $account : $GLOBALS['user'];
 
+  // Check environment for Registration.
+  switch ($op) {
+    case 'update':
+      $people = registration_access_people($registration);
+      $registrant_type = $registration->registrant_type($account);
+      if (!isset($registrant_type) && !isset($people[$registrant_type])) {
+        return FALSE;
+      }
+    case 'create':
+      if (!count(registration_access_people($registration))) {
+        return FALSE;
+      }
+      break;
+  }
+  
+
   // First grant access to the entity for the specified operation if no other
   // module denies it and at least one other module says to grant access.
   $access_results = module_invoke_all('registration_access', $op, $registration, $account, $entity_type);
@@ -457,18 +473,15 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
 
   $account_own = (isset($registration->author->uid) && ($registration->author->uid == $account->uid));
 
+  // Fall back to assigned permissions
   $type = $registration->type;
   switch ($op) {
     case 'view':
       return ($account_own && user_access("view own $type registration", $account)) || user_access("view $type registration", $account);
     case 'update':
-      if (($account_own && user_access("update own $type registration", $account)) || user_access("update any $type registration", $account)) {
-        $people = registration_access_people($registration);
-        $registrant_type = $registration->registrant_type($account);
-        return (isset($registrant_type) && isset($people[$registrant_type]));
-      }
+      return ($account_own && user_access("update own $type registration", $account)) || user_access("update any $type registration", $account);
     case 'create':
-      return (user_access("create $type registration", $account) && (count(registration_access_people($registration)) > 0));
+      return (user_access("create $type registration", $account));
     case 'delete':
       return ($account_own && user_access("delete own $type registration", $account)) || user_access("delete any $type registration", $account);
   }

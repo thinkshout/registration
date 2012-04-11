@@ -109,6 +109,7 @@ class Registration extends Entity {
     $count,
     $author,
     $author_uid,
+    $state = REGISTRATION_STATE_COMPLETE,
     $created,
     $updated;
 
@@ -224,6 +225,13 @@ class Registration extends Entity {
     $build['user'] = array(
       '#prefix' => '<div class="field registration-user"><div class="field-label">' . t('User') . '</div>',
       '#markup' => (isset($account_uri['path']) ? l($account->name, $account_uri['path']) : t('Anonymous')),
+      '#suffix' => '</div>',
+    );
+
+    $states = registration_states();
+    $build['state'] = array(
+      '#prefix' => '<div class="field registration-state"><div class="field-label">' . t('State') . '</div>',
+      '#markup' => $states[$this->state],
       '#suffix' => '</div>',
     );
 

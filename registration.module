@@ -27,6 +27,10 @@ define('REGISTRATION_REGISTRANT_TYPE_USER', 'registration_registrant_type_user')
  */
 define('REGISTRATION_REGISTRANT_TYPE_ANON', 'registration_registrant_type_anon');
 
+define('REGISTRATION_STATE_PENDING', 'registration_state_pending');
+define('REGISTRATION_STATE_COMPLETE', 'registration_state_complete');
+define('REGISTRATION_STATE_CANCELED', 'registration_state_canceled');
+
 /**
  * Implements hook_menu().
  */
@@ -352,6 +356,7 @@ function registration_registrations_page($entity_type, $entity) {
     array('data' => t('Created By'), 'field' => 'author_uid', 'type' => 'property', 'specifier' => 'author_uid'),
     array('data' => t('Count'), 'field' => 'count', 'type' => 'property',  'specifier' => 'count'),
     array('data' => t('Created'), 'field' => 'created', 'sort' => 'desc',  'type' => 'property', 'specifier' => 'created'),
+    array('data' => t('State'), 'field' => 'state', 'type' => 'property', 'specifier' => 'state'),
     array('data' => t('Actions')),
   );
 
@@ -369,8 +374,9 @@ function registration_registrations_page($entity_type, $entity) {
 
   if (!empty($result['registration'])) {
     $registrations = registration_load_multiple(array_keys($result['registration']));
-
+    $states = registration_states();
     $rows = array();
+
     foreach ($registrations as $registration) {
       $author_col = '';
       if ($registration->author_uid) {
@@ -399,6 +405,7 @@ function registration_registrations_page($entity_type, $entity) {
         $author_col,
         $registration->count,
         format_date($registration->created),
+        $states[$registration->state],
         implode(' | ', $actions)
       );
     }
@@ -478,8 +485,8 @@ function registration_has_room($entity_type, $entity_id, $slots = 0) {
 function registration_event_count($entity_type, $entity_id) {
   $count = &drupal_static(__FUNCTION__ . '_' . $entity_type . '_' . $entity_id, FALSE);
   if (!$count) {
-    $count = db_query("SELECT sum(count) FROM {registration} WHERE entity_id = :entity_id AND entity_type = :entity_type",
-      array(':entity_id' => $entity_id, ':entity_type' => $entity_type)
+    $count = db_query("SELECT sum(count) FROM {registration} WHERE entity_id = :entity_id AND entity_type = :entity_type AND state = :state",
+      array(':entity_id' => $entity_id, ':entity_type' => $entity_type, ':state' => REGISTRATION_STATE_COMPLETE)
     )->fetchField();
   }
   return $count;
@@ -595,6 +602,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     ->entityCondition('entity_type', 'registration')
     ->propertyCondition('entity_id', $entity_id)
     ->propertyCondition('entity_type', $entity_type)
+    ->propertyCondition('state', REGISTRATION_STATE_COMPLETE)
     ->execute();
 
   if (!empty($entities)) {
@@ -974,9 +982,32 @@ function registration_field_extra_fields() {
           'description' => t('User associated with this registration.'),
           'weight' => 0,
         ),
+        'state' => array(
+          'label' => t('State'),
+          'description' => t('State of the registration.'),
+          'weight' => 0,
+        ),
       )
     );
   }
 
   return $extra;
+}
+
+/**
+ * Returns an associative array of registration states keyed by value.
+ *
+ * @return array
+ */
+function registration_states() {
+  $states = array(
+    REGISTRATION_STATE_COMPLETE => t('Complete'),
+    REGISTRATION_STATE_PENDING => t('Pending'),
+    REGISTRATION_STATE_CANCELED => t('Canceled')
+  );
+
+  // allow other mods to add states
+  $states += module_invoke_all('registration_states');
+
+  return $states;
 }

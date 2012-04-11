@@ -62,12 +62,12 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-//      'status' => array(
-//        'description' => 'Status of this registration.',
-//        'type' => 'int',
-//        'not null' => TRUE,
-//        'default' => 1,
-//      ),
+      'state' => array(
+        'description' => 'State of this registration.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
       'created' => array(
         'description' => 'The Unix timestamp when the registration was created.',
         'type' => 'int',
@@ -85,6 +85,7 @@ function registration_schema() {
       'registration_updated' => array('updated'),
       'registration_created' => array('created'),
       'registration_type' => array(array('type', 4)),
+      'registration_state' => array('state'),
     ),
     'foreign keys' => array(
       'registration_author' => array(
@@ -125,7 +126,7 @@ function registration_schema() {
         'default' => 0,
       ),
       'status' => array(
-        'description' => 'Boolean indicating if signups are open (1) or closed (0) for the given entity',
+        'description' => 'Boolean indicating if registrations are open (1) or closed (0) for the given entity',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,

@@ -13,8 +13,8 @@ function registration_entity_access_registration_entity_settings($settings) {
   return array(
     'registration_entity_access_roles' => array(
       '#type' => 'checkboxes',
-      '#title' => t('Roles'),
-      '#description' => t('Override the default access control settings by selecting which roles can register for this event.'),
+      '#title' => t('Roles that can register'),
+      '#description' => t('Override the default access control settings by selecting which roles can %register for this event.', array('%register' => t('register'))),
       '#options' => user_roles(TRUE),
       '#default_value' => isset($settings['settings']['registration_entity_access_roles']) ? $settings['settings']['registration_entity_access_roles'] : array()
   ));
@@ -24,7 +24,7 @@ function registration_entity_access_registration_entity_settings($settings) {
  * Implements hook_registration_access().
  */
 function registration_entity_access_registration_access($op, $registration = NULL, $account = NULL, $entity_type) {
-  if (($registration->entity_type && $registration->entity_id) && $account) {
+  if ($op == 'create' && ($registration->entity_type && $registration->entity_id) && $account) {
     $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
     if (isset($settings['settings']['registration_entity_access_roles'])) {
       foreach ($settings['settings']['registration_entity_access_roles'] as $role_id) {

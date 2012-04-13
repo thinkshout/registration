@@ -494,11 +494,10 @@ function registration_event_count($entity_type, $entity_id) {
 
 /**
  * Implements hook_entity_delete().
- *
- * Delete registrations and settings for this host entity.
  */
 function registration_entity_delete($entity, $entity_type) {
-  list($entity_id) = entity_extract_ids($type, $entity);
+  // Delete registrations and settings for this host entity .
+  list($entity_id) = entity_extract_ids($entity_type, $entity);
   db_delete('registration')
     ->condition('entity_id', $entity_id)
     ->condition('entity_type', $entity_type)
@@ -507,8 +506,27 @@ function registration_entity_delete($entity, $entity_type) {
     ->condition('entity_id', $entity_id)
     ->condition('entity_type', $entity_type)
     ->execute();
-}
 
+  // Remove references to a registration_type on host entities
+  if ($entity_type == 'registration_type') {
+    $registration_fields = field_read_fields(array('type' => 'registration'));
+    if (!empty($registration_fields)) {
+      foreach (array_keys($registration_fields) as $field_name) {
+        $query = new EntityFieldQuery;
+        $result = $query
+          ->fieldCondition($field_name, 'registration_type', $entity->name)
+          ->execute();
+        foreach ($result as $host_entity_type => $entities) {
+          $entities = entity_load($host_entity_type, array_keys($entities));
+          foreach ($entities as $entity_id => $host_entity) {
+            $host_entity->{$field_name}[LANGUAGE_NONE][0] = NULL;
+            entity_save($host_entity_type, $host_entity);
+          }
+        }
+      }
+    }
+  }
+}
 
 /**
  * Get registration settings for a host entity.

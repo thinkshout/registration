@@ -74,6 +74,15 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#element_validate' => array('element_validate_integer_positive')
   );
 
+  $form['state'] = array(
+    '#type' => 'select',
+    '#title' => t('State'),
+    '#description' => t('State of this registration'),
+    '#default_value' => isset($registration->state) ? $registration->state : REGISTRATION_STATE_COMPLETE,
+    '#options' => registration_states(),
+    //'#access' => todo: check show in form
+  );
+
   field_attach_form('registration', $registration, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
@@ -168,6 +177,7 @@ function registration_form_submit($form, &$form_state) {
   }
 
   $registration->count = $form_state['values']['count'];
+  $registration->state = $form_state['values']['state'];
 
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:

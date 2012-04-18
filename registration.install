@@ -266,29 +266,3 @@ function registration_field_schema($field) {
     'foreign keys' => $foreign_keys,
   );
 }
-
-/**
- * Update the {registration_entity} table to add open and close date fields.
- */
-function registration_update_7000() {
-  // Add the {registration_entity}.open field if it doesn't already exist.
-  if (!db_field_exists('registration_entity', 'open')) {
-    $fields['open'] = array(
-      'description' => 'Date to open registrations. Or NULL to open immediately.',
-      'mysql_type' => 'datetime',
-      'pgsql_type' => 'timestamp',
-      'not null' => FALSE,
-    );
-    db_add_field('registration_entity', 'open', $fields['open']);
-  }
-  // Add the {registration_entity}.close field if it doesn't already exist.
-  if (!db_field_exists('registration_entity', 'close')) {
-    $fields['close'] = array(
-      'description' => 'Date to close registrations. Or NULL to never close automatically.',
-      'mysql_type' => 'datetime',
-      'pgsql_type' => 'timestamp',
-      'not null' => FALSE,
-    );
-    db_add_field('registration_entity', 'close', $fields['close']);
-  }
-}

@@ -3,7 +3,7 @@ Entity based registration system for Drupal.
 # Configuration
 1. Download and enable the module.
 2. Create at least one registration bundle (or type) at
-/admin/structure/registration_types, much like you would a content type.
+/admin/structure/admin/structure/registration/registration_types, much like you would a content type.
 3. Add a registration field to any entity you want to enable registrations
 for. Note the display options: default, link to the registration form,
 and embedding the actual form.

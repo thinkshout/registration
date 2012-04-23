@@ -129,7 +129,7 @@ function registration_form_validate($form, &$form_state) {
   // verify the event hasn't sold out
   $count = $form_state['values']['count'];
   if (!registration_has_room($registration->entity_type, $registration->entity_id, $count)) {
-    drupal_set_message(t('Sorry, there are insufficient slots remaining for this event.'));
+    form_set_error('', t('Sorry, there are insufficient slots remaining for this event.'));
   }
 
   // validate according to who's registering

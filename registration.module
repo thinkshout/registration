@@ -1037,103 +1037,51 @@ function registration_field_extra_fields() {
 }
 
 /**
- * Returns an associative array of registration states keyed by value.
+ * Return all registration state entities.
  *
- * @param string $simple Return state ID/label pair or
- *  an array of state objects
+ * @param bool $active
+ * @param bool $show_on_form
  *
  * @return array
+ *   An array of registration state entities.
  */
-function registration_states($simple = TRUE) {
-  $states = &drupal_static(__FUNCTION__);
-  if ($states) {
+function registration_states($active = TRUE, $show_on_form = TRUE) {
+  $states = &drupal_static(__FUNCTION__ . $active . $show_on_form, array());
+  if (!empty($states)) {
     return $states;
   }
 
   $entity_type = 'registration_state';
   $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', $entity_type)
+  $results = $query
+    ->entityCondition('entity_type', $entity_type)
     ->propertyOrderBy('weight', 'ASC');
-  $results = $query->execute();
-  $states = entity_load($entity_type, array_keys($results[$entity_type]));
 
-  if ($simple == TRUE) {
-    $simple_states = array();
-    foreach ($states as $state) {
-      $simple_states[$state->registration_state_id] = $state->label;
-    }
-    $states = $simple_states;
+  if ($active) {
+    $query->propertyCondition('active', $active);
   }
+
+  if ($show_on_form) {
+    $query->propertyCondition('show_on_form', $show_on_form);
+  }
+
+  if ($results = $query->execute()) {
+    $states = entity_load($entity_type, array_keys($results[$entity_type]));
+  }
+
   return $states;
 }
 
-/*
- * Get active registration states
+/**
+ * Return an array of all active state IDs.
+ *
+ * @return array
  */
 function registration_get_active_states() {
-  $active_states = &drupal_static(__FUNCTION__);
-  if ($active_states) {
-    return $active_states;
+  $active = array();
+  $states = registration_states(TRUE);
+  foreach($states as $state) {
+    $active[] = $state->internalIdentifier();
   }
-
-  $entity_type = 'registration_state';
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', $entity_type)
-    ->propertyCondition('active', 1)
-    ->propertyOrderBy('weight', 'ASC');
-  $results = $query->execute();
-  $states = entity_load($entity_type, array_keys($results[$entity_type]));
-
-  $active_states = array();
-  foreach ($states as $state) {
-    $active_states[] = $state->registration_state_id;
-  }
-
-  return $active_states;
-}
-
-/*
- * Get active registration states
- */
-function registration_get_default_state() {
-  $default_state = &drupal_static(__FUNCTION__);
-  if ($default_state) {
-    return $default_state;
-  }
-
-  $entity_type = 'registration_state';
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', $entity_type)
-    ->propertyCondition('default_state', 1)
-    ->propertyOrderBy('weight', 'ASC');
-  $results = $query->execute();
-  $default_id = array_keys($results[$entity_type]);
-  $default_state = $default_id[0];
-  return $default_state;
-}
-
-/*
- * Get shown registration states
- */
-function registration_get_shown_states() {
-  $shown_states = &drupal_static(__FUNCTION__);
-  if ($shown_states) {
-    return $shown_states;
-  }
-
-  $entity_type = 'registration_state';
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', $entity_type)
-    ->propertyCondition('active', 1)
-    ->propertyCondition('show_on_form', 1)
-    ->propertyOrderBy('weight', 'ASC');
-  $results = $query->execute();
-  $states = entity_load($entity_type, array_keys($results[$entity_type]));
-
-  $shown_states = array();
-  foreach ($states as $state) {
-    $shown_states[$state->registration_state_id] = $state->label;
-  }
-
-  return $shown_states;
+  return $active;
 }

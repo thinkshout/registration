@@ -55,11 +55,39 @@ function registration_entity_info() {
       'module' => 'registration',
       // Enable the entity API's admin UI.
       'admin ui' => array(
-        'path' => 'admin/structure/registration_types',
+        'path' => 'admin/structure/registration/registration_types',
         'file' => 'registration_type.admin.inc',
         'file path' => drupal_get_path('module', 'registration') . '/includes',
         'controller class' => 'RegistrationTypeUIController',
       ),
+    ),
+    'registration_state' => array(
+      'label' => t('Registration State'),
+      'plural label' => t('Registration states'),
+      'controller class' => 'RegistrationStateControllerExportable',
+      'entity class' => 'RegistrationState',
+      'base table' => 'registration_state',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'registration_state_id',
+        'label' => 'label',
+        'name' => 'name',
+      ),
+      'bundles' => array(
+        'registration_state' => array(
+          'label' => 'Registration States',
+        ),
+      ),
+      'admin ui' => array(
+        'path' => 'admin/structure/registration/registration_states',
+        'file' => 'registration.forms.inc',
+        'file path' => drupal_get_path('module', 'registration') . '/includes',
+        'controller class' => 'RegistrationStatesUIController',
+      ),
+      'token type' => 'registration_state',
+      'module' => 'registration',
+      'access callback' => 'registration_state_access',
+      'exportable' => TRUE
     ),
   );
 
@@ -83,8 +111,8 @@ function registration_entity_info_alter(&$entity_info) {
     $entity_info['registration']['bundles'][$type] = array(
       'label' => $info->label,
       'admin' => array(
-        'path' => 'admin/structure/registration_types/manage/%registration_type',
-        'real path' => 'admin/structure/registration_types/manage/' . $type,
+        'path' => 'admin/structure/registration/registration_types/manage/%registration_type',
+        'real path' => 'admin/structure/registration/registration_types/manage/' . $type,
         'bundle argument' => 4,
         'access arguments' => array('administer registration types'),
       ),
@@ -109,7 +137,7 @@ class Registration extends Entity {
     $count,
     $author,
     $author_uid,
-    $state = REGISTRATION_STATE_COMPLETE,
+    $state,
     $created,
     $updated;
 
@@ -454,7 +482,7 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
       }
       break;
   }
-  
+
 
   // First grant access to the entity for the specified operation if no other
   // module denies it and at least one other module says to grant access.
@@ -560,3 +588,56 @@ function registration_type_delete(RegistrationType $type) {
   $type->delete();
 }
 
+/**
+ * The class used for registration state entities
+ */
+class RegistrationState extends Entity {
+
+  public $name;
+  public $label;
+  public $description, $default_state,
+    $active, $show_on_form, $weight;
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'registration_state');
+  }
+
+}
+
+/**
+ * The controler class used for registration state entities
+ */
+class RegistrationStateControllerExportable extends EntityAPIControllerExportable {
+
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    parent::save($entity, $transaction);
+
+    if ($entity->default_state == 1) {
+      $query = db_update('registration_state')
+        ->fields(array('default_state' => 0))
+        ->condition('registration_state_id',
+          $entity->registration_state_id, '<>');
+      $query->execute();
+    }
+  }
+
+}
+
+
+/**
+ * UI Controller for Registration states.
+ */
+class RegistrationStatesUIController extends EntityDefaultUIController {
+
+  public function overviewForm($form, &$form_state) {
+     return drupal_get_form('registration_states_overview_form');
+  }
+
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function registration_state_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
+  return user_access('administer registration states', $account);
+}

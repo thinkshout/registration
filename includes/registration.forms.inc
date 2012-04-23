@@ -74,14 +74,16 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#element_validate' => array('element_validate_integer_positive')
   );
 
-  $form['state'] = array(
-    '#type' => 'select',
-    '#title' => t('State'),
-    '#description' => t('State of this registration'),
-    '#default_value' => isset($registration->state) ? $registration->state : REGISTRATION_STATE_COMPLETE,
-    '#options' => registration_states(),
-    //'#access' => todo: check show in form
-  );
+  $states = registration_get_shown_states();
+  if (!empty($states)) {
+    $form['state'] = array(
+        '#type' => 'select',
+        '#title' => t('State'),
+        '#description' => t('State of this registration'),
+        '#default_value' => isset($registration->state) ? $registration->state : registration_get_default_state(),
+        '#options' => $states,
+      );
+  }
 
   field_attach_form('registration', $registration, $form, $form_state);
 
@@ -177,7 +179,8 @@ function registration_form_submit($form, &$form_state) {
   }
 
   $registration->count = $form_state['values']['count'];
-  $registration->state = $form_state['values']['state'];
+  $registration->state = (!empty($form_state['values']['state']))
+    ? $form_state['values']['state'] : registration_get_default_state();
 
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
@@ -539,4 +542,232 @@ function registration_entity_settings_form_submit($form, &$form_state) {
   $uri = entity_uri($entity['entity_type'], entity_load_single($entity['entity_type'], $entity['entity_id']));
 
   $form_state['redirect'] = $uri['path'];
+}
+
+/**
+ * Generates the Registration state editing form.
+ */
+function registration_state_form($form, &$form_state, $registration_state, $op = 'edit') {
+
+  $form['label'] = array(
+    '#title' => t('Label'),
+    '#type' => 'textfield',
+    '#default_value' => $registration_state->label,
+    '#description' => t('The human-readable name of this registration state.'),
+    '#required' => TRUE,
+    '#size' => 30,
+  );
+  // Machine-readable type name.
+  $form['name'] = array(
+    '#type' => 'machine_name',
+    '#default_value' => $registration_state->name,
+    '#maxlength' => 32,
+    //'#disabled' => $registration_state->locked && $op != 'clone',
+    '#machine_name' => array(
+      'exists' => 'redhen_engagement_get_scores',
+      'source' => array('label'),
+    ),
+    '#description' => t('A unique machine-readable name for
+    this registration state. It must only contain lowercase letters,
+     numbers, and underscores.'),
+  );
+  $form['default_state'] = array(
+    '#title' => t('Default'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($registration_state->default_state) ?
+      $registration_state->default_state : 0,
+    '#attributes' => array('class' => array('reg-default')),
+  );
+  $form['weight'] = array(
+    '#title' => t('Weight'),
+    '#type' => 'weight',
+    '#default_value' => isset($registration_state->weight) ?
+      $registration_state->weight : 0,
+    '#delta' => 15,
+    '#attributes' => array('class' => array('registration-state-weight')),
+  );
+  $form['description'] = array(
+    '#title' => t('Description'),
+    '#type' => 'textfield',
+    '#default_value' => isset($registration_state->description) ?
+      $registration_state->description : '',
+    '#maxlength' => 128,
+    '#size' => 50,
+  );
+  $form['active'] = array(
+    '#title' => t('Active'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($registration_state->active) ?
+      $registration_state->active : 0,
+  );
+  $form['show_on_form'] = array(
+    '#title' => t('Show on form'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($registration_state->show_on_form) ?
+      $registration_state->show_on_form : 0,
+  );
+
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Registartion state'),
+    '#weight' => 40,
+  );
+
+  return $form;
+}
+
+/**
+ * Form API submit callback for the type form.
+ */
+function registration_state_form_submit(&$form, &$form_state) {
+  $registration_state = entity_ui_form_submit_build_entity($form, $form_state);
+  $registration_state->save();
+  $form_state['redirect'] = 'admin/structure/registration/registration_states';
+}
+
+/*
+ * Registration states setting form
+ */
+function registration_state_overview_form($form, &$form_state) {
+  $registration_states = registration_states(FALSE);
+
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'registration') . '/registration.js',
+  );
+
+  // Form elements for existing states .
+  $form['state']['#tree'] = TRUE;
+  if (!empty($registration_states)) {
+
+    foreach ($registration_states as $sid => $state) {
+      $form['state'][$sid]['sid'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $sid,
+      );
+      $form['state'][$sid]['label'] = array(
+        '#title' => t('Label'),
+        '#type' => 'textfield',
+        '#default_value' => $state->label,
+        '#maxlength' => 128,
+        '#size' => 20,
+        '#required' => TRUE,
+      );
+      $form['state'][$sid]['default_state'] = array(
+        '#title' => t('Default'),
+        '#type' => 'checkbox',
+        '#default_value' => $state->default_state,
+        '#attributes' => array('class' => array('reg-default')),
+      );
+      $form['state'][$sid]['weight'] = array(
+        '#title' => t('Weight'),
+        '#type' => 'weight',
+        '#default_value' => $state->weight,
+        '#delta' => 15,
+        '#attributes' => array('class' => array('registration-state-weight')),
+      );
+      $form['state'][$sid]['description'] = array(
+        '#title' => t('Description'),
+        '#type' => 'textfield',
+        '#default_value' => $state->description,
+        '#maxlength' => 128,
+        '#size' => 50,
+      );
+      $form['state'][$sid]['active'] = array(
+        '#title' => t('Active'),
+        '#type' => 'checkbox',
+        '#default_value' => $state->active,
+      );
+      $form['state'][$sid]['show_on_form'] = array(
+        '#title' => t('Show on form'),
+        '#type' => 'checkbox',
+        '#default_value' => $state->show_on_form,
+      );
+      $form['state'][$sid]['delete'] = array(
+        '#type' => 'item',
+        '#markup' => l(t('delete'), 'admin/structure/registration/registration_states/manage/' . $state->name . '/delete', array('query' => drupal_get_destination()) ),
+      );
+      $form['state'][$sid]['export'] = array(
+        '#type' => 'item',
+        '#markup' => l(t('export'), 'admin/structure/registration/registration_states/manage/' . $state->name . '/export'),
+      );
+    }
+  }
+
+  $form['help'] = array(
+    '#type' => 'item',
+    '#description' => t("This table defines the registration states available on this site.
+    The Default will be used if no states are marked as Show on Form. "),
+  );
+
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save configuration'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for the registration states form
+ */
+function registration_state_overview_form_submit($form, &$form_state) {
+
+  foreach ($form_state['input']['state'] as $state) {
+
+    $registration_state = entity_load_single('registration_state', $state['sid']);
+    $registration_state->label = $state['label'];
+    $registration_state->default_state = isset($state['default_state'])? $state['default_state'] : 0;
+    $registration_state->active = isset($state['active'])? $state['active'] : 0;
+    $registration_state->show_on_form = isset($state['show_on_form'])? $state['show_on_form'] : 0;
+    $registration_state->weight = $state['weight'];
+    $registration_state->description = $state['description'];
+
+    $registration_state->save();
+
+  }
+
+  drupal_set_message(t('Your registration states have been saved.'));
+
+}
+
+/*
+ * Theme handler for registration states form
+ */
+function theme_registration_state_overview_form($variables) {
+  $form = $variables['form'];
+
+  drupal_add_tabledrag('registration-state-admin-settings-table', 'order', 'self', 'registration-state-weight');
+  $header = array(
+    array('data' => t('Label !required', array('!required' => '<span class="form-required" title="' . t('This field is required.') . '">*</span>'))),
+    array('data' => t('Description')),
+    array('data' => t('Default')),
+    array('data' => t('Active')),
+    array('data' => t('Show on form')),
+    array('data' => t('Weight')),
+    array('data' => t('Operations'), 'colspan' => 2)
+  );
+
+  foreach (element_children($form['state']) as $key) {
+   $row = array();
+   foreach (array('label', 'description', 'default_state', 'active', 'show_on_form', 'weight', 'delete', 'export') as $element) {
+     // Since we're rendering these in a table, remove any #title attributes.
+     if (!empty($form['state'][$key][$element]['#title'])) {
+       unset($form['state'][$key][$element]['#title']);
+     }
+     $row[] = drupal_render($form['state'][$key][$element]);
+   }
+
+   $rows[] = array(
+     'class' => array('draggable'),
+     'data' => $row,
+   );
+  }
+
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'registration-state-admin-settings-table')));
+
+  $output .= drupal_render_children($form);
+  return $output;
 }

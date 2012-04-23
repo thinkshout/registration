@@ -9,6 +9,8 @@ module_load_include('inc', 'registration', 'includes/registration.entity');
 module_load_include('inc', 'registration', 'includes/registration.field');
 module_load_include('inc', 'registration', 'includes/registration.forms');
 
+define('REGISTRATION_STATE_ONE', 1);
+
 /**
  * If user has access to create registrations for his account.
  * @see registration_access_people()
@@ -27,14 +29,20 @@ define('REGISTRATION_REGISTRANT_TYPE_USER', 'registration_registrant_type_user')
  */
 define('REGISTRATION_REGISTRANT_TYPE_ANON', 'registration_registrant_type_anon');
 
-define('REGISTRATION_STATE_PENDING', 'registration_state_pending');
-define('REGISTRATION_STATE_COMPLETE', 'registration_state_complete');
-define('REGISTRATION_STATE_CANCELED', 'registration_state_canceled');
-
 /**
  * Implements hook_menu().
  */
 function registration_menu() {
+
+  $items['admin/structure/registration'] = array(
+    'title' => 'Registration',
+    'description' => 'Administer Registration items, such as types, states, etc.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer registration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+
   $items['registration/%registration'] = array(
     'title callback' => 'registration_page_title',
     'title arguments' => array(1),
@@ -151,6 +159,11 @@ function registration_permission() {
     'administer registration types' => array(
       'title' => t('Administer registration types'),
       'description' => t('Manage registration types, fields, and display settings.'),
+      'restrict access' => TRUE,
+    ),
+    'administer registration states' => array(
+      'title' => t('Administer registration states'),
+      'description' => t('Manage registration states, fields, and display settings.'),
       'restrict access' => TRUE,
     ),
     'administer registration' => array(
@@ -485,10 +498,17 @@ function registration_has_room($entity_type, $entity_id, $slots = 0) {
 function registration_event_count($entity_type, $entity_id) {
   $count = &drupal_static(__FUNCTION__ . '_' . $entity_type . '_' . $entity_id, FALSE);
   if (!$count) {
-    $count = db_query("SELECT sum(count) FROM {registration} WHERE entity_id = :entity_id AND entity_type = :entity_type AND state = :state",
-      array(':entity_id' => $entity_id, ':entity_type' => $entity_type, ':state' => REGISTRATION_STATE_COMPLETE)
-    )->fetchField();
+    $query = db_select('registration', 'r');
+    $query->addExpression('sum(count)', 'count');
+    $query->condition('entity_id', $entity_id);
+    $query->condition('entity_type', $entity_type);
+    $query->condition('state', registration_get_active_states(), 'IN');
+    $result = $query->execute();
+    $count = $result->fetchField();
+
+    $count = ($count == '') ? 0 : $count;
   }
+
   return $count;
 }
 
@@ -566,6 +586,10 @@ function registration_theme() {
     'registration_link' => array(
       'variables' => array('label' => NULL, 'path' => NULL),
     ),
+    'registration_state_overview_form' => array(
+      'file' => 'includes/registration.forms.inc',
+      'render element' => 'form',
+    ),
   );
 }
 
@@ -620,7 +644,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     ->entityCondition('entity_type', 'registration')
     ->propertyCondition('entity_id', $entity_id)
     ->propertyCondition('entity_type', $entity_type)
-    ->propertyCondition('state', REGISTRATION_STATE_COMPLETE)
+    ->propertyCondition('state', registration_get_active_states(), 'IN')
     ->execute();
 
   if (!empty($entities)) {
@@ -1015,17 +1039,101 @@ function registration_field_extra_fields() {
 /**
  * Returns an associative array of registration states keyed by value.
  *
+ * @param string $simple Return state ID/label pair or
+ *  an array of state objects
+ *
  * @return array
  */
-function registration_states() {
-  $states = array(
-    REGISTRATION_STATE_COMPLETE => t('Complete'),
-    REGISTRATION_STATE_PENDING => t('Pending'),
-    REGISTRATION_STATE_CANCELED => t('Canceled')
-  );
+function registration_states($simple = TRUE) {
+  $states = &drupal_static(__FUNCTION__);
+  if ($states) {
+    return $states;
+  }
 
-  // allow other mods to add states
-  $states += module_invoke_all('registration_states');
+  $entity_type = 'registration_state';
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $entity_type)
+    ->propertyOrderBy('weight', 'ASC');
+  $results = $query->execute();
+  $states = entity_load($entity_type, array_keys($results[$entity_type]));
 
+  if ($simple == TRUE) {
+    $simple_states = array();
+    foreach ($states as $state) {
+      $simple_states[$state->registration_state_id] = $state->label;
+    }
+    $states = $simple_states;
+  }
   return $states;
+}
+
+/*
+ * Get active registration states
+ */
+function registration_get_active_states() {
+  $active_states = &drupal_static(__FUNCTION__);
+  if ($active_states) {
+    return $active_states;
+  }
+
+  $entity_type = 'registration_state';
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $entity_type)
+    ->propertyCondition('active', 1)
+    ->propertyOrderBy('weight', 'ASC');
+  $results = $query->execute();
+  $states = entity_load($entity_type, array_keys($results[$entity_type]));
+
+  $active_states = array();
+  foreach ($states as $state) {
+    $active_states[] = $state->registration_state_id;
+  }
+
+  return $active_states;
+}
+
+/*
+ * Get active registration states
+ */
+function registration_get_default_state() {
+  $default_state = &drupal_static(__FUNCTION__);
+  if ($default_state) {
+    return $default_state;
+  }
+
+  $entity_type = 'registration_state';
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $entity_type)
+    ->propertyCondition('default_state', 1)
+    ->propertyOrderBy('weight', 'ASC');
+  $results = $query->execute();
+  $default_id = array_keys($results[$entity_type]);
+  $default_state = $default_id[0];
+  return $default_state;
+}
+
+/*
+ * Get shown registration states
+ */
+function registration_get_shown_states() {
+  $shown_states = &drupal_static(__FUNCTION__);
+  if ($shown_states) {
+    return $shown_states;
+  }
+
+  $entity_type = 'registration_state';
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $entity_type)
+    ->propertyCondition('active', 1)
+    ->propertyCondition('show_on_form', 1)
+    ->propertyOrderBy('weight', 'ASC');
+  $results = $query->execute();
+  $states = entity_load($entity_type, array_keys($results[$entity_type]));
+
+  $shown_states = array();
+  foreach ($states as $state) {
+    $shown_states[$state->registration_state_id] = $state->label;
+  }
+
+  return $shown_states;
 }

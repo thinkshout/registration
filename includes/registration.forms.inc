@@ -74,16 +74,22 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#element_validate' => array('element_validate_integer_positive')
   );
 
-  $states = registration_get_shown_states();
-  if (!empty($states)) {
-    $form['state'] = array(
-        '#type' => 'select',
-        '#title' => t('State'),
-        '#description' => t('State of this registration'),
-        '#default_value' => isset($registration->state) ? $registration->state : registration_get_default_state(),
-        '#options' => $states,
-      );
+  $options = array();
+  $states = registration_states(FALSE, TRUE);
+  foreach($states as $state) {
+    $options[$state->registraiton_state_id] = t('@state', array('@state' => $state->label));
+    if ($state->default) {
+      $default_state = $state;
+    }
   }
+  $form['state'] = array(
+    '#type' => 'select',
+    '#title' => t('State'),
+    '#description' => t('State of this registration'),
+    '#default_value' => isset($registration->state) ? $registration->state : $default_state->registration_state_id,
+    '#options' => $options,
+    '#access' => !empty($states)
+  );
 
   field_attach_form('registration', $registration, $form, $form_state);
 
@@ -180,7 +186,7 @@ function registration_form_submit($form, &$form_state) {
 
   $registration->count = $form_state['values']['count'];
   $registration->state = (!empty($form_state['values']['state']))
-    ? $form_state['values']['state'] : registration_get_default_state();
+    ? $form_state['values']['state'] : NULL;
 
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:

@@ -1142,7 +1142,7 @@ function registration_get_default_state() {
 }
 
 /**
- * Gets an array of all reigstration states, keyed by the name.
+ * Gets an array of all registration states, keyed by the name.
  *
  * @param $name
  *   If set, the type with the given name is returned.

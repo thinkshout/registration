@@ -426,7 +426,7 @@ function registration_registrations_page($entity_type, $entity) {
 
   if (!empty($result['registration'])) {
     $registrations = registration_load_multiple(array_keys($result['registration']));
-    $states = registration_states();
+    $states = registration_states(FALSE, FALSE);
     $rows = array();
 
     foreach ($registrations as $registration) {
@@ -457,7 +457,7 @@ function registration_registrations_page($entity_type, $entity) {
         $author_col,
         $registration->count,
         format_date($registration->created),
-        $states[$registration->state],
+        $states[$registration->state]->label,
         implode(' | ', $actions)
       );
     }
@@ -510,10 +510,9 @@ function registration_registrations_page($entity_type, $entity) {
 function registration_has_room($entity_type, $entity_id, $slots = 0) {
   $settings = registration_entity_settings($entity_type, $entity_id);
   $capacity = $settings['capacity'];
-
   if ($capacity) {
     $count = registration_event_count($entity_type, $entity_id) + $slots;
-    if (($capacity - $count) < 1) {
+    if (($capacity - $count) < 0) {
       return FALSE;
     }
   }
@@ -544,7 +543,6 @@ function registration_event_count($entity_type, $entity_id) {
     $query->condition('state', registration_get_active_states(), 'IN');
     $result = $query->execute();
     $count = $result->fetchField();
-
     $count = ($count == '') ? 0 : $count;
   }
 
@@ -1106,7 +1104,6 @@ function registration_states($active = TRUE, $show_on_form = TRUE) {
   if ($show_on_form) {
     $query->propertyCondition('show_on_form', $show_on_form);
   }
-
   if ($results = $query->execute()) {
     $states = entity_load($entity_type, array_keys($results[$entity_type]));
   }
@@ -1121,9 +1118,36 @@ function registration_states($active = TRUE, $show_on_form = TRUE) {
  */
 function registration_get_active_states() {
   $active = array();
-  $states = registration_states(TRUE);
+  $states = registration_states(TRUE, FALSE);
   foreach ($states as $state) {
     $active[] = $state->internalIdentifier();
   }
   return $active;
+}
+
+/**
+ * Return default state
+ *
+ * @return array
+ */
+function registration_get_default_state() {
+  $default = '';
+  $states = registration_states(FALSE, FALSE);
+  foreach ($states as $state) {
+    if ($state->default_state) {
+      $default = $state;
+    }
+  }
+  return $default;
+}
+
+/**
+ * Gets an array of all reigstration states, keyed by the name.
+ *
+ * @param $name
+ *   If set, the type with the given name is returned.
+ */
+function registration_get_states($name = NULL) {
+  $types = entity_load_multiple_by_name('registration_state', isset($name) ? array($name) : FALSE);
+  return isset($name) ? reset($types) : $types;
 }

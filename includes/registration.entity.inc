@@ -273,6 +273,10 @@ class Registration extends Entity {
    * @return mixed
    */
   public function save() {
+    if ($this->state == -1) {
+      $default_state = registration_get_default_state();
+      $this->state = $default_state->registration_state_id;
+    }
     $this->updated = REQUEST_TIME;
     if (!$this->registration_id) {
       $this->created = REQUEST_TIME;

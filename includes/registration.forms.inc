@@ -75,18 +75,19 @@ function registration_form($form, &$form_state, Registration $registration) {
   );
 
   $options = array();
+  $default_state = -1;
   $states = registration_states(FALSE, TRUE);
   foreach ($states as $state) {
     $options[$state->registraiton_state_id] = t('@state', array('@state' => $state->label));
     if ($state->default) {
-      $default_state = $state;
+      $default_state = $state->registration_state_id;
     }
   }
   $form['state'] = array(
     '#type' => 'select',
     '#title' => t('State'),
     '#description' => t('State of this registration'),
-    '#default_value' => isset($registration->state) ? $registration->state : $default_state->registration_state_id,
+    '#default_value' => isset($registration->state) ? $registration->state : $default_state,
     '#options' => $options,
     '#access' => !empty($states)
   );
@@ -579,7 +580,7 @@ function registration_state_form($form, &$form_state, $registration_state, $op =
     '#maxlength' => 32,
     //'#disabled' => $registration_state->locked && $op != 'clone',
     '#machine_name' => array(
-      'exists' => 'redhen_engagement_get_scores',
+      'exists' => 'registration_get_states',
       'source' => array('label'),
     ),
     '#description' => t('A unique machine-readable name for
@@ -646,7 +647,7 @@ function registration_state_form_submit(&$form, &$form_state) {
  * Registration states setting form
  */
 function registration_state_overview_form($form, &$form_state) {
-  $registration_states = registration_states(FALSE);
+  $registration_states = registration_states(FALSE, FALSE);
 
   $form['#attached']['js'] = array(
     drupal_get_path('module', 'registration') . '/registration.js',

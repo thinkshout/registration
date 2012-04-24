@@ -159,7 +159,8 @@ class Registration extends Entity {
     $label = '';
     if ($this->entity) {
       $label = t('Registration for @title', array(
-        '@title' => entity_label($this->entity_type, $this->entity))
+          '@title' => entity_label($this->entity_type, $this->entity)
+        )
       );
     }
     return $label;
@@ -560,6 +561,7 @@ function registration_get_types($name = NULL) {
  *
  * @param $type
  *   The machine-readable name of a registration type to load.
+ *
  * @return
  *   A registration type array or FALSE if $type does not exist.
  */
@@ -616,7 +618,7 @@ class RegistrationStateControllerExportable extends EntityAPIControllerExportabl
       $query = db_update('registration_state')
         ->fields(array('default_state' => 0))
         ->condition('registration_state_id',
-          $entity->registration_state_id, '<>');
+        $entity->registration_state_id, '<>');
       $query->execute();
     }
   }
@@ -630,7 +632,7 @@ class RegistrationStateControllerExportable extends EntityAPIControllerExportabl
 class RegistrationStatesUIController extends EntityDefaultUIController {
 
   public function overviewForm($form, &$form_state) {
-     return drupal_get_form('registration_states_overview_form');
+    return drupal_get_form('registration_states_overview_form');
   }
 
 }

@@ -90,7 +90,7 @@ class RegistrationTestCase extends DrupalWebTestCase {
  * Create node entity type
  * ensure registration type exists
  */
-class RegistrationStandardTestCase extends RegistrationTestCase  {
+class RegistrationStandardTestCase extends RegistrationTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Registration module',
@@ -143,7 +143,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase  {
     // Ensure value on field saves
     $this->resetRegistration();
     $entity2 = entity_load_single($this->host_entity_type, $this->host_entity_id);
-    $this->assertEqual(registration_get_entity_registration_type($this->host_entity_type, $entity2) , $this->registration_type_name, t('Saved registration type in registration field.'), 'Registration');
+    $this->assertEqual(registration_get_entity_registration_type($this->host_entity_type, $entity2), $this->registration_type_name, t('Saved registration type in registration field.'), 'Registration');
 
     // Ensure permissions exist for registration type
     $this->checkPermissions(array('administer ' . $this->registration_type_name . ' registration'), TRUE);
@@ -190,7 +190,11 @@ class RegistrationStandardTestCase extends RegistrationTestCase  {
     // submit form
     $test_date1 = '2011-06-04 09:42:33';
     $test_date2 = '2012-06-30 12:34:56';
-    $edit = array('status' => TRUE, 'scheduling[open]' => $test_date1, 'scheduling[close]' => $test_date2);
+    $edit = array(
+      'status' => TRUE,
+      'scheduling[open]' => $test_date1,
+      'scheduling[close]' => $test_date2
+    );
     $this->drupalPost($this->host_entity_path . '/registrations/settings', $edit, t('Save Settings'));
     $this->assertText(t('Registration settings have been saved.'), t('Host entity registration settings form saved.'), 'Registration');
 
@@ -224,7 +228,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase  {
     ));
 
     // Create registration, anonymous user
-    $anonymous_mail = $this->randomName(). '@example.com';
+    $anonymous_mail = $this->randomName() . '@example.com';
     $this->createRegistration(array(
       'author_uid' => $user->uid,
       'anon_mail' => $anonymous_mail,
@@ -237,7 +241,10 @@ class RegistrationStandardTestCase extends RegistrationTestCase  {
     $this->assertFieldByName('message');
 
     // submit form
-    $edit = array('subject' => $this->randomName(16), 'message' => $this->randomString());
+    $edit = array(
+      'subject' => $this->randomName(16),
+      'message' => $this->randomString()
+    );
     $this->drupalPost($this->host_entity_path . '/registrations/broadcast', $edit, t('Send'));
     $this->assertText(t('Registration broadcast sent to @count registrants.', array('@count' => 2)), t('Host entity broadcast form submitted.'), 'Registration');
 

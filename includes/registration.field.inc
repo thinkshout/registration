@@ -43,7 +43,7 @@ function registration_field_is_empty($item, $field) {
  * Implements hook_field_widget_info().
  */
 function registration_field_widget_info() {
-    return array(
+  return array(
     'registration_select' => array(
       'label' => t('Registration Type'),
       'field types' => array('registration'),
@@ -115,11 +115,14 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
         // enable registration link if accessible
         if (registration_register_page_access($entity_type, $entity)) {
           $uri = entity_uri($entity_type, $entity);
-          $element[0] = array('#markup' => theme('registration_link',
-            array(
-              'label' => $reg_type->label,
-              'path'  => $uri['path'] . '/register')
-          ));
+          $element[0] = array(
+            '#markup' => theme('registration_link',
+              array(
+                'label' => $reg_type->label,
+                'path' => $uri['path'] . '/register'
+              )
+            )
+          );
         }
         break;
       case 'registration_form':
@@ -173,6 +176,7 @@ function registration_form_field_ui_field_edit_form_validate(&$form, &$form_stat
  * Implements hook_form_FORM_ID_alter().
  *
  * Add a validation handler for registration_form_field_ui_field_overview_form().
+ *
  * @param $form
  * @param $form_state
  * @param $form_id

@@ -104,7 +104,7 @@ class RegistrationViewsController extends EntityDefaultViewsController {
  * Provide additional fields for entities with registrations.
  */
 function registration_views_views_data_alter(&$data) {
-  $registration_instances =  registration_get_registration_instances();
+  $registration_instances = registration_get_registration_instances();
   $entity_info = entity_get_info();
 
   foreach ($registration_instances as $instance) {

@@ -17,7 +17,8 @@ function registration_entity_access_registration_entity_settings($settings) {
       '#description' => t('Override the default access control settings by selecting which roles can %register for this event.', array('%register' => t('register'))),
       '#options' => user_roles(TRUE),
       '#default_value' => isset($settings['settings']['registration_entity_access_roles']) ? $settings['settings']['registration_entity_access_roles'] : array()
-  ));
+    )
+  );
 }
 
 /**

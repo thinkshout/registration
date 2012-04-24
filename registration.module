@@ -13,18 +13,21 @@ define('REGISTRATION_STATE_ONE', 1);
 
 /**
  * If user has access to create registrations for his account.
+ *
  * @see registration_access_people()
  */
 define('REGISTRATION_REGISTRANT_TYPE_ME', 'registration_registrant_type_me');
 
 /**
  * If user has access to create registrations for other users.
+ *
  * @see registration_access_people()
  */
 define('REGISTRATION_REGISTRANT_TYPE_USER', 'registration_registrant_type_user');
 
 /**
  * If user has access to create registrations for people identified by email.
+ *
  * @see registration_access_people()
  */
 define('REGISTRATION_REGISTRANT_TYPE_ANON', 'registration_registrant_type_anon');
@@ -363,13 +366,49 @@ function registration_register_page($entity_type, $entity) {
  */
 function registration_registrations_page($entity_type, $entity) {
   $header = array(
-    array('data' => t('id'), 'field' => 'registration_id', 'type' => 'property', 'specifier' => 'registration_id'),
-    array('data' => t('Email'), 'field' => 'mail', 'type' => 'property', 'specifier' => 'mail'),
-    array('data' => t('User'), 'field' => 'user_uid', 'type' => 'property', 'specifier' => 'user'),
-    array('data' => t('Created By'), 'field' => 'author_uid', 'type' => 'property', 'specifier' => 'author_uid'),
-    array('data' => t('Count'), 'field' => 'count', 'type' => 'property',  'specifier' => 'count'),
-    array('data' => t('Created'), 'field' => 'created', 'sort' => 'desc',  'type' => 'property', 'specifier' => 'created'),
-    array('data' => t('State'), 'field' => 'state', 'type' => 'property', 'specifier' => 'state'),
+    array(
+      'data' => t('id'),
+      'field' => 'registration_id',
+      'type' => 'property',
+      'specifier' => 'registration_id'
+    ),
+    array(
+      'data' => t('Email'),
+      'field' => 'mail',
+      'type' => 'property',
+      'specifier' => 'mail'
+    ),
+    array(
+      'data' => t('User'),
+      'field' => 'user_uid',
+      'type' => 'property',
+      'specifier' => 'user'
+    ),
+    array(
+      'data' => t('Created By'),
+      'field' => 'author_uid',
+      'type' => 'property',
+      'specifier' => 'author_uid'
+    ),
+    array(
+      'data' => t('Count'),
+      'field' => 'count',
+      'type' => 'property',
+      'specifier' => 'count'
+    ),
+    array(
+      'data' => t('Created'),
+      'field' => 'created',
+      'sort' => 'desc',
+      'type' => 'property',
+      'specifier' => 'created'
+    ),
+    array(
+      'data' => t('State'),
+      'field' => 'state',
+      'type' => 'property',
+      'specifier' => 'state'
+    ),
     array('data' => t('Actions')),
   );
 
@@ -447,7 +486,7 @@ function registration_registrations_page($entity_type, $entity) {
   }
   else {
     $out = t('There are no registrants for %name',
-        array('%name' => $label));
+      array('%name' => $label));
   }
 
   return $out;
@@ -693,6 +732,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     );
   }
 }
+
 /**
  * Update or create registration settings for a host entity.
  *
@@ -779,7 +819,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE) {
   $settings = registration_entity_settings($entity_type, $entity_id);
   $status = $settings['status'];
   $open = isset($settings['open']) ? strtotime($settings['open']) : NULL;
-  $close = isset($settings['close']) ?  strtotime($settings['close']) : NULL;
+  $close = isset($settings['close']) ? strtotime($settings['close']) : NULL;
   $now = REQUEST_TIME;
 
   // only explore other settings if main status is enabled
@@ -919,7 +959,8 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
   if ($anon_mail) {
     // there's a user with this email, check to make sure they're not registered
     if ($user = user_load_by_mail($anon_mail)) {
-      $query->condition(db_or()->condition('anon_mail', $anon_mail)->condition('user_uid', $user->uid));
+      $query->condition(db_or()->condition('anon_mail', $anon_mail)
+        ->condition('user_uid', $user->uid));
     }
     else {
       $query->condition('anon_mail', $anon_mail);
@@ -948,6 +989,7 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
  *   A fully loaded registration object.
  * @param object $account
  *   (optional) An user object, or omit for logged in user.
+ *
  * @return array
  *   Array keyed with people types, with descriptions.
  */
@@ -1080,7 +1122,7 @@ function registration_states($active = TRUE, $show_on_form = TRUE) {
 function registration_get_active_states() {
   $active = array();
   $states = registration_states(TRUE);
-  foreach($states as $state) {
+  foreach ($states as $state) {
     $active[] = $state->internalIdentifier();
   }
   return $active;

@@ -57,8 +57,8 @@ function registration_form($form, &$form_state, Registration $registration) {
     )
   );
 
-  $settings  = registration_entity_settings($registration->entity_type, $registration->entity_id);
-  $capacity  = $settings['capacity'];
+  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+  $capacity = $settings['capacity'];
   $remaining = 0;
   if ($capacity) {
     $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
@@ -76,7 +76,7 @@ function registration_form($form, &$form_state, Registration $registration) {
 
   $options = array();
   $states = registration_states(FALSE, TRUE);
-  foreach($states as $state) {
+  foreach ($states as $state) {
     $options[$state->registraiton_state_id] = t('@state', array('@state' => $state->label));
     if ($state->default) {
       $default_state = $state;
@@ -109,7 +109,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   }
 
   $uri = entity_uri($registration->entity_type,
-      $registration->entity);
+    $registration->entity);
   $form['actions']['cancel'] = array(
     '#type' => 'link',
     '#title' => t('Cancel'),
@@ -139,21 +139,21 @@ function registration_form_validate($form, &$form_state) {
   }
 
   // validate according to who's registering
-  switch ($form_state['values']['who_is_registering'] ) {
+  switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
       if (!valid_email_address($form_state['values']['anon_mail'])) {
         form_set_error('anon_mail', t('The email address is invalid.'));
       }
       if (registration_is_registered($registration, $form_state['values']['anon_mail'])) {
-          form_set_error('anon_mail', t('%mail is already registered for this event.',
-            array('%mail' => $form_state['values']['anon_mail'])));
+        form_set_error('anon_mail', t('%mail is already registered for this event.',
+          array('%mail' => $form_state['values']['anon_mail'])));
       }
       break;
     case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
       if (registration_is_registered($registration, NULL, $user->uid)) {
-          form_set_error('user', t('You are already registered for this event.'));
-        }
+        form_set_error('user', t('You are already registered for this event.'));
+      }
       break;
     case REGISTRATION_REGISTRANT_TYPE_USER:
       $user = user_load_by_name($form_state['values']['user']);
@@ -228,8 +228,10 @@ function registration_form_delete_submit($form, &$form_state) {
     unset($_GET['destination']);
   }
   $registration = $form_state['registration'];
-  $form_state['redirect'] = array('registration/' .
-    $registration->registration_id . '/delete', array('query' => $destination),
+  $form_state['redirect'] = array(
+    'registration/' .
+      $registration->registration_id . '/delete',
+    array('query' => $destination),
   );
 }
 
@@ -374,8 +376,9 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
     '#title' => t('Open Date'),
     '#maxlength' => 25,
     '#description' => t('When to automatically open registrations. Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to disable.', array(
-      '%time' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
-      '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'O') : format_date(time(), 'custom', 'O'))
+        '%time' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
+        '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'O') : format_date(time(), 'custom', 'O')
+      )
     ),
     '#default_value' => !empty($settings['open']) ? $settings['open'] : '',
   );
@@ -385,8 +388,9 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
     '#title' => t('Close Date'),
     '#maxlength' => 25,
     '#description' => t('When to automatically close registrations. Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to disable.', array(
-      '%time' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
-      '%timezone' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'O') : format_date(time(), 'custom', 'O'))
+        '%time' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
+        '%timezone' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'O') : format_date(time(), 'custom', 'O')
+      )
     ),
     '#default_value' => !empty($settings['close']) ? $settings['close'] : '',
   );
@@ -444,7 +448,12 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
   if (module_exists('token')) {
     $form['reminder']['reminder_settings']['token_tree'] = array(
       '#theme' => 'token_tree',
-      '#token_types' => array('node', 'content-type', 'current-page', 'registration'),
+      '#token_types' => array(
+        'node',
+        'content-type',
+        'current-page',
+        'registration'
+      ),
       '#global_types' => FALSE,
     );
   }
@@ -492,7 +501,7 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
 function registration_entity_settings_form_validate($form, &$form_state) {
   // ensure capacity is a positive integer
   $capacity = $form_state['values']['capacity'];
-  if (!is_numeric($capacity) || ((int)$capacity != $capacity) || ($capacity < 0)) {
+  if (!is_numeric($capacity) || ((int) $capacity != $capacity) || ($capacity < 0)) {
     form_set_error('capacity', t('Capacity must be a positive integer.'));
   }
 
@@ -692,7 +701,7 @@ function registration_state_overview_form($form, &$form_state) {
       );
       $form['state'][$sid]['delete'] = array(
         '#type' => 'item',
-        '#markup' => l(t('delete'), 'admin/structure/registration/registration_states/manage/' . $state->name . '/delete', array('query' => drupal_get_destination()) ),
+        '#markup' => l(t('delete'), 'admin/structure/registration/registration_states/manage/' . $state->name . '/delete', array('query' => drupal_get_destination())),
       );
       $form['state'][$sid]['export'] = array(
         '#type' => 'item',
@@ -725,9 +734,9 @@ function registration_state_overview_form_submit($form, &$form_state) {
 
     $registration_state = entity_load_single('registration_state', $state['sid']);
     $registration_state->label = $state['label'];
-    $registration_state->default_state = isset($state['default_state'])? $state['default_state'] : 0;
-    $registration_state->active = isset($state['active'])? $state['active'] : 0;
-    $registration_state->show_on_form = isset($state['show_on_form'])? $state['show_on_form'] : 0;
+    $registration_state->default_state = isset($state['default_state']) ? $state['default_state'] : 0;
+    $registration_state->active = isset($state['active']) ? $state['active'] : 0;
+    $registration_state->show_on_form = isset($state['show_on_form']) ? $state['show_on_form'] : 0;
     $registration_state->weight = $state['weight'];
     $registration_state->description = $state['description'];
 
@@ -757,22 +766,35 @@ function theme_registration_state_overview_form($variables) {
   );
 
   foreach (element_children($form['state']) as $key) {
-   $row = array();
-   foreach (array('label', 'description', 'default_state', 'active', 'show_on_form', 'weight', 'delete', 'export') as $element) {
-     // Since we're rendering these in a table, remove any #title attributes.
-     if (!empty($form['state'][$key][$element]['#title'])) {
-       unset($form['state'][$key][$element]['#title']);
-     }
-     $row[] = drupal_render($form['state'][$key][$element]);
-   }
+    $row = array();
+    foreach (array(
+               'label',
+               'description',
+               'default_state',
+               'active',
+               'show_on_form',
+               'weight',
+               'delete',
+               'export'
+             ) as $element) {
+      // Since we're rendering these in a table, remove any #title attributes.
+      if (!empty($form['state'][$key][$element]['#title'])) {
+        unset($form['state'][$key][$element]['#title']);
+      }
+      $row[] = drupal_render($form['state'][$key][$element]);
+    }
 
-   $rows[] = array(
-     'class' => array('draggable'),
-     'data' => $row,
-   );
+    $rows[] = array(
+      'class' => array('draggable'),
+      'data' => $row,
+    );
   }
 
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'registration-state-admin-settings-table')));
+  $output = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => 'registration-state-admin-settings-table')
+  ));
 
   $output .= drupal_render_children($form);
   return $output;

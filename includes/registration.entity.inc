@@ -64,7 +64,7 @@ function registration_entity_info() {
     'registration_state' => array(
       'label' => t('Registration State'),
       'plural label' => t('Registration states'),
-      'controller class' => 'RegistrationStateControllerExportable',
+      'controller class' => 'RegistrationStateController',
       'entity class' => 'RegistrationState',
       'base table' => 'registration_state',
       'fieldable' => FALSE,
@@ -273,7 +273,8 @@ class Registration extends Entity {
    * @return mixed
    */
   public function save() {
-    if ($this->state == -1) {
+    // set a default state if not provided
+    if (!$this->state || $this->state == -1) {
       $default_state = registration_get_default_state();
       $this->state = $default_state->registration_state_id;
     }
@@ -285,12 +286,17 @@ class Registration extends Entity {
   }
 
   /**
-   * Specifify URI
+   * Specify URI
    */
   protected function defaultUri() {
     return array('path' => 'registration/' . $this->internalIdentifier());
   }
 
+  /**
+   * Return email address to use with this registration.
+   *
+   * @return string
+   */
   protected function mail() {
     if ($this->user) {
       return $this->user->mail;
@@ -599,9 +605,7 @@ function registration_type_delete(RegistrationType $type) {
  */
 class RegistrationState extends Entity {
 
-  public $name;
-  public $label;
-  public $description, $default_state,
+  public $name, $label, $description, $default_state,
     $active, $show_on_form, $weight;
 
   public function __construct($values = array()) {
@@ -611,9 +615,9 @@ class RegistrationState extends Entity {
 }
 
 /**
- * The controler class used for registration state entities
+ * The controller class used for registration state entities
  */
-class RegistrationStateControllerExportable extends EntityAPIControllerExportable {
+class RegistrationStateController extends EntityAPIControllerExportable {
 
   public function save($entity, DatabaseTransaction $transaction = NULL) {
     parent::save($entity, $transaction);

@@ -434,13 +434,13 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
 
   $form['reminder']['reminder_settings']['reminder_date'] = array(
     '#type' => 'date',
-    '#title' => 'Reminder Date',
+    '#title' => t('Reminder Date'),
     '#default_value' => $reminder_date,
   );
 
   $form['reminder']['reminder_settings']['reminder_template'] = array(
     '#type' => 'textarea',
-    '#title' => 'Template',
+    '#title' => t('Template'),
     '#default_value' => isset($settings['reminder_template']) ? $settings['reminder_template'] : '',
     '#description' => t('The reminder message sent to registrants. Tokens are supported if the module is enabled, E.g., [node:title].'),
   );

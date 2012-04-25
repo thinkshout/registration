@@ -613,17 +613,41 @@ function registration_event_count($entity_type, $entity_id) {
 function registration_entity_insert($entity, $entity_type) {
   $registration_type = registration_get_entity_registration_type($entity_type, $entity);
   if ($registration_type !== FALSE) {
-    list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
+    registration_entity_set_default_settings($entity_type, $entity);
+  }
+}
 
-    $registration_instances = registration_get_registration_instances(array(
-      'entity_type' => $entity_type,
-      'bundle' => $bundle
-    ));
-    foreach ($registration_instances as $instance) {
-      if (isset($instance['settings']['default_registration_settings'])) {
-        $settings = registration_convert_form_settings($instance['settings']['default_registration_settings']);
-        registration_update_entity_settings($entity_type, $entity_id, $settings);
-      }
+/**
+ * Implements hook_entity_update().
+ */
+function registration_entity_update($entity, $entity_type) {
+  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+  if ($registration_type !== FALSE) {
+    list($entity_id) = entity_extract_ids($entity_type, $entity);
+    $settings = registration_entity_settings($entity_type, $entity_id);
+    // no settings yet, try to set defaults
+    if (!$settings) {
+      registration_entity_set_default_settings($entity_type, $entity);
+    }
+  }
+}
+
+/**
+ * Sets the the registration entity settings to the deafults.
+ *
+ * @param $entity_type
+ * @param $entity
+ */
+function registration_entity_set_default_settings($entity_type, $entity) {
+  list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
+  $registration_instances = registration_get_registration_instances(array(
+    'entity_type' => $entity_type,
+    'bundle' => $bundle
+  ));
+  foreach ($registration_instances as $instance) {
+    if (isset($instance['settings']['default_registration_settings'])) {
+      $settings = registration_convert_form_settings($instance['settings']['default_registration_settings']);
+      registration_update_entity_settings($entity_type, $entity_id, $settings);
     }
   }
 }

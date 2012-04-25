@@ -80,6 +80,20 @@ class RegistrationTestCase extends DrupalWebTestCase {
     return $registration;
   }
 
+  /**
+   * Loads a registration from the database, avoiding the cache.
+   *
+   * @param int $registration_id
+   *   A registrations' unique identifier.
+   */
+  function loadRegistration($registration_id) {
+    $this->resetRegistration();
+    return registration_load($registration_id);
+  }
+
+  /**
+   * Reset session cache of registration entities.
+   */
   function resetRegistration() {
     entity_get_controller('registration')->resetCache();
   }
@@ -429,6 +443,54 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->assertFalse(registration_is_registered($registration_a, NULL, $user3->uid), t('New user not registered for host entity'), 'Registration');
     $this->assertTrue(registration_is_registered($registration_a, NULL, $user->uid), t('User registered for host entity'), 'Registration');
     $this->assertTrue(registration_is_registered($registration_a, NULL, $user_no_permission->uid), t('User registered for host entity'), 'Registration');
+  }
+
+  /**
+   * Ensure registrations are processed when a user is cancelled.
+   *
+   * Tests authorship, and people association, of registrations.
+   */
+  function testUserCancel() {
+    $admin = $this->drupalCreateUser(array('administer users'));
+    $this->drupalLogin($admin);
+
+    // Blocking a user
+    $user = $this->drupalCreateUser();
+    $registration = $this->createRegistration(array('author_uid' => $user->uid));
+
+    $edit = array('user_cancel_method' => 'user_cancel_block');
+    $this->drupalPost('user/' . $user->uid . '/cancel', $edit, t('Cancel account'));
+
+    $registration_reload = $this->loadRegistration($registration->registration_id);
+    $this->assertTrue($registration_reload instanceof Registration, t('Blocking a user does not modify his registrations.'));
+
+    // Reassign a users content
+    $user = $this->drupalCreateUser();
+    $registration_author = $this->createRegistration(array('author_uid' => $user->uid));
+    $registration_people = $this->createRegistration(array('user_uid' => $user->uid));
+
+    $edit = array('user_cancel_method' => 'user_cancel_reassign');
+    $this->drupalPost('user/' . $user->uid . '/cancel', $edit, t('Cancel account'));
+
+    $registration_author_db = $this->loadRegistration($registration_author->registration_id);
+    $this->assertTrue($registration_author_db->author_uid == 0, t('Cancelling user, and reassigning registrations he is author, to anonymous.'));
+
+    $registration_people_db = $this->loadRegistration($registration_people->registration_id);
+    $this->assertTrue($registration_people_db->user_uid == NULL, t('Cancelling user, and reassigning registrations he is associated, to anonymous.'));
+
+    // Delete a users content
+    $user = $this->drupalCreateUser();
+    $registration_author = $this->createRegistration(array('author_uid' => $user->uid));
+    $registration_people = $this->createRegistration(array('user_uid' => $user->uid));
+
+    $edit = array('user_cancel_method' => 'user_cancel_delete');
+    $this->drupalPost('user/' . $user->uid . '/cancel', $edit, t('Cancel account'));
+
+    $registration_author_db = $this->loadRegistration($registration_author->registration_id);
+    $this->assertFalse($registration_author_db, t('Deleting user, deletes registrations he authored.'));
+
+    $registration_people_db = $this->loadRegistration($registration_people->registration_id);
+    $this->assertTrue($registration_people_db->user_uid == NULL, t('Deleting user, and reassigning registrations he is associated, to anonymous.'));
   }
 }
 

@@ -333,31 +333,25 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
  *
  * @see hook_registration_entity_settings().
  */
-function registration_entity_settings_form($form, &$form_state, $entity_type, $entity) {
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
-  $label = entity_label($entity_type, $entity);
-
-  // we'll need this info when we submit the form
-  $form_state['entity'] = array(
-    'entity_id' => $entity_id,
-    'entity_type' => $entity_type
-  );
-
-  $settings = registration_entity_settings($entity_type, $entity_id);
+function registration_entity_settings_form($form, &$form_state, $settings, $entity_type = NULL, $entity_id = NULL) {
+  if ($entity_id) {
+    // we'll need this info when we submit the form
+    $form_state['entity'] = array(
+      'entity_id' => $entity_id,
+      'entity_type' => $entity_type
+    );
+  }
 
   $form['status'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable'),
-    '#description' => t('Check to enable registrations for %name.',
-      array('%name' => $label)
-    ),
+    '#description' => t('Check to enable registrations.'),
     '#default_value' => isset($settings['status']) ? $settings['status'] : -1,
   );
   $form['capacity'] = array(
     '#type' => 'textfield',
     '#title' => t('Capacity'),
-    '#description' => t('The maximum number of registrants for %name. Leave at 0
-         for no limit.', array('%name' => $label)),
+    '#description' => t('The maximum number of registrants. Leave at 0 for no limit.'),
     '#size' => 5,
     '#maxlength' => 10,
     '#required' => TRUE,
@@ -402,6 +396,7 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
     '#title' => t('Reminder'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
+    '#tree' => TRUE
   );
 
   $form['reminder']['send_reminder'] = array(
@@ -410,16 +405,6 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
     '#description' => t('If checked, a reminder will be sent to registrants on the following date.'),
     '#default_value' => isset($settings['send_reminder']) ? $settings['send_reminder'] : -1,
   );
-
-  $reminder_date = array();
-  if (isset($settings['reminder_date'])) {
-    $datetime = strtotime($settings['reminder_date']);
-    $reminder_date = array(
-      'year' => date('Y', $datetime),
-      'month' => date('n', $datetime),
-      'day' => date('d', $datetime),
-    );
-  }
 
   $form['reminder']['reminder_settings'] = array(
     '#type' => 'fieldset',
@@ -433,9 +418,15 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
   );
 
   $form['reminder']['reminder_settings']['reminder_date'] = array(
-    '#type' => 'date',
+    '#type' => 'textfield',
     '#title' => t('Reminder Date'),
-    '#default_value' => $reminder_date,
+    '#maxlength' => 25,
+    '#description' => t('When to send reminders. Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC.', array(
+        '%time' => !empty($settings['open']) ? date_format(date_create($settings['reminder_date']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
+        '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['reminder_date']), 'O') : format_date(time(), 'custom', 'O')
+      )
+    ),
+    '#default_value' => !empty($settings['reminder_date']) ? $settings['reminder_date'] : '',
   );
 
   $form['reminder']['reminder_settings']['reminder_template'] = array(
@@ -485,10 +476,13 @@ function registration_entity_settings_form($form, &$form_state, $entity_type, $e
   // allow other modules to add their own custom settings
   $form['settings'] += module_invoke_all('registration_entity_settings', $settings);
 
-  $form['save'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save Settings'),
-  );
+  // only show save if we're not on the field instance defaults
+  if ($entity_id) {
+    $form['save'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save Settings'),
+    );
+  }
 
   return $form;
 }
@@ -520,6 +514,20 @@ function registration_entity_settings_form_validate($form, &$form_state) {
   if (!empty($form_state['values']['scheduling']['close']) && strtotime($form_state['values']['scheduling']['close']) === FALSE) {
     form_set_error('scheduling][close', t('Date is invalid.'));
   }
+
+  // if sending a reminder, ensure date and template are set
+  $reminder = $form_state['values']['reminder'];
+  if ($reminder['send_reminder']
+    && (empty($reminder['reminder_settings']['reminder_date']) ||
+      empty($reminder['reminder_settings']['reminder_template']))) {
+    form_set_error('reminder][send_reminder', t('If sending a reminder, provide a date and template.'));
+  }
+
+  // Validate reminder date
+  if (!empty($reminder['reminder_settings']['reminder_date'])
+    && strtotime($reminder['reminder_settings']['reminder_date']) === FALSE) {
+    form_set_error('reminder][reminder_settings][reminder_date', t('Reminder date is invalid.'));
+  }
 }
 
 /**
@@ -530,34 +538,51 @@ function registration_entity_settings_form_validate($form, &$form_state) {
  */
 function registration_entity_settings_form_submit($form, &$form_state) {
   $entity = $form_state['entity'];
-  $fields = array(
-    'status' => $form_state['values']['status'],
-    'capacity' => $form_state['values']['capacity'],
-    'send_reminder' => $form_state['values']['send_reminder'],
-    'settings' => serialize($form_state['values']['settings']),
-    'open' => NULL,
-    'close' => NULL,
-  );
-  if ($form_state['values']['send_reminder']) {
-    $fields['reminder_date'] = $form_state['values']['reminder_date']['year'] . '-' . $form_state['values']['reminder_date']['month'] . '-' . $form_state['values']['reminder_date']['day'];
-    $fields['reminder_template'] = $form_state['values']['reminder_template'];
-  }
 
-  // Scheduling: open date
-  if (!empty($form_state['values']['scheduling']['open'])) {
-    $fields['open'] = date('Y-m-d H:i:s', strtotime($form_state['values']['scheduling']['open']));
-  }
-
-  // Scheduling: close date
-  if (!empty($form_state['values']['scheduling']['close'])) {
-    $fields['close'] = date('Y-m-d H:i:s', strtotime($form_state['values']['scheduling']['close']));
-  }
+  $fields = registration_convert_form_settings($form_state['values']);
 
   registration_update_entity_settings($entity['entity_type'], $entity['entity_id'], $fields);
 
   $uri = entity_uri($entity['entity_type'], entity_load_single($entity['entity_type'], $entity['entity_id']));
 
   $form_state['redirect'] = $uri['path'];
+}
+
+/**
+ * Helper to convert registration entity settings form values into a fields.
+ *
+ * @param $values
+ * @return array
+ */
+function registration_convert_form_settings($values) {
+  $fields = array(
+    'status' => $values['status'],
+    'capacity' => $values['capacity'],
+    'send_reminder' => isset($values['reminder']['send_reminder']) ? $values['reminder']['send_reminder'] : 0,
+    'settings' => serialize($values['settings']),
+    'open' => NULL,
+    'close' => NULL,
+  );
+
+  // reminder settings
+  if (isset($values['reminder']['send_reminder']) && $values['reminder']['send_reminder']) {
+    if (!empty($values['reminder']['reminder_settings']['reminder_date'])) {
+      $fields['reminder_date'] = date('Y-m-d H:i:s', strtotime($values['reminder']['reminder_settings']['reminder_date']));
+    }
+    $fields['reminder_template'] = $values['reminder']['reminder_settings']['reminder_template'];
+  }
+
+  // Scheduling: open date
+  if (!empty($values['scheduling']['open'])) {
+    $fields['open'] = date('Y-m-d H:i:s', strtotime($values['scheduling']['open']));
+  }
+
+  // Scheduling: close date
+  if (!empty($values['scheduling']['close'])) {
+    $fields['close'] = date('Y-m-d H:i:s', strtotime($values['scheduling']['close']));
+  }
+
+  return $fields;
 }
 
 /**

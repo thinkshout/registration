@@ -114,8 +114,8 @@ function registration_menu() {
       $items[$type . '/%entity_object/registrations/settings'] = array(
         'load arguments' => array($type),
         'title' => 'Settings',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('registration_entity_settings_form', 0, 1),
+        'page callback' => 'registration_entity_settings_page',
+        'page arguments' => array(0, 1),
         'access callback' => 'registration_administer_registrations_access',
         'access arguments' => array(0, 1),
         'weight' => 9,
@@ -536,6 +536,21 @@ function registration_registrations_page($entity_type, $entity) {
 }
 
 /**
+ * Page callback for entity registration settings.
+ *
+ * @param $entity_type
+ * @param $entity
+ *
+ * @return array
+ *   Registration entity settings form.
+ */
+function registration_entity_settings_page($entity_type, $entity) {
+  list($entity_id) = entity_extract_ids($entity_type, $entity);
+  $settings = registration_entity_settings($entity_type, $entity_id);
+  return drupal_get_form('registration_entity_settings_form', $settings, $entity_type, $entity_id);
+}
+
+/**
  * Determines if a host entity has slots remaining.
  *
  * @param string $entity_type
@@ -590,6 +605,27 @@ function registration_event_count($entity_type, $entity_id) {
   }
 
   return $count;
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function registration_entity_insert($entity, $entity_type) {
+  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+  if ($registration_type !== FALSE) {
+    list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
+
+    $registration_instances = registration_get_registration_instances(array(
+      'entity_type' => $entity_type,
+      'bundle' => $bundle
+    ));
+    foreach ($registration_instances as $instance) {
+      if (isset($instance['settings']['default_registration_settings'])) {
+        $settings = registration_convert_form_settings($instance['settings']['default_registration_settings']);
+        registration_update_entity_settings($entity_type, $entity_id, $settings);
+      }
+    }
+  }
 }
 
 /**
@@ -911,7 +947,7 @@ function registration_get_entity_registration_type($entity_type, $entity) {
     if (isset($entity->{$field['field_name']})) {
       $items = field_get_items($entity_type, $entity, $field['field_name']);
       // we're assuming there's only a single value in this field
-      if (!empty($items) && count($items) == 1) {
+      if (!empty($items) && count($items) == 1 && !empty($items[0]['registration_type'])) {
         return $items[0]['registration_type'];
       }
     }
@@ -926,14 +962,16 @@ function registration_get_entity_registration_type($entity_type, $entity) {
  * @return array
  *   A list of field instances
  */
-function registration_get_registration_instances() {
+function registration_get_registration_instances($params = array()) {
   $registration_fields = field_read_fields(array('type' => 'registration'));
 
   $registration_instances = array();
   if (!empty($registration_fields)) {
-    $registration_instances = field_read_instances(array(
+    $field_name = array(
       'field_name' => array_keys($registration_fields)
-    ));
+    );
+    $params = array_merge($field_name, $params);
+    $registration_instances = field_read_instances($params);
   }
 
   return $registration_instances;

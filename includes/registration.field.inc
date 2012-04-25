@@ -14,12 +14,74 @@ function registration_field_info() {
       'label' => t('Registration'),
       'description' => t('Enables registrations of a selected type for an entity.'),
       'settings' => array(),
-      'instance_settings' => array(),
+      'instance_settings' => array(
+        'default_registration_settings' => array(
+          'status' => 0,
+          'capacity' => 0,
+          'scheduling' => array(
+            'open' => NULL,
+            'close' => NULL,
+          ),
+          'reminder' => array(
+            'send_reminder' => 0,
+            'reminder_settings' => array(
+              'reminder_date' => NULL,
+              'reminder_template' => NULL,
+            ),
+          ),
+          'settings' => array(
+            'multiple_registrations' => -1,
+            'from_address' => variable_get('site_mail', ini_get('sendmail_from')),
+          ),
+        ),
+      ),
       'default_widget' => 'registration_select',
       'default_formatter' => 'registration_default',
       'no_ui' => FALSE
     ),
   );
+}
+
+/**
+ * Implements hook_field_instance_settings_form().
+ *
+ * Add default registration field instance settings.
+ */
+function registration_field_instance_settings_form($field, $instance) {
+  $form = $form_state = array();
+  $default_settings = isset($instance['settings']['default_registration_settings']) ? $instance['settings']['default_registration_settings'] : array();
+
+  // flatten scheduling and reminder settings since this form is in tree mode
+  foreach ($default_settings as $key => $val) {
+    if ($key != 'settings' and is_array($val)) {
+      foreach ($val as $key1 => $val1) {
+        if (is_array($val1)) {
+          foreach ($val1 as $key2 => $val2) {
+            $default_settings[$key2] = $val2;
+          }
+        }
+        else {
+          $default_settings[$key1] = $val1;
+        }
+      }
+      unset($default_settings[$key]);
+    }
+  }
+
+  $settings_form = registration_entity_settings_form($form, $form_state, $default_settings);
+
+  $form['default_registration_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Default settings'),
+    '#collapsible' => TRUE,
+  );
+
+  // unset the save button just in case
+  unset($settings_form['save']);
+  $form['default_registration_settings'] += $settings_form;
+
+  // @todo: validation
+  return $form;
 }
 
 /**

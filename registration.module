@@ -469,7 +469,7 @@ function registration_registrations_page($entity_type, $entity) {
 
   if (!empty($result['registration'])) {
     $registrations = registration_load_multiple(array_keys($result['registration']));
-    $states = registration_states(FALSE, FALSE);
+    $states = registration_states();
     $rows = array();
 
     foreach ($registrations as $registration) {
@@ -1190,25 +1190,22 @@ function registration_field_extra_fields() {
  * @return array
  *   An array of registration state entities.
  */
-function registration_states($active = TRUE, $show_on_form = TRUE) {
-  $states = &drupal_static(__FUNCTION__ . $active . $show_on_form, array());
+function registration_states($conditions = array()) {
+  $states = &drupal_static(__FUNCTION__ . serialize($conditions), array());
   if (!empty($states)) {
     return $states;
   }
 
   $entity_type = 'registration_state';
   $query = new EntityFieldQuery();
-  $results = $query
+  $query
     ->entityCondition('entity_type', $entity_type)
     ->propertyOrderBy('weight', 'ASC');
 
-  if ($active) {
-    $query->propertyCondition('active', $active);
+  foreach ($conditions as $col => $val) {
+    $query->propertyCondition($col, $val);
   }
 
-  if ($show_on_form) {
-    $query->propertyCondition('show_on_form', $show_on_form);
-  }
   if ($results = $query->execute()) {
     $states = entity_load($entity_type, array_keys($results[$entity_type]));
   }
@@ -1223,7 +1220,7 @@ function registration_states($active = TRUE, $show_on_form = TRUE) {
  */
 function registration_get_active_states() {
   $active = array();
-  $states = registration_states(TRUE, FALSE);
+  $states = registration_states(array('active' => TRUE));
   foreach ($states as $state) {
     $active[] = $state->internalIdentifier();
   }
@@ -1237,7 +1234,7 @@ function registration_get_active_states() {
  */
 function registration_get_default_state() {
   $default = '';
-  $states = registration_states(FALSE, FALSE);
+  $states = registration_states();
   foreach ($states as $state) {
     if ($state->default_state) {
       $default = $state;

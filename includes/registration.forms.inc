@@ -76,10 +76,10 @@ function registration_form($form, &$form_state, Registration $registration) {
 
   $options = array();
   $default_state = -1;
-  $states = registration_states(FALSE, TRUE);
+  $states = registration_states(array('show_on_form' => TRUE));
   foreach ($states as $state) {
-    $options[$state->registraiton_state_id] = t('@state', array('@state' => $state->label));
-    if ($state->default) {
+    $options[$state->registration_state_id] = t('@state', array('@state' => $state->label));
+    if ($state->default_state) {
       $default_state = $state->registration_state_id;
     }
   }
@@ -672,7 +672,7 @@ function registration_state_form_submit(&$form, &$form_state) {
  * Registration states setting form
  */
 function registration_state_overview_form($form, &$form_state) {
-  $registration_states = registration_states(FALSE, FALSE);
+  $registration_states = registration_states();
 
   $form['#attached']['js'] = array(
     drupal_get_path('module', 'registration') . '/registration.js',

@@ -113,7 +113,7 @@ function registration_entity_info_alter(&$entity_info) {
       'admin' => array(
         'path' => 'admin/structure/registration/registration_types/manage/%registration_type',
         'real path' => 'admin/structure/registration/registration_types/manage/' . $type,
-        'bundle argument' => 4,
+        'bundle argument' => 5,
         'access arguments' => array('administer registration types'),
       ),
     );

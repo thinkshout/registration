@@ -72,8 +72,9 @@ function registration_field_instance_settings_form($field, $instance) {
 
   $form['default_registration_settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Default settings'),
+    '#title' => t('Default Registration settings'),
     '#collapsible' => TRUE,
+    '#description' => t('These settings will be applied when an entity with this field is saved and does not yet have it\'s own settings applied.')
   );
 
   // unset the save button just in case
@@ -230,6 +231,44 @@ function registration_form_field_ui_field_edit_form_validate(&$form, &$form_stat
   if ($form['#field']['type'] == 'registration') {
     if ($form_state['values']['field']['cardinality'] !== 1) {
       form_set_error('cardinality', t('Cardinality on registration fields must be set to one.'));
+    }
+
+    // validate default registration settings
+    $default_settings = $form_state['values']['instance']['settings']['default_registration_settings'];
+    $base_elem_key = 'instance][settings][default_registration_settings][';
+
+    // ensure capacity is a positive integer
+    $capacity = $default_settings['capacity'];
+    if (!is_numeric($capacity) || ((int) $capacity != $capacity) || ($capacity < 0)) {
+      form_set_error($base_elem_key . 'capacity', t('Capacity must be a positive integer.'));
+    }
+
+    // validate from address
+    if (!valid_email_address($default_settings['settings']['from_address'])) {
+      form_set_error($base_elem_key . 'settings][from_address', t('From email address is invalid.'));
+    }
+
+    // Validate open date
+    if (!empty($default_settings['scheduling']['open']) && strtotime($default_settings['scheduling']['open']) === FALSE) {
+      form_set_error($base_elem_key . 'scheduling][open', t('Date is invalid.'));
+    }
+
+    // Validate close date
+    if (!empty($default_settings['scheduling']['close']) && strtotime($default_settings['scheduling']['close']) === FALSE) {
+      form_set_error($base_elem_key . 'scheduling][close', t('Date is invalid.'));
+    }
+
+    // if sending a reminder, ensure date and template are set
+    if ($default_settings['reminder']['send_reminder']
+      && (empty($default_settings['reminder']['reminder_settings']['reminder_date']) ||
+        empty($default_settings['reminder']['reminder_settings']['reminder_template']))) {
+      form_set_error($base_elem_key . 'reminder][send_reminder', t('If sending a reminder, provide a date and template.'));
+    }
+
+    // Validate reminder date
+    if (!empty($default_settings['reminder']['reminder_settings']['reminder_date'])
+      && strtotime($default_settings['reminder']['reminder_settings']['reminder_date']) === FALSE) {
+      form_set_error($base_elem_key . 'reminder][reminder_settings][reminder_date', t('Reminder date is invalid.'));
     }
   }
 }

@@ -68,7 +68,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#type' => 'textfield',
     '#title' => t('Slots'),
     '#description' => t('The number of slots you wish to occupy. @slots_remaining slots remaining.', array('@slots_remaining' => $remaining)),
-    '#default_value' => 1,
+    '#default_value' => isset($registration->count) ? $registration->count : 1,
     '#size' => drupal_strlen($remaining),
     '#access' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : FALSE,
     '#element_validate' => array('element_validate_integer_positive')

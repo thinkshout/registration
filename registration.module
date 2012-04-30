@@ -1233,14 +1233,8 @@ function registration_get_active_states() {
  * @return array
  */
 function registration_get_default_state() {
-  $default = '';
-  $states = registration_states();
-  foreach ($states as $state) {
-    if ($state->default_state) {
-      $default = $state;
-    }
-  }
-  return $default;
+  $states = registration_states(array('default_state' => 1));
+  return !empty($states) ? reset($states) : NULL;
 }
 
 /**

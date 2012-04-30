@@ -137,7 +137,7 @@ class Registration extends Entity {
     $count,
     $author,
     $author_uid,
-    $state,
+    $state = NULL,
     $created,
     $updated;
 
@@ -150,6 +150,9 @@ class Registration extends Entity {
       $this->user = user_load($this->user_uid);
     }
     $this->mail = $this->mail();
+    if ($this->state) {
+      $this->state = entity_load_single('registration_state', $this->state);
+    }
   }
 
   /**
@@ -257,10 +260,9 @@ class Registration extends Entity {
       '#suffix' => '</div>',
     );
 
-    $states = registration_states();
     $build['state'] = array(
       '#prefix' => '<div class="field registration-state"><div class="field-label">' . t('State') . '</div>',
-      '#markup' => $states[$this->state],
+      '#markup' => entity_label('registration_state', $this->state),
       '#suffix' => '</div>',
     );
 
@@ -276,7 +278,7 @@ class Registration extends Entity {
     // set a default state if not provided
     if (!$this->state || $this->state == -1) {
       $default_state = registration_get_default_state();
-      $this->state = $default_state->registration_state_id;
+      $this->state = $default_state->internalIdentifier();
     }
     $this->updated = REQUEST_TIME;
     if (!$this->registration_id) {

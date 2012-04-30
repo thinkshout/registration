@@ -87,7 +87,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#type' => 'select',
     '#title' => t('State'),
     '#description' => t('State of this registration'),
-    '#default_value' => isset($registration->state) ? $registration->state : $default_state,
+    '#default_value' => isset($registration->state) ? $registration->state->internalIdentifier() : $default_state,
     '#options' => $options,
     '#access' => !empty($states)
   );

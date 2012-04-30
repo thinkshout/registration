@@ -106,6 +106,7 @@ function registration_form($form, &$form_state, Registration $registration) {
       '#type' => 'submit',
       '#value' => t('Delete'),
       '#submit' => array('registration_form_delete_submit'),
+      "#limit_validation_errors" => array()
     );
   }
 

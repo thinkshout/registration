@@ -469,7 +469,6 @@ function registration_registrations_page($entity_type, $entity) {
 
   if (!empty($result['registration'])) {
     $registrations = registration_load_multiple(array_keys($result['registration']));
-    $states = registration_states();
     $rows = array();
 
     foreach ($registrations as $registration) {
@@ -488,9 +487,9 @@ function registration_registrations_page($entity_type, $entity) {
       }
 
       $actions = array(
-        l('View', 'registration/' . $registration->registration_id),
-        l('Edit', 'registration/' . $registration->registration_id . '/edit'),
-        l('Delete', 'registration/' . $registration->registration_id . '/delete'),
+        l(t('View'), 'registration/' . $registration->registration_id),
+        l(t('Edit'), 'registration/' . $registration->registration_id . '/edit'),
+        l(t('Delete'), 'registration/' . $registration->registration_id . '/delete'),
       );
 
       $rows[] = array(
@@ -500,7 +499,7 @@ function registration_registrations_page($entity_type, $entity) {
         $author_col,
         $registration->count,
         format_date($registration->created),
-        $states[$registration->state]->label,
+        entity_label('registration_state', $registration->state),
         implode(' | ', $actions)
       );
     }

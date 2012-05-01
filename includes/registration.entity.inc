@@ -102,21 +102,24 @@ function registration_entity_info() {
 
 /**
  * Implements hook_entity_info_alter().
- *
- * We are adding the info about the registration types via a hook to avoid a recursion
- * issue as loading the model types requires the entity info as well.
  */
 function registration_entity_info_alter(&$entity_info) {
-  foreach (registration_get_types() as $type => $info) {
-    $entity_info['registration']['bundles'][$type] = array(
-      'label' => $info->label,
-      'admin' => array(
-        'path' => 'admin/structure/registration/registration_types/manage/%registration_type',
-        'real path' => 'admin/structure/registration/registration_types/manage/' . $type,
-        'bundle argument' => 5,
-        'access arguments' => array('administer registration types'),
-      ),
-    );
+  // @todo: we're testing to ensure the schema exists; needed because running gui
+  // install profile was hitting this BEFORE the schema was installed.
+  if (drupal_get_schema('registration')) {
+    // We are adding the info about the registration types via a hook to avoid a
+    // recursion issue as loading the model types requires the entity info as well.
+    foreach (registration_get_types() as $type => $info) {
+      $entity_info['registration']['bundles'][$type] = array(
+        'label' => $info->label,
+        'admin' => array(
+          'path' => 'admin/structure/registration/registration_types/manage/%registration_type',
+          'real path' => 'admin/structure/registration/registration_types/manage/' . $type,
+          'bundle argument' => 5,
+          'access arguments' => array('administer registration types'),
+        ),
+      );
+    }
   }
 }
 

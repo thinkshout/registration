@@ -796,6 +796,8 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
   if (!empty($entities)) {
     $recipients = array();
 
+    $message_template = $message;
+
     $params = array(
       'subject' => $subject,
       'message' => $message,
@@ -810,6 +812,13 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     $success_count = 0;
     foreach ($registrations as $registration) {
       $recipients[] = $registration->mail;
+
+      $entity = entity_load_single($entity_type, $entity_id);
+      if (module_exists('token')) {
+        $message = token_replace($message_template, array($entity_type => $entity, 'registration' => $registration));
+      }
+      $params['message'] = $message;
+
       $result = drupal_mail('registration', 'broadcast',
         $registration->mail, $language, $params, $from
       );
@@ -875,7 +884,7 @@ function registration_cron() {
   $results = db_select('registration_entity', 're')
     ->fields('re')
     ->condition('send_reminder', 1)
-    ->condition('reminder_date', date('Y-m-d 00:00:00'))
+    ->condition('reminder_date', date('Y-m-d G:i:s'), '<=')
     ->range(0, 10)
     ->addTag('registration_cron_select')
     ->execute()
@@ -884,9 +893,6 @@ function registration_cron() {
   foreach ($results as $result) {
     $entity = entity_load_single($result->entity_type, $result->entity_id);
     $message = $result->reminder_template;
-    if (module_exists('token')) {
-      $message = token_replace($message, array($result->entity_type => $entity));
-    }
     $subject = 'Reminder for ' . entity_label($result->entity_type, $entity);
     registration_send_broadcast($result->entity_type, $result->entity_id, $subject, $message);
 

@@ -488,8 +488,8 @@ function registration_registrations_page($entity_type, $entity) {
 
       $actions = array(
         l(t('View'), 'registration/' . $registration->registration_id),
-        l(t('Edit'), 'registration/' . $registration->registration_id . '/edit'),
-        l(t('Delete'), 'registration/' . $registration->registration_id . '/delete'),
+        l(t('Edit'), 'registration/' . $registration->registration_id . '/edit', array('query' => drupal_get_destination())),
+        l(t('Delete'), 'registration/' . $registration->registration_id . '/delete', array('query' => drupal_get_destination())),
       );
 
       $rows[] = array(

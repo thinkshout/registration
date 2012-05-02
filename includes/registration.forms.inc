@@ -208,10 +208,10 @@ function registration_form_submit($form, &$form_state) {
   // Notify field widgets.
   field_attach_submit('registration', $registration, $form, $form_state);
 
-  // Save the registration and redirect to the parent entity.
+  // Save the registration and redirect.
   if (registration_save($registration)) {
     drupal_set_message(t('Thank you, your registration has been saved.'));
-    $uri = entity_uri($registration->entity_type, $registration->entity);
+    $uri = entity_uri('registration', $registration);
 
     $form_state['redirect'] = $uri['path'];
   }

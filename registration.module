@@ -559,16 +559,18 @@ function registration_entity_settings_page($entity_type, $entity) {
  * @param int $slots
  *   (optional) Used if validating a new registration. The number of slots
  *   attempting to fill.
+ * @param int $registration_id
+ *   The registration ID. Used to exclude specified registration from count.
  *
  * @return bool
  *
  * @see registration_status()
  */
-function registration_has_room($entity_type, $entity_id, $slots = 0) {
+function registration_has_room($entity_type, $entity_id, $slots = 0, $registration_id = NULL) {
   $settings = registration_entity_settings($entity_type, $entity_id);
   $capacity = $settings['capacity'];
   if ($capacity) {
-    $count = registration_event_count($entity_type, $entity_id) + $slots;
+    $count = registration_event_count($entity_type, $entity_id, $registration_id) + $slots;
     if (($capacity - $count) < 0) {
       return FALSE;
     }
@@ -584,19 +586,24 @@ function registration_has_room($entity_type, $entity_id, $slots = 0) {
  *   The host entity type.
  * @param int $entity_id
  *   The host entity ID.
+ * @param int $registration_id
+ *   The registration ID. If specified, exclude identified registration from count.
  *
  * @return int
  *   The number of slots remaining for a host entity.
  *
  * @see registration_has_room()
  */
-function registration_event_count($entity_type, $entity_id) {
-  $count = &drupal_static(__FUNCTION__ . '_' . $entity_type . '_' . $entity_id, FALSE);
+function registration_event_count($entity_type, $entity_id, $registration_id = NULL) {
+  $count = &drupal_static(__FUNCTION__ . '_' . $entity_type . '_' . $entity_id . '_' . $registration_id, FALSE);
   if (!$count) {
     $query = db_select('registration', 'r');
     $query->addExpression('sum(count)', 'count');
     $query->condition('entity_id', $entity_id);
     $query->condition('entity_type', $entity_type);
+    if ($registration_id != NULL) {
+      $query->condition('registration_id', $registration_id, '<>');
+    }
     $query->condition('state', registration_get_active_states(), 'IN');
     $result = $query->execute();
     $count = $result->fetchField();

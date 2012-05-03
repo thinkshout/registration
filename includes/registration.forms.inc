@@ -295,13 +295,26 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
     '#type' => 'textarea',
     '#title' => t('Message'),
     '#description' => t(
-      'Enter the message you want to send to @name registrants.',
-      array('@name' => entity_label($entity_type, $entity))
+      'Enter the message you want to send to %name registrants. Tokens are supported if the module is enabled, E.g., [node:title].',
+      array('%name' => entity_label($entity_type, $entity))
     ),
     '#required' => TRUE,
     '#cols' => 60,
     '#rows' => 5,
   );
+
+  // add token support
+  if (module_exists('token')) {
+    $form['token_tree'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array(
+        'node',
+        'registration'
+      ),
+      '#global_types' => FALSE,
+    );
+  }
+
   $form['send'] = array(
     '#type' => 'submit',
     '#value' => t('Send'),
@@ -443,8 +456,6 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
       '#theme' => 'token_tree',
       '#token_types' => array(
         'node',
-        'content-type',
-        'current-page',
         'registration'
       ),
       '#global_types' => FALSE,

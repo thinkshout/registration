@@ -303,6 +303,17 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
     '#rows' => 5,
   );
 
+  // Message preview
+  if (isset($form_state['registration_broadcast_preview'])) {
+    $form['preview'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Message preview'),
+      '#value' => $form_state['registration_broadcast_preview'],
+      '#resizable' => FALSE,
+      '#disabled' => TRUE
+    );
+  }
+
   // add token support
   if (module_exists('token')) {
     $form['token_tree'] = array(
@@ -315,12 +326,32 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
     );
   }
 
-  $form['send'] = array(
+  $form['actions']['preview'] = array(
+    '#type' => 'submit',
+    '#value' => t('Preview'),
+    '#weight' => 10,
+    '#submit' => array('registration_broadcast_preview'),
+  );
+
+  $form['actions']['send'] = array(
     '#type' => 'submit',
     '#value' => t('Send'),
   );
 
   return $form;
+}
+
+function registration_broadcast_preview($form, &$form_state) {
+  $entity_type = $form_state['entity']['entity_type'];
+  $entity_id = $form_state['entity']['entity_id'];
+  $message_template = $form_state['values']['message'];
+  $entity = entity_load_single($entity_type, $entity_id);
+  if (module_exists('token')) {
+    $message = token_replace($message_template, array($entity_type => $entity));
+  }
+
+  $form_state['registration_broadcast_preview'] = $message;
+  $form_state['rebuild'] = TRUE;
 }
 
 /**

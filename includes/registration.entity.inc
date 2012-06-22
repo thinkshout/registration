@@ -136,52 +136,77 @@ class Registration extends Entity {
     $mail,
     $anon_mail = NULL,
     $user_uid = NULL,
-    $user = NULL,
+    $user,
     $count,
     $author,
     $author_uid,
-    $state = NULL,
+    $state,
     $created,
     $updated;
 
   public function __construct(array $values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
 
+    // Automatically load related entities.
     $this->author = $this->author();
     $this->entity = $this->entity();
-    if ($this->user_uid) {
-      $this->user = user_load($this->user_uid);
-    }
+    $this->user = $this->user();
+    $this->state = $this->state();
+
     $this->mail = $this->mail();
-    if ($this->state) {
-      $this->state = entity_load_single('registration_state', $this->state);
-    }
   }
 
   /**
    * Specifies the default label, which is picked up by label() by default.
    */
   protected function defaultLabel() {
-    $label = '';
     if ($this->entity) {
-      $label = t('Registration for @title', array(
+      return t('Registration for @title', array(
           '@title' => entity_label($this->entity_type, $this->entity)
         )
       );
     }
-    return $label;
+    return '';
   }
 
+  /**
+   * Load host entity of registration.
+   *
+   * @return object|bool
+   *   An entity, or FALSE if the entity does not exist.
+   */
   protected function entity() {
-    $ret = FALSE;
-    if (isset($this->entity_id) && isset($this->entity_type)) {
-      $ret = entity_load_single($this->entity_type, $this->entity_id);
-    }
-    return $ret;
+    return (($this->entity_id && !empty($this->entity_type)) ? entity_load_single($this->entity_type, $this->entity_id) : FALSE);
   }
 
+  /**
+   * Load author user account of registration.
+   *
+   * @return object|bool
+   *   User entity, or FALSE if the user does not exist.
+   */
   protected function author() {
-    return (isset($this->author_uid)) ? user_load($this->author_uid) : FALSE;
+    return ($this->author_uid) ? user_load($this->author_uid) : FALSE;
+  }
+
+  /**
+   * Load registered user account of registration.
+   *
+   * @return object|bool
+   *   User entity, or FALSE if the user does not exist.
+   */
+  protected function user() {
+    return ($this->user_uid) ? user_load($this->user_uid) : FALSE;
+  }
+
+  /**
+   * Load State of registration.
+   *
+   * @return object|bool
+   *   State entity, or FALSE if the state does not exist.
+   */
+  protected function state() {
+    return (!empty($this->state) ? entity_load_single('registration_state', $this->state) : FALSE);
   }
 
   /**
@@ -236,36 +261,30 @@ class Registration extends Entity {
     );
 
     // Registration authored by
-    if ($this->author_uid) {
-      $author = user_load($this->author_uid);
-      if ($author) {
-        $author_uri = user_uri($author);
-      }
+    if ($this->author) {
+      $author_uri = user_uri($this->author);
     }
 
     $build['author'] = array(
       '#prefix' => '<div class="field registration-author"><div class="field-label">' . t('Author') . '</div>',
-      '#markup' => (isset($author_uri['path']) ? l($author->name, $author_uri['path']) : t('Anonymous')),
+      '#markup' => (isset($author_uri['path']) ? l($this->author->name, $author_uri['path']) : t('Anonymous')),
       '#suffix' => '</div>',
     );
 
     // Registration belongs to
-    if ($this->user_uid) {
-      $account = user_load($this->user_uid);
-      if ($account) {
-        $account_uri = user_uri($account);
-      }
+    if ($this->user) {
+      $account_uri = user_uri($this->user);
     }
 
     $build['user'] = array(
       '#prefix' => '<div class="field registration-user"><div class="field-label">' . t('User') . '</div>',
-      '#markup' => (isset($account_uri['path']) ? l($account->name, $account_uri['path']) : t('Anonymous')),
+      '#markup' => (isset($account_uri['path']) ? l($this->user->name, $account_uri['path']) : t('Anonymous')),
       '#suffix' => '</div>',
     );
 
     $build['state'] = array(
       '#prefix' => '<div class="field registration-state"><div class="field-label">' . t('State') . '</div>',
-      '#markup' => entity_label('registration_state', $this->state),
+      '#markup' => ($this->state) ? entity_label('registration_state', $this->state) : '',
       '#suffix' => '</div>',
     );
 
@@ -281,7 +300,9 @@ class Registration extends Entity {
     // set a default state if not provided
     if (!$this->state || $this->state == -1) {
       $default_state = registration_get_default_state();
-      $this->state = $default_state->internalIdentifier();
+      if ($default_state) {
+	$this->state = $default_state->internalIdentifier();
+      }
     }
     $this->updated = REQUEST_TIME;
     if (!$this->registration_id) {
@@ -303,12 +324,7 @@ class Registration extends Entity {
    * @return string
    */
   protected function mail() {
-    if ($this->user) {
-      return $this->user->mail;
-    }
-    else {
-      return $this->anon_mail;
-    }
+    return ($this->user) ? $this->user->mail : $this->anon_mail;
   }
 
   /**
@@ -515,7 +531,7 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
     return TRUE;
   }
 
-  $account_own = (isset($registration->author->uid) && ($registration->author->uid == $account->uid));
+  $account_own = ($registration->author && ($registration->author->uid == $account->uid));
 
   // Fall back to assigned permissions
   $type = $registration->type;

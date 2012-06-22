@@ -445,6 +445,25 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->assertTrue(registration_is_registered($registration_a, NULL, $user_no_permission->uid), t('User registered for host entity'), 'Registration');
   }
 
+  function testRegistrationHostDelete() {
+    $user_a = $this->drupalCreateUser();
+    $this->drupalLogin($user_a);
+
+    // Delete the host entity
+    $user_b = $this->drupalCreateUser();
+    $registration_a = $this->createRegistration(array(
+      'author_uid' => $user_a->uid,
+      'user_uid' => $user_b->uid,
+    ));
+
+    entity_delete($this->host_entity_type, $this->host_entity_id);
+    entity_get_controller($this->host_entity_type)->resetCache();
+    $this->resetRegistration();
+
+    $this->assertFalse(entity_load_single($this->host_entity_type, $this->host_entity_id), t('Delete host entity.'), 'Registration');
+    $this->assertFalse(entity_load_single('registration', $registration_a->registration_id), t('Delete registration when host entity is deleted.'), 'Registration');
+  }
+
   /**
    * Ensure registrations are processed when a user is cancelled.
    *

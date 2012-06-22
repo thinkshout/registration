@@ -703,7 +703,7 @@ function registration_state_form($form, &$form_state, $registration_state, $op =
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save Registartion state'),
+    '#value' => t('Save Registration state'),
     '#weight' => 40,
   );
 

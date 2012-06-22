@@ -210,13 +210,21 @@ function registration_form_submit($form, &$form_state) {
 
   // Save the registration and redirect.
   if (registration_save($registration)) {
-    drupal_set_message(t('Thank you, your registration has been saved.'));
-    $uri = entity_uri('registration', $registration);
+    drupal_set_message(t('Registration has been saved.'));
 
-    $form_state['redirect'] = $uri['path'];
+    // Redirect to registration
+    if (entity_access('view', 'registration', $registration)) {
+      $uri = entity_uri('registration', $registration);
+      $form_state['redirect'] = $uri['path'];
+    }
+    // Redirect to host entity
+    else if (entity_access('view', $registration->entity_type, $registration->entity)) {
+      $uri = entity_uri($registration->entity_type, $registration->entity);
+      $form_state['redirect'] = $uri['path'];
+    }
   }
   else {
-    drupal_set_message(t('Sorry, there has been a problem submitting your registration.'));
+    drupal_set_message(t('There was a problem submitting your registration.'));
   }
 }
 

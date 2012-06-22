@@ -10,7 +10,7 @@ class registration_handler_field_entity_registration_status extends views_handle
 
     $status = registration_status($this->entity_type, $entity_id);
     if (isset($status)) {
-      return ($status) ? t('Open') : t('Closed');
+      return ($status) ? t('Open', array(), array('context'  =>  'registration')) : t('Closed', array(), array('context'  =>  'registration'));
     }
   }
 }

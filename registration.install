@@ -406,7 +406,7 @@ function registration_install() {
 /**
  * Implements hook_uninstall().
  */
-function hook_uninstall() {
+function registration_uninstall() {
   // Remove default states
   $default_states = array(
     'complete', 'complete', 'canceled'

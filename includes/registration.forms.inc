@@ -60,14 +60,16 @@ function registration_form($form, &$form_state, Registration $registration) {
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $capacity = $settings['capacity'];
   $remaining = 0;
+  $description = '';
   if ($capacity) {
     $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
+    $description = t('The number of slots you wish to reserve. @slots_remaining slots remaining.', array('@slots_remaining' => $remaining));
   }
 
   $form['count'] = array(
     '#type' => 'textfield',
     '#title' => t('Slots'),
-    '#description' => t('The number of slots you wish to reserve. @slots_remaining slots remaining.', array('@slots_remaining' => $remaining)),
+    '#description' => $description,
     '#default_value' => isset($registration->count) ? $registration->count : 1,
     '#size' => drupal_strlen($remaining),
     '#access' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : FALSE,

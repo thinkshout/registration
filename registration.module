@@ -244,6 +244,10 @@ function registration_permission_list($info) {
       'title' => t('%type_name: Administer settings', array('%type_name' => $label)),
       'description' => t('Allow changing registration settings for entities with this type.'),
     ),
+    "administer own $type registration" => array(
+      'title' => t('%type_name: Administer own settings', array('%type_name' => $label)),
+      'description' => t('Allow changing registration settings for entities with this type authored by the given user.'),
+    ),
     "view $type registration" => array(
       'title' => t('%type_name: View all registrations', array('%type_name' => $label)),
     ),
@@ -355,11 +359,14 @@ function registration_register_page_access($entity_type, $entity) {
  */
 function registration_administer_registrations_access($entity_type, $entity) {
   $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+  $ret = FALSE;
   if ($registration_type) {
-    return user_access("administer $registration_type registration");
+    if (!$ret = user_access("administer $registration_type registration")) {
+      $ret = user_access("administer own $registration_type registration");
+    }
   }
 
-  return FALSE;
+  return $ret;
 }
 
 /**

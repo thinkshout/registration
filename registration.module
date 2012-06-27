@@ -498,7 +498,7 @@ function registration_registrations_page($entity_type, $entity) {
         $author_col,
         $registration->count,
         format_date($registration->created),
-	      ($registration->state ? entity_label('registration_state', $registration->state) : ''),
+	      ($registration->state ? filter_xss_admin(entity_label('registration_state', $registration->state)) : ''),
         implode(' | ', $actions)
       );
     }

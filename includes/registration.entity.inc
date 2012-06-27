@@ -284,7 +284,7 @@ class Registration extends Entity {
 
     $build['state'] = array(
       '#prefix' => '<div class="field registration-state"><div class="field-label">' . t('State') . '</div>',
-      '#markup' => ($this->state) ? entity_label('registration_state', $this->state) : '',
+      '#markup' => ($this->state) ? filter_xss_admin(entity_label('registration_state', $this->state)) : '',
       '#suffix' => '</div>',
     );
 

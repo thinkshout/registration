@@ -93,8 +93,8 @@ function registration_entity_info() {
 
   // Support entity cache module.
   if (module_exists('entitycache')) {
-    $return['registration']['field cache'] = FALSE;
-    $return['registration']['entity cache'] = TRUE;
+    $entities['registration']['field cache'] = FALSE;
+    $entities['registration']['entity cache'] = TRUE;
   }
 
   return $entities;

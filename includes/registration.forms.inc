@@ -18,12 +18,31 @@ function registration_form($form, &$form_state, Registration $registration) {
 
   $who_options = registration_access_people($registration);
 
+  // default value for who is registering
+  $who_default = NULL;
+  if (isset($registration->registration_id)) {
+    $who_default = $registration->registrant_type($user);
+  }
+  elseif(count($who_options) == 1) {
+    $who_default = key($who_options);
+  }
+
+  // show a message if there's only one option as we're going to hide the form
+  if (count($who_options) == 1) {
+    $form['who_message'] = array(
+      '#markup' => '<div class="registration-who-msg">' .
+        t('You are registering: %who', array('%who' => current($who_options))) .
+        '</div>',
+    );
+  }
+
   $form['who_is_registering'] = array(
     '#type' => 'select',
     '#title' => t('This registration is for:'),
     '#options' => $who_options,
-    '#default_value' => (isset($registration->registration_id) ? $registration->registrant_type($user) : NULL),
+    '#default_value' => $who_default,
     '#required' => TRUE,
+    '#access' => (count($who_options) > 1)
   );
 
   $form['user'] = array(

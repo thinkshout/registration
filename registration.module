@@ -125,7 +125,11 @@ function registration_menu() {
         'load arguments' => array($type),
         'title' => 'Email Registrants',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('registration_registrations_broadcast_form', 0, 1),
+        'page arguments' => array(
+          'registration_registrations_broadcast_form',
+          0,
+          1
+        ),
         'access callback' => 'registration_administer_registrations_access',
         'access arguments' => array(0, 1),
         'weight' => 10,
@@ -191,15 +195,15 @@ function registration_user_cancel($edit, $account, $method) {
     if ($method == 'user_cancel_reassign') {
       db_update('registration')
         ->fields(array(
-          'author_uid' => 0,
-        ))
+        'author_uid' => 0,
+      ))
         ->condition('author_uid', $account->uid)
         ->execute();
 
       db_update('registration')
         ->fields(array(
-          'user_uid' => NULL,
-        ))
+        'user_uid' => NULL,
+      ))
         ->condition('user_uid', $account->uid)
         ->execute();
     }
@@ -219,8 +223,8 @@ function registration_user_delete($account) {
     // registration. Simply disassociate the user with the registration.
     db_update('registration')
       ->fields(array(
-        'user_uid' => NULL,
-      ))
+      'user_uid' => NULL,
+    ))
       ->condition('user_uid', $account->uid)
       ->execute();
   }
@@ -480,10 +484,14 @@ function registration_registrations_page($entity_type, $entity) {
     $rows = array();
 
     foreach ($registrations as $registration) {
+      $wrapper = entity_metadata_wrapper('registration', $registration);
+      $author = $wrapper->author->value();
+      $state = $wrapper->state->value();
+
       $author_col = '';
-      if ($registration->author) {
-        $uri = entity_uri('user', $registration->author);
-        $author_col = l($registration->author->name, $uri['path']);
+      if ($registration->author_uid) {
+        $uri = entity_uri('user', $author);
+        $author_col = l($author->name, $uri['path']);
       }
 
       $user_col = '';
@@ -506,7 +514,7 @@ function registration_registrations_page($entity_type, $entity) {
         $author_col,
         $registration->count,
         format_date($registration->created),
-	      ($registration->state ? filter_xss_admin(entity_label('registration_state', $registration->state)) : ''),
+        ($state ? filter_xss_admin(entity_label('registration_state', $state)) : ''),
         implode(' | ', $actions)
       );
     }
@@ -822,7 +830,10 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
 
       $entity = entity_load_single($entity_type, $entity_id);
       if (module_exists('token')) {
-        $message = token_replace($message_template, array($entity_type => $entity, 'registration' => $registration));
+        $message = token_replace($message_template, array(
+          $entity_type => $entity,
+          'registration' => $registration
+        ));
       }
       $params['message'] = $message;
 
@@ -872,9 +883,9 @@ function registration_update_entity_settings($entity_type, $entity_id, $settings
   // insert or update registration entity settings
   db_merge('registration_entity')
     ->key(array(
-      'entity_id' => $entity_id,
-      'entity_type' => $entity_type
-    ))
+    'entity_id' => $entity_id,
+    'entity_type' => $entity_type
+  ))
     ->fields($settings)
     ->execute();
 
@@ -1131,7 +1142,8 @@ function registration_access_people(Registration $registration, $account = NULL)
 
   // Anonymous people
   if (user_access("create $registration->type registration other anonymous", $account)) {
-    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = (empty($account->uid)) ? t('Myself') : t('Other person');;
+    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = (empty($account->uid)) ? t('Myself') : t('Other person');
+    ;
   }
 
   return $people;

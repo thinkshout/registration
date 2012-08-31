@@ -132,27 +132,17 @@ class Registration extends Entity {
     $registration_id,
     $entity_id,
     $entity_type,
-    $entity,
     $mail,
     $anon_mail = NULL,
     $user_uid = NULL,
-    $user,
     $count,
-    $author,
     $author_uid,
-    $state,
+    $state, // State ID
     $created,
     $updated;
 
   public function __construct(array $values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-
-    // Automatically load related entities.
-    $this->author = $this->author();
-    $this->entity = $this->entity();
-    $this->user = $this->user();
-    $this->state = $this->state();
-
     $this->mail = $this->mail();
   }
 
@@ -160,53 +150,15 @@ class Registration extends Entity {
    * Specifies the default label, which is picked up by label() by default.
    */
   protected function defaultLabel() {
-    if ($this->entity) {
+    $wrapper = entity_metadata_wrapper('registration', $this);
+    $host = $wrapper->entity->value();
+    if ($host) {
       return t('Registration for @title', array(
-          '@title' => entity_label($this->entity_type, $this->entity)
+          '@title' => entity_label($this->entity_type, $host)
         )
       );
     }
     return '';
-  }
-
-  /**
-   * Load host entity of registration.
-   *
-   * @return object|bool
-   *   An entity, or FALSE if the entity does not exist.
-   */
-  protected function entity() {
-    return (($this->entity_id && !empty($this->entity_type)) ? entity_load_single($this->entity_type, $this->entity_id) : FALSE);
-  }
-
-  /**
-   * Load author user account of registration.
-   *
-   * @return object|bool
-   *   User entity, or FALSE if the user does not exist.
-   */
-  protected function author() {
-    return ($this->author_uid) ? user_load($this->author_uid) : FALSE;
-  }
-
-  /**
-   * Load registered user account of registration.
-   *
-   * @return object|bool
-   *   User entity, or FALSE if the user does not exist.
-   */
-  protected function user() {
-    return ($this->user_uid) ? user_load($this->user_uid) : FALSE;
-  }
-
-  /**
-   * Load State of registration.
-   *
-   * @return object|bool
-   *   State entity, or FALSE if the state does not exist.
-   */
-  protected function state() {
-    return (!empty($this->state) ? entity_load_single('registration_state', $this->state) : FALSE);
   }
 
   /**
@@ -216,13 +168,20 @@ class Registration extends Entity {
    */
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     $build = parent::buildContent($view_mode, $langcode);
+    $wrapper = entity_metadata_wrapper('registration', $this);
 
     $host_entity_type_info = entity_get_info($this->entity_type);
-    $host_entity = entity_load_single($this->entity_type, $this->entity_id);
+    $host_entity = $wrapper->entity->value();
+    $state = $wrapper->state->value();
+    $author = $wrapper->author->value();
+    $user = $wrapper->user->value();
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
 
     $host_label = entity_label($this->entity_type, $host_entity);
-    $host_uri = entity_uri($this->entity_type, $host_entity);
+
+    $host_uri = $host_entity ? entity_uri($this->entity_type, $host_entity) : NULL;
+    $author_uri = $author ? entity_uri('user', $author) : NULL;
+    $account_uri = $user ? entity_uri('user', $user) : NULL;
 
     // Mail
     $build['mail'] = array(
@@ -260,31 +219,21 @@ class Registration extends Entity {
       '#suffix' => '</div>',
     );
 
-    // Registration authored by
-    if ($this->author) {
-      $author_uri = user_uri($this->author);
-    }
-
     $build['author'] = array(
       '#prefix' => '<div class="field registration-author"><div class="field-label">' . t('Author') . '</div>',
-      '#markup' => (isset($author_uri['path']) ? l($this->author->name, $author_uri['path']) : t('Anonymous')),
+      '#markup' => (isset($author_uri['path']) ? l($author->name, $author_uri['path']) : t('Anonymous')),
       '#suffix' => '</div>',
     );
 
-    // Registration belongs to
-    if ($this->user) {
-      $account_uri = user_uri($this->user);
-    }
-
     $build['user'] = array(
       '#prefix' => '<div class="field registration-user"><div class="field-label">' . t('User') . '</div>',
-      '#markup' => (isset($account_uri['path']) ? l($this->user->name, $account_uri['path']) : t('Anonymous')),
+      '#markup' => (isset($account_uri['path']) ? l($user->name, $account_uri['path']) : t('Anonymous')),
       '#suffix' => '</div>',
     );
 
     $build['state'] = array(
       '#prefix' => '<div class="field registration-state"><div class="field-label">' . t('State') . '</div>',
-      '#markup' => ($this->state) ? filter_xss_admin(entity_label('registration_state', $this->state)) : '',
+      '#markup' => ($state) ? filter_xss_admin(entity_label('registration_state', $state)) : '',
       '#suffix' => '</div>',
     );
 
@@ -298,7 +247,9 @@ class Registration extends Entity {
    */
   public function save() {
     // set a default state if not provided
-    if (!$this->state || $this->state == -1) {
+    $wrapper = entity_metadata_wrapper('registration', $this);
+    $state = $wrapper->state->value();
+    if (!$state || $this->state == -1) {
       $default_state = registration_get_default_state();
       if ($default_state) {
         $this->state = $default_state->internalIdentifier();
@@ -324,7 +275,9 @@ class Registration extends Entity {
    * @return string
    */
   protected function mail() {
-    return ($this->user) ? $this->user->mail : $this->anon_mail;
+    $wrapper = entity_metadata_wrapper('registration', $this);
+    $user = $wrapper->user->value();
+    return ($user) ? $user->mail : $this->anon_mail;
   }
 
   /**
@@ -359,39 +312,178 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
     $info = parent::entityPropertyInfo();
     $properties = &$info[$this->type]['properties'];
 
-    $properties['created'] = array(
-      'label' => t("Created"),
-      'description' => t("The date the registration was created."),
-      'type' => 'date',
-      'schema field' => 'created',
-    );
-    $properties['updated'] = array(
-      'label' => t("Updated"),
-      'description' => t("The date the registration was updated."),
-      'type' => 'date',
-      'schema field' => 'updated',
-    );
-    $properties['entity'] = array(
-      'label' => t('Entity'),
-      'type' => 'entity',
-      'schema field' => 'entity_id',
-      'description' => t('The entity the registration belongs to.'),
-      'getter callback' => 'registration_get_properties',
-    );
-    $properties['author'] = array(
-      'label' => t("Author"),
-      'type' => 'user',
-      'description' => t("The author of the registration."),
-      'schema field' => 'author_uid'
-    );
-    $properties['user'] = array(
-      'label' => t("User"),
-      'type' => 'user',
-      'description' => t("The user associated with the registration."),
-      'schema field' => 'user_uid'
+    $properties['registration_id'] = array(
+      'label' => t("Registration ID"),
+      'type' => 'integer',
+      'description' => t("The unique ID of the registration."),
+      'schema field' => 'registration_id',
+      'setter callback' => 'entity_property_verbatim_set',
     );
 
+    $properties['type'] = array(
+      'label' => t("Registration type"),
+      'type' => 'token',
+      'description' => t("The type of the registration."),
+      'options list' => 'registration_type_get_names',
+      'required' => TRUE,
+      'schema field' => 'type',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    $properties['entity_type'] = array(
+      'label' => t("Host entity type"),
+      'type' => 'token',
+      'description' => t("The entity type of the host entity."),
+      'required' => TRUE,
+      'schema field' => 'entity_type',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    $properties['entity_id'] = array(
+      'label' => t("Host entity ID"),
+      'type' => 'integer',
+      'description' => t("The entity ID of the host entity."),
+      'required' => TRUE,
+      'schema field' => 'entity_id',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    $properties['count'] = array(
+      'label' => t("Slots consumed"),
+      'type' => 'integer',
+      'description' => t("How many slots the registration consumes from the host entity."),
+      'schema field' => 'count',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    $properties['created'] = array(
+      'label' => t("Date created"),
+      'type' => 'date',
+      'schema field' => 'created',
+      'description' => t("The date the registration was created."),
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    $properties['updated'] = array(
+      'label' => t("Date updated"),
+      'type' => 'date',
+      'schema field' => 'updated',
+      'description' => t("The date the registration was most recently updated."),
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    // Entities
+    $properties['entity'] = array(
+      'label' => t("Host entity"),
+      'type' => 'entity',
+      'schema field' => 'entity',
+      'description' => t("The host entity."),
+      'getter callback' => 'registration_property_host_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    $properties['author'] = array(
+      'label' => t("Author entity"),
+      'type' => 'user',
+      'schema field' => 'author_uid',
+      'description' => t("The user who created the registration."),
+      'getter callback' => 'registration_property_author_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
+
+    $properties['user'] = array(
+      'label' => t("User entity"),
+      'type' => 'entity',
+      'schema field' => 'user_uid',
+      'description' => t("The entity for which the registration belongs to. Usually a user."),
+      'getter callback' => 'registration_property_user_get',
+      'setter callback' => 'registration_property_user_set',
+    );
+
+    $properties['mail'] = array(
+      'label' => t('Anonymous e-mail'),
+      'type' => 'text',
+      'schema field' => 'anon_mail',
+      'description' => t('An e-mail address associated with the registration of an anonymous user.'),
+      'getter callback' => 'registration_get_properties',
+      'setter callback' => 'registration_property_email_set',
+    );
+
+    $properties['state'] = array(
+      'label' => t("State entity"),
+      'type' => 'registration_state',
+      'schema field' => 'state',
+      'description' => t("The state of the registration."),
+      'getter callback' => 'registration_property_state_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    );
     return $info;
+  }
+}
+
+/**
+ * Callback to get $registration->host.
+ *
+ * @see registration_entity_property_info().
+ */
+function registration_property_host_get(Registration $registration, array $options, $property_name, $entity_type) {
+  return entity_load_single($registration->entity_type, $registration->entity_id);
+}
+
+/**
+ * Callback to get $registration->author.
+ *
+ * @see registration_entity_property_info().
+ */
+function registration_property_author_get(Registration $registration, array $options, $property_name, $entity_type) {
+  if (is_numeric($registration->author_uid)) {
+    return entity_load_single('user', $registration->author_uid);
+  }
+}
+
+/**
+ * Callback to get $registration->user.
+ *
+ * @see registration_entity_property_info().
+ */
+function registration_property_user_get(Registration $registration, array $options, $property_name, $entity_type) {
+  if (is_numeric($registration->user_uid)) {
+    return entity_load_single('user', $registration->user_uid);
+  }
+}
+
+/**
+ * Callback to get $registration->state.
+ *
+ * @see registration_entity_property_info().
+ */
+function registration_property_state_get(Registration $registration, array $options, $property_name, $entity_type) {
+  if (is_numeric($registration->state)) {
+    return entity_load_single('registration_state', $registration->state);
+  }
+}
+
+/**
+ * Callback to set $registration->user that supports null value.
+ */
+function registration_property_user_set(Registration $registration, $name, $value, $lang, $type, $info) {
+  if (is_object($value) && $account = $value->value()) {
+    $registration->{$info['schema field']} = $account->uid;
+  }
+  else {
+    $registration->{$info['schema field']} = NULL;
+  }
+}
+
+/**
+ * Callback to set $registration->anon_mail that supports null value.
+ */
+function registration_property_email_set(Registration $registration, $name, $value, $lang, $type, $info) {
+  if (!empty($value)) {
+    $registration->{$info['schema field']} = $value;
+  }
+  else {
+    $registration->{$info['schema field']} = NULL;
   }
 }
 
@@ -515,7 +607,6 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
       break;
   }
 
-
   // First grant access to the entity for the specified operation if no other
   // module denies it and at least one other module says to grant access.
   $access_results = module_invoke_all('registration_access', $op, $registration, $account, $entity_type);
@@ -531,7 +622,9 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
     return TRUE;
   }
 
-  $account_own = ($registration->author && ($registration->author->uid == $account->uid));
+  $wrapper = entity_metadata_wrapper('registration', $registration);
+  $author = $wrapper->author->value();
+  $account_own = ($author && ($author->uid == $account->uid));
 
   // Fall back to assigned permissions
   $type = $registration->type;
@@ -585,6 +678,17 @@ class RegistrationTypeUIController extends EntityDefaultUIController {
 function registration_get_types($name = NULL) {
   $types = entity_load_multiple_by_name('registration_type', isset($name) ? array($name) : FALSE);
   return isset($name) ? reset($types) : $types;
+}
+
+/**
+ * Gets an array of all registration types, keyed by the name.
+ *
+ * @return array
+ *   A list of all registration types.
+ */
+function registration_type_get_names($name = NULL) {
+  $types = registration_get_types();
+  return is_array($types) ? array_keys($types) : array();
 }
 
 /**

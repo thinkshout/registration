@@ -400,7 +400,7 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'setter callback' => 'registration_property_user_set',
     );
 
-    $properties['mail'] = array(
+    $properties['anon_mail'] = array(
       'label' => t('Anonymous e-mail'),
       'type' => 'text',
       'schema field' => 'anon_mail',

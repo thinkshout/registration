@@ -581,7 +581,7 @@ function registration_entity_settings_page($entity_type, $entity) {
  *
  * @see registration_status()
  */
-function registration_has_room($entity_type, $entity_id, $slots = 0, $registration_id = NULL) {
+function registration_has_room($entity_type, $entity_id, $slots = 1, $registration_id = NULL) {
   $settings = registration_entity_settings($entity_type, $entity_id);
   $capacity = $settings['capacity'];
   if ($capacity) {

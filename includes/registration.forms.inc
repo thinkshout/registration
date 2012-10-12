@@ -32,7 +32,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   }
 
   // show a message if there's only one option as we're going to hide the form
-  if (count($who_options) == 1) {
+  if (count($who_options) == 1 && !user_is_anonymous()) {
     $form['who_message'] = array(
       '#markup' => '<div class="registration-who-msg">' .
         t('You are registering: %who', array('%who' => current($who_options))) .

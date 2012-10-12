@@ -1142,8 +1142,7 @@ function registration_access_people(Registration $registration, $account = NULL)
 
   // Anonymous people
   if (user_access("create $registration->type registration other anonymous", $account)) {
-    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = (empty($account->uid)) ? t('Myself') : t('Other person');
-    ;
+    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = (empty($account->uid) && $account->uid != 0) ? t('Myself') : t('Other person');
   }
 
   return $people;

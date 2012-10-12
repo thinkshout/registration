@@ -607,6 +607,11 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
       break;
   }
 
+  // bypass further access checks if user can administer registration
+  if (user_access('administer registration', $account)) {
+    return TRUE;
+  }
+
   // First grant access to the entity for the specified operation if no other
   // module denies it and at least one other module says to grant access.
   $access_results = module_invoke_all('registration_access', $op, $registration, $account, $entity_type);
@@ -614,11 +619,6 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
     return FALSE;
   }
   elseif (in_array(TRUE, $access_results, TRUE)) {
-    return TRUE;
-  }
-
-  // bypass further access checks if user can administer registration
-  if (user_access('administer registration', $account)) {
     return TRUE;
   }
 

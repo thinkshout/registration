@@ -279,6 +279,9 @@ function registration_permission_list($info) {
     "create $type registration other anonymous" => array(
       'title' => t('%type_name: Register other people', array('%type_name' => $label)),
     ),
+    "edit $type registration state" => array(
+      'title' => t('%type_name: Edit registration state', array('%type_name' => $label)),
+    ),
   );
 }
 

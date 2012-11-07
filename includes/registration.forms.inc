@@ -102,19 +102,21 @@ function registration_form($form, &$form_state, Registration $registration) {
   $options = array();
   $default_state = -1;
   $states = registration_states(array('show_on_form' => TRUE));
-  foreach ($states as $state) {
-    $options[$state->registration_state_id] = t('@state', array('@state' => $state->label));
-    if ($state->default_state) {
-      $default_state = $state->registration_state_id;
+  // we use "$this_state" variable name because $state is conflicting with variable set above.
+  foreach ($states as $this_state) {
+    $options[$this_state->registration_state_id] = t('@state', array('@state' => $this_state->label));
+    if ($this_state->default_state) {
+      $default_state = $this_state->registration_state_id;
     }
   }
+  
   $form['state'] = array(
     '#type' => 'select',
     '#title' => t('State'),
     '#description' => t('State of this registration'),
     '#default_value' => ($state ? $state->internalIdentifier() : $default_state),
     '#options' => $options,
-    '#access' => !empty($states)
+    '#access' => !empty($states) && user_access('edit ' . $registration->type . ' registration state')
   );
 
   field_attach_form('registration', $registration, $form, $form_state);
@@ -210,10 +212,12 @@ function registration_form_submit($form, &$form_state) {
   if (!isset($registration->registration_id)) {
     $registration->author_uid = $GLOBALS['user']->uid;
   }
-
   $registration->count = $form_state['values']['count'];
-  $registration->state = (!empty($form_state['values']['state']))
-    ? $form_state['values']['state'] : NULL;
+
+  if (user_access('edit ' . $registration->type . ' registration state')) {
+    $registration->state = (!empty($form_state['values']['state']))
+      ? $form_state['values']['state'] : NULL;
+  }
 
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:

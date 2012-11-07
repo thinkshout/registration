@@ -499,6 +499,9 @@ function registration_property_email_set(Registration $registration, $name, $val
  */
 function registration_get_properties($entity, array $options, $name, $type) {
   switch ($name) {
+    case 'anon_mail':
+      return $entity->anon_mail;
+      break;
     case 'entity':
       return entity_metadata_wrapper($entity->entity_type, $entity->entity);
       break;

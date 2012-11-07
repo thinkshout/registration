@@ -1,4 +1,4 @@
-<?php
+git<?php
 
 /**
  * @file
@@ -845,7 +845,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
       }
       else {
         watchdog('registration', 'Failed to send registration broadcast email to %email.',
-          array('%email' => $registration->mail), 'WATCHDOG_ERROR'
+          array('%email' => $registration->mail), WATCHDOG_ERROR
         );
       }
     }

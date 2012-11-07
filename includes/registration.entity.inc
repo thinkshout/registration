@@ -691,7 +691,11 @@ function registration_get_types($name = NULL) {
  */
 function registration_type_get_names($name = NULL) {
   $types = registration_get_types();
-  return is_array($types) ? array_keys($types) : array();
+  $data = array();
+  foreach (array_keys($types) as $name) {
+    $data[$name] = $name;
+  }
+  return $data;
 }
 
 /**

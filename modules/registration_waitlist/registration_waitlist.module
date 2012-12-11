@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Entity Registration waitlist functionality
+ */
+
+/**
+ * Implements hook_registration_entity_settings().
+ */
+function registration_waitlist_registration_entity_settings($settings) {
+  // add a settings element to enable adding registrations to the waitlist
+  return array(
+    'registration_waitlist_enable' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable wait list'),
+      '#description' => t('When wait list is enabled, registrations made after capacity has been reached will be set to the wait list state.'),
+      '#default_value' => isset($settings['settings']['registration_waitlist_enable']) ? $settings['settings']['registration_waitlist_enable'] : array()
+    )
+  );
+}

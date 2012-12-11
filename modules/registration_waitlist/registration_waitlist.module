@@ -54,8 +54,19 @@ function registration_waitlist_registration_status_alter(&$status, $context) {
 function registration_waitlist_entity_presave($entity, $type) {
   if ($type == 'registration') {
     if (registration_waitlist_active($entity->entity_type, $entity->entity_id)) {
-      $waitlist_state = registration_get_states('registration_waitlist');
-      $entity->state = $waitlist_state->registration_state_id;
+      $active_states = registration_get_active_states();
+
+      // Check that the state being saved is active
+      if (in_array($entity->state, $active_states)) {
+        // Check that the old state (if there is one) is not already active
+        if ( (isset($entity->original) && !in_array($entity->original->state, $active_states) )
+          || (!isset($entity->original)) ) {
+          drupal_set_message(t('Registration placed on the waitlist.'), 'status');
+          // Set the registration state to waitlist
+          $waitlist_state = registration_get_states('registration_waitlist');
+          $entity->state = $waitlist_state->registration_state_id;
+        }
+      }
     }
   }
 }

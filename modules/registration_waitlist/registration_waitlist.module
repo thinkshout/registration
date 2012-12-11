@@ -36,3 +36,70 @@ function registration_waitlist_default_registration_state() {
   ));
   return $defaults;
 }
+
+/**
+ * Implements hook_registration_status_alter().
+ *
+ */
+function registration_waitlist_registration_status_alter(&$status, $context) {
+  // FALSE was returned by registration_status(), check if the waitlist should be active
+  if (!$status && registration_waitlist_active($context['entity_type'], $context['entity_id'], $context['settings'])) {
+    $status = TRUE;
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function registration_waitlist_entity_presave($entity, $type) {
+  if ($type == 'registration') {
+    if (registration_waitlist_active($entity->entity_type, $entity->entity_id)) {
+      $waitlist_state = registration_get_states('registration_waitlist');
+      $entity->state = $waitlist_state->registration_state_id;
+    }
+  }
+}
+
+/**
+ * Determine if the waitlist is active for a given registration
+ *
+ * @param $entity_type
+ * @param $entity_id
+ * @param $settings
+ *
+ * @return bool
+ */
+function registration_waitlist_active($entity_type, $entity_id, $settings = NULL) {
+  if (!$settings) {
+    $settings = registration_entity_settings($entity_type, $entity_id);
+  }
+
+  $active = $settings['status'];
+  $open = isset($settings['open']) ? strtotime($settings['open']) : NULL;
+  $close = isset($settings['close']) ? strtotime($settings['close']) : NULL;
+  $now = REQUEST_TIME;
+
+  // only explore other settings if main status is enabled
+  if ($active) {
+    // check open date range
+    if (isset($open) && ($now < $open)) {
+      $active = FALSE;
+    }
+    // check close date range
+    elseif (isset($close) && ($now >= $close)) {
+      $active = FALSE;
+    }
+
+    if ( !registration_has_room($entity_type, $entity_id)
+      && isset($settings['settings']['registration_waitlist_enable'])
+      && $settings['settings']['registration_waitlist_enable'] ) {
+      // Registration is full and waitlist is enabled
+      $active = TRUE;
+    }
+  }
+
+  return $active;
+}
+
+
+

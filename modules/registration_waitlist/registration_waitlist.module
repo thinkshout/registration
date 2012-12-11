@@ -19,3 +19,20 @@ function registration_waitlist_registration_entity_settings($settings) {
     )
   );
 }
+
+/**
+ * Implements hook_default_ENTITY_TYPE().
+ */
+function registration_waitlist_default_registration_state() {
+  $defaults = array();
+  $defaults['registration_waitlist'] = entity_create('registration_state', array(
+    'name' => 'registration_waitlist',
+    'label' => 'Wait list',
+    'description' => 'Special state for registrations after capacity is reached.',
+    'default_state' => FALSE,
+    'active' => FALSE,
+    'show_on_form' => TRUE,
+    'weight' => 0,
+  ));
+  return $defaults;
+}

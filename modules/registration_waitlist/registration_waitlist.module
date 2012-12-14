@@ -45,7 +45,7 @@ function registration_waitlist_default_registration_state() {
  */
 function registration_waitlist_registration_status_alter(&$status, $context) {
   // FALSE was returned by registration_status(), return true is the waitlist is enabled.
-  if (!$status && registration_waitlist_active($context['entity_type'], $context['entity_id'])) {
+  if (!$status && registration_waitlist_is_active($context['entity_type'], $context['entity_id'])) {
     $status = TRUE;
   }
 }
@@ -55,7 +55,7 @@ function registration_waitlist_registration_status_alter(&$status, $context) {
  */
 function registration_waitlist_entity_presave($entity, $type) {
   if ($type == 'registration') {
-    if (registration_waitlist_active($entity->entity_type, $entity->entity_id)) {
+    if (registration_waitlist_is_active($entity->entity_type, $entity->entity_id)) {
       $active_states = registration_get_active_states();
 
       // Check that the state being saved is active
@@ -83,7 +83,7 @@ function registration_waitlist_entity_presave($entity, $type) {
  *
  * @return bool
  */
-function registration_waitlist_active($entity_type, $entity_id) {
+function registration_waitlist_is_active($entity_type, $entity_id) {
   $settings = registration_entity_settings($entity_type, $entity_id);
 
   $active = FALSE;

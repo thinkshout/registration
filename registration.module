@@ -1038,12 +1038,18 @@ function registration_get_registration_instances($params = array()) {
  * Implement hook_token_info().
  */
 function registration_token_info() {
+  $type = array(
+    'name' => t('Registration'),
+    'description' => t('Tokens related to individual Registrations.'),
+    'needs-data' => 'registration',
+  );
   $registration['entity'] = array(
     'name' => t("Registration Host Entity"),
     'description' => t("The host entity for the registration."),
   );
+
   return array(
-    'types' => array(),
+    'types' => array('registration' => $type),
     'tokens' => array('registration' => $registration),
   );
 }
@@ -1058,8 +1064,12 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
 
     if ($entity_tokens = token_find_with_prefix($tokens, 'entity')) {
       $entity = $wrapper->entity->value();
-      return token_generate($registration->entity_type, $entity_tokens,
-        array($registration->entity_type => $entity), $options);
+      return token_generate(
+        $registration->entity_type,
+        $entity_tokens,
+        array($registration->entity_type => $entity),
+        $options
+      );
     }
   }
 }

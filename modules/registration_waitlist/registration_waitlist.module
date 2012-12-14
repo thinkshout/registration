@@ -5,6 +5,8 @@
  * Entity Registration waitlist functionality
  */
 
+define('REGISTRATION_WAITLIST_STATE', 'waitlist');
+
 /**
  * Implements hook_registration_entity_settings().
  */
@@ -25,10 +27,10 @@ function registration_waitlist_registration_entity_settings($settings) {
  */
 function registration_waitlist_default_registration_state() {
   $defaults = array();
-  $defaults['registration_waitlist'] = entity_create('registration_state', array(
-    'name' => 'registration_waitlist',
-    'label' => 'Wait list',
-    'description' => 'Special state for registrations after capacity is reached.',
+  $defaults[REGISTRATION_WAITLIST_STATE] = entity_create('registration_state', array(
+    'name' => REGISTRATION_WAITLIST_STATE,
+    'label' => t('Wait list'),
+    'description' => t('Special state for registrations after capacity is reached.'),
     'default_state' => FALSE,
     'active' => FALSE,
     'show_on_form' => TRUE,
@@ -42,8 +44,8 @@ function registration_waitlist_default_registration_state() {
  *
  */
 function registration_waitlist_registration_status_alter(&$status, $context) {
-  // FALSE was returned by registration_status(), check if the waitlist should be active
-  if (!$status && registration_waitlist_active($context['entity_type'], $context['entity_id'], $context['settings'])) {
+  // FALSE was returned by registration_status(), return true is the waitlist is enabled.
+  if (!$status && registration_waitlist_active($context['entity_type'], $context['entity_id'])) {
     $status = TRUE;
   }
 }
@@ -59,11 +61,12 @@ function registration_waitlist_entity_presave($entity, $type) {
       // Check that the state being saved is active
       if (in_array($entity->state, $active_states)) {
         // Check that the old state (if there is one) is not already active
-        if ( (isset($entity->original) && !in_array($entity->original->state, $active_states) )
+        if ((isset($entity->original) && !in_array($entity->original->state, $active_states))
           || (!isset($entity->original)) ) {
-          drupal_set_message(t('Registration placed on the waitlist.'), 'status');
+          drupal_set_message(t('Registration placed on the wait list.'), 'status');
+
           // Set the registration state to waitlist
-          $waitlist_state = registration_get_states('registration_waitlist');
+          $waitlist_state = registration_get_states(REGISTRATION_WAITLIST_STATE);
           $entity->state = $waitlist_state->registration_state_id;
         }
       }
@@ -80,13 +83,10 @@ function registration_waitlist_entity_presave($entity, $type) {
  *
  * @return bool
  */
-function registration_waitlist_active($entity_type, $entity_id, $settings = NULL) {
-  if (!$settings) {
-    $settings = registration_entity_settings($entity_type, $entity_id);
-  }
+function registration_waitlist_active($entity_type, $entity_id) {
+  $settings = registration_entity_settings($entity_type, $entity_id);
 
   $active = FALSE;
-
   if ( !registration_has_room($entity_type, $entity_id)
     && isset($settings['settings']['registration_waitlist_enable'])
     && $settings['settings']['registration_waitlist_enable'] ) {
@@ -94,9 +94,5 @@ function registration_waitlist_active($entity_type, $entity_id, $settings = NULL
     $active = TRUE;
   }
 
-
   return $active;
 }
-
-
-

@@ -985,7 +985,6 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
   $context = array(
     'entity_type' => $entity_type,
     'entity_id' => $entity_id,
-    'settings' => $settings,
     'errors' => &$errors
   );
 

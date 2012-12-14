@@ -85,29 +85,15 @@ function registration_waitlist_active($entity_type, $entity_id, $settings = NULL
     $settings = registration_entity_settings($entity_type, $entity_id);
   }
 
-  $active = $settings['status'];
-  $open = isset($settings['open']) ? strtotime($settings['open']) : NULL;
-  $close = isset($settings['close']) ? strtotime($settings['close']) : NULL;
-  $now = REQUEST_TIME;
+  $active = FALSE;
 
-  // only explore other settings if main status is enabled
-  if ($active) {
-    // check open date range
-    if (isset($open) && ($now < $open)) {
-      $active = FALSE;
-    }
-    // check close date range
-    elseif (isset($close) && ($now >= $close)) {
-      $active = FALSE;
-    }
-
-    if ( !registration_has_room($entity_type, $entity_id)
-      && isset($settings['settings']['registration_waitlist_enable'])
-      && $settings['settings']['registration_waitlist_enable'] ) {
-      // Registration is full and waitlist is enabled
-      $active = TRUE;
-    }
+  if ( !registration_has_room($entity_type, $entity_id)
+    && isset($settings['settings']['registration_waitlist_enable'])
+    && $settings['settings']['registration_waitlist_enable'] ) {
+    // Registration is full and waitlist is enabled
+    $active = TRUE;
   }
+
 
   return $active;
 }

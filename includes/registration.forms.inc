@@ -155,17 +155,17 @@ function registration_form($form, &$form_state, Registration $registration) {
 function registration_form_validate($form, &$form_state) {
   $registration = $form_state['registration'];
 
-  if (!registration_status($registration->entity_type, $registration->entity_id)) {
+  $count = $form_state['values']['count'];
+
+  $registration_status = registration_status($registration->entity_type, $registration->entity_id, FALSE, $count, $registration->registration_id, $errors);
+
+  if (!$registration_status) {
     $label = entity_label($registration->entity_type,
       entity_load_single($registration->entity_type, $registration->entity_id));
-    form_set_error('', t('Registrations are no longer available for %label',
-      array('%label' => $label)));
-  }
 
-  // verify the event hasn't sold out
-  $count = $form_state['values']['count'];
-  if (!registration_has_room($registration->entity_type, $registration->entity_id, $count, $registration->registration_id)) {
-    form_set_error('', t('Sorry, there are insufficient slots remaining for this event.'));
+    form_set_error('', t('Sorry, unable to register for %label due to: %errors.',
+      array('%label' => $label, '%errors' => implode(', ', $errors))
+    ));
   }
 
   // validate according to who's registering

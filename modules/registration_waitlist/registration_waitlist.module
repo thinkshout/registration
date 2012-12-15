@@ -18,7 +18,35 @@ function registration_waitlist_registration_entity_settings($settings) {
       '#title' => t('Enable wait list'),
       '#description' => t('When wait list is enabled, registrations made after capacity has been reached will be set to the wait list state.'),
       '#default_value' => isset($settings['settings']['registration_waitlist_enable']) ? $settings['settings']['registration_waitlist_enable'] : array()
-    )
+    ),
+    'registration_waitlist_capacity' => array(
+      '#type' => 'textfield',
+      '#title' => t('Wait list capacity'),
+      '#size' => 5,
+      '#maxsize' => 10,
+      '#required' => TRUE,
+      '#description' => t('The maximum number of registrants on the wait list. Leave at 0 for no limit.'),
+      '#default_value' => isset($settings['settings']['registration_waitlist_capacity']) ? $settings['settings']['registration_waitlist_capacity'] : 0,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="settings[registration_waitlist_enable]"]' => array('checked' => TRUE),
+        ),
+      ),
+    ),
+    'registration_waitlist_reserved' => array(
+      '#type' => 'textfield',
+      '#title' => t('Wait list reserved slots'),
+      '#size' => 5,
+      '#maxsize' => 10,
+      '#required' => TRUE,
+      '#description' => t('The number of active slots to reserve. New registrations will be added to the waitlist when this many slots remain.'),
+      '#default_value' => isset($settings['settings']['registration_waitlist_reserved']) ? $settings['settings']['registration_waitlist_reserved'] : 0,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="settings[registration_waitlist_enable]"]' => array('checked' => TRUE),
+        ),
+      ),
+    ),
   );
 }
 
@@ -45,7 +73,7 @@ function registration_waitlist_default_registration_state() {
  */
 function registration_waitlist_registration_status_alter(&$status, $context) {
   // FALSE was returned by registration_status(), return true is the waitlist is enabled.
-  if (!$status && registration_waitlist_is_active($context['entity_type'], $context['entity_id'])) {
+  if (!$status && registration_waitlist_is_active($context['entity_type'], $context['entity_id'], $context['errors'])) {
     $status = TRUE;
   }
 }
@@ -83,15 +111,44 @@ function registration_waitlist_entity_presave($entity, $type) {
  *
  * @return bool
  */
-function registration_waitlist_is_active($entity_type, $entity_id) {
+function registration_waitlist_is_active($entity_type, $entity_id, &$errors = array()) {
   $settings = registration_entity_settings($entity_type, $entity_id);
-
   $active = FALSE;
-  if ( !registration_has_room($entity_type, $entity_id)
+  $capacity = $settings['capacity'];
+  
+  // Not unlimited capacity
+  if ($capacity
     && isset($settings['settings']['registration_waitlist_enable'])
-    && $settings['settings']['registration_waitlist_enable'] ) {
-    // Registration is full and waitlist is enabled
-    $active = TRUE;
+    && $settings['settings']['registration_waitlist_enable']) {
+
+    // Check if there is still capacity (minus any reserved spaces)
+    $reserved = isset($settings['settings']['registration_waitlist_reserved']) ? $settings['settings']['registration_waitlist_reserved'] : 0;    
+    $count = registration_event_count($entity_type, $entity_id);
+    
+    if (($capacity - $count - $reserved) < 0) {
+      $active = TRUE;
+    }
+
+    // Check wait list capacity against number of registrations on the wait list
+    $waitlist_capacity = isset($settings['settings']['registration_waitlist_capacity']) ? $settings['settings']['registration_waitlist_capacity'] : 0;
+
+    if ($active && $waitlist_capacity) {
+      $waitlist_state = registration_get_states(REGISTRATION_WAITLIST_STATE);
+      // get count of registrations with the waitlist state
+      $query = db_select('registration', 'r');
+      $query->addExpression('sum(count)', 'count');
+      $query->condition('entity_id', $entity_id);
+      $query->condition('entity_type', $entity_type);
+      $query->condition('state', $waitlist_state->registration_state_id);
+      $result = $query->execute();
+      $waitlist_count = $result->fetchField();
+      $waitlist_count = ($waitlist_count == '') ? 0 : $waitlist_count;
+
+      if (($waitlist_capacity - $waitlist_count) < 0) {
+        $active = FALSE;
+        $errors[] = t('waitlist is full');
+      }
+    }
   }
 
   return $active;

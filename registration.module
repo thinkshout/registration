@@ -952,7 +952,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
   $checked = &drupal_static(__FUNCTION__, array());
 
   if (!$reset && isset($checked[$entity_type][$entity_id])) {
-    $errors = array_merge($errors, $checked[$entity_type][$entity_id]['errors']);
+    $errors = is_array($errors) ? array_merge($errors, $checked[$entity_type][$entity_id]['errors']) : $checked[$entity_type][$entity_id]['errors'];
     return $checked[$entity_type][$entity_id]['status'];
   }
 

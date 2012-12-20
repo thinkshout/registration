@@ -393,7 +393,7 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
 
     $properties['user'] = array(
       'label' => t("User entity"),
-      'type' => 'entity',
+      'type' => 'user',
       'schema field' => 'user_uid',
       'description' => t("The entity for which the registration belongs to. Usually a user."),
       'getter callback' => 'registration_property_user_get',
@@ -427,7 +427,8 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
  * @see registration_entity_property_info().
  */
 function registration_property_host_get(Registration $registration, array $options, $property_name, $entity_type) {
-  return entity_load_single($registration->entity_type, $registration->entity_id);
+  $entity = entity_load_single($registration->entity_type, $registration->entity_id);
+  return entity_metadata_wrapper($registration->entity_type, $entity);
 }
 
 /**

@@ -63,9 +63,11 @@ function registration_schema() {
         'default' => 0,
       ),
       'state' => array(
-        'description' => 'State of this registration.',
-        'type' => 'int',
+        'description' => 'The {registration_state}.name of this registration.',
+        'type' => 'varchar',
+        'length' => 32,
         'not null' => TRUE,
+        'default' => '',
       ),
       'created' => array(
         'description' => 'The Unix timestamp when the registration was created.',
@@ -97,7 +99,7 @@ function registration_schema() {
       ),
       'registration_state' => array(
         'table' => 'registration_state',
-        'columns' => array('state' => 'registration_state_id'),
+        'columns' => array('state' => 'name'),
       ),
     ),
     'unique keys' => array(
@@ -414,4 +416,33 @@ function registration_uninstall() {
   db_delete('registration_state')
     ->condition('name', $default_states, 'IN')
     ->execute();
+}
+
+/**
+ * Change registration_state.state field from int to varchar to use machine names for states
+ */
+function registration_update_7100(&$sandbox) {
+  module_load_include('module', 'registration');
+
+  db_drop_index('registration', 'registration_state');
+  db_change_field('registration', 'state', 'state',
+    array(
+      'description' => 'The {registration_state}.name of this registration.',
+      'type' => 'varchar',
+      'length' => 32,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+  db_add_index('registration', 'registration_state', array('state'));
+
+  $states = registration_get_states();
+
+  // Iterate through each defined state and update registrations with that state with the machine name of the state
+  foreach ($states as $state) {
+    $num_updated = db_update('registration')
+      ->fields(array('state' => $state->name))
+      ->condition('state', $state->registration_state_id)
+      ->execute();
+  }
+
 }

@@ -137,7 +137,6 @@ class Registration extends Entity {
     $user_uid = NULL,
     $count,
     $author_uid,
-    $state, // State ID
     $created,
     $updated;
 
@@ -249,10 +248,10 @@ class Registration extends Entity {
     // set a default state if not provided
     $wrapper = entity_metadata_wrapper('registration', $this);
     $state = $wrapper->state->value();
-    if (!$state || $this->state == -1) {
+    if (!$state) {
       $default_state = registration_get_default_state();
       if ($default_state) {
-        $this->state = $default_state->internalIdentifier();
+        $this->state = $default_state->name;
       }
     }
     $this->updated = REQUEST_TIME;
@@ -413,8 +412,8 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'label' => t("State entity"),
       'type' => 'registration_state',
       'schema field' => 'state',
+      'options list' => 'registration_get_states_options',
       'description' => t("The state of the registration."),
-      'getter callback' => 'registration_property_state_get',
       'setter callback' => 'entity_property_verbatim_set',
     );
     return $info;
@@ -450,17 +449,6 @@ function registration_property_author_get(Registration $registration, array $opt
 function registration_property_user_get(Registration $registration, array $options, $property_name, $entity_type) {
   if (is_numeric($registration->user_uid)) {
     return entity_load_single('user', $registration->user_uid);
-  }
-}
-
-/**
- * Callback to get $registration->state.
- *
- * @see registration_entity_property_info().
- */
-function registration_property_state_get(Registration $registration, array $options, $property_name, $entity_type) {
-  if (is_numeric($registration->state)) {
-    return entity_load_single('registration_state', $registration->state);
   }
 }
 

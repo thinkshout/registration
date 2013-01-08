@@ -99,23 +99,15 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#element_validate' => array('element_validate_integer_positive')
   );
 
-  $options = array();
-  $default_state = -1;
-  $states = registration_states(array('show_on_form' => TRUE));
-  // we use "$this_state" variable name because $state is conflicting with variable set above.
-  foreach ($states as $this_state) {
-    $options[$this_state->registration_state_id] = t('@state', array('@state' => $this_state->label));
-    if ($this_state->default_state) {
-      $default_state = $this_state->registration_state_id;
-    }
-  }
-  
+  $default_state = registration_get_default_state();
+  $states = registration_get_states_options(array('show_on_form' => TRUE));
+
   $form['state'] = array(
     '#type' => 'select',
     '#title' => t('State'),
     '#description' => t('State of this registration'),
-    '#default_value' => ($state ? $state->internalIdentifier() : $default_state),
-    '#options' => $options,
+    '#default_value' => ($state ? $state->name : $default_state->name),
+    '#options' => $states,
     '#access' => !empty($states) && user_access('edit ' . $registration->type . ' registration state')
   );
 

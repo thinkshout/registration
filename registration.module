@@ -1277,7 +1277,7 @@ function registration_get_active_states() {
   $active = array();
   $states = registration_states(array('active' => TRUE));
   foreach ($states as $state) {
-    $active[] = $state->name;
+    $active[] = $state->identifier();
   }
   return $active;
 }
@@ -1316,7 +1316,7 @@ function registration_get_states_options($conditions = array()) {
   $states = registration_states($conditions);
 
   foreach ($states as $state) {
-    $options[$state->name] = t('@state', array('@state' => entity_label('registration_state', $state)));
+    $options[$state->identifier()] = t('@state', array('@state' => entity_label('registration_state', $state)));
   }
 
   return $options;

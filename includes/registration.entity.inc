@@ -251,7 +251,7 @@ class Registration extends Entity {
     if (!$state) {
       $default_state = registration_get_default_state();
       if ($default_state) {
-        $this->state = $default_state->name;
+        $this->state = $default_state->identifier();
       }
     }
     $this->updated = REQUEST_TIME;

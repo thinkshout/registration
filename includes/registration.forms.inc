@@ -106,7 +106,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#type' => 'select',
     '#title' => t('State'),
     '#description' => t('State of this registration'),
-    '#default_value' => ($state ? $state->name : $default_state->name),
+    '#default_value' => ($state ? $state->identifier() : $default_state->identifier()),
     '#options' => $states,
     '#access' => !empty($states) && user_access('edit ' . $registration->type . ' registration state')
   );
@@ -682,7 +682,7 @@ function registration_state_form($form, &$form_state, $registration_state, $op =
   // Machine-readable type name.
   $form['name'] = array(
     '#type' => 'machine_name',
-    '#default_value' => $registration_state->name,
+    '#default_value' => $registration_state->identifier(),
     '#maxlength' => 32,
     //'#disabled' => $registration_state->locked && $op != 'clone',
     '#machine_name' => array(
@@ -808,11 +808,11 @@ function registration_state_overview_form($form, &$form_state) {
       );
       $form['state'][$sid]['delete'] = array(
         '#type' => 'item',
-        '#markup' => l(t('delete'), 'admin/structure/registration/registration_states/manage/' . $state->name . '/delete', array('query' => drupal_get_destination())),
+        '#markup' => l(t('delete'), 'admin/structure/registration/registration_states/manage/' . $state->identifier() . '/delete', array('query' => drupal_get_destination())),
       );
       $form['state'][$sid]['export'] = array(
         '#type' => 'item',
-        '#markup' => l(t('export'), 'admin/structure/registration/registration_states/manage/' . $state->name . '/export'),
+        '#markup' => l(t('export'), 'admin/structure/registration/registration_states/manage/' . $state->identifier() . '/export'),
       );
     }
   }

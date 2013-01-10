@@ -440,7 +440,7 @@ function registration_update_7100(&$sandbox) {
   // Iterate through each defined state and update registrations with that state with the machine name of the state
   foreach ($states as $state) {
     $num_updated = db_update('registration')
-      ->fields(array('state' => $state->name))
+      ->fields(array('state' => $state->identifier()))
       ->condition('state', $state->registration_state_id)
       ->execute();
   }

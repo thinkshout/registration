@@ -1313,6 +1313,11 @@ function registration_get_states($name = NULL) {
 function registration_get_states_options($conditions = array()) {
   $options = array();
 
+  // Rules likes to pass an object as the first param in an option list callback. Get rid of it.
+  if (!is_array($conditions)) {
+    $conditions = array();
+  }
+
   $states = registration_states($conditions);
 
   foreach ($states as $state) {

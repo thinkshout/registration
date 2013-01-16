@@ -125,13 +125,14 @@ function registration_waitlist_is_active($entity_type, $entity_id, &$errors = ar
     $reserved = isset($settings['settings']['registration_waitlist_reserved']) ? $settings['settings']['registration_waitlist_reserved'] : 0;    
     $count = registration_event_count($entity_type, $entity_id);
     
-    if (($capacity - $count - $reserved) < 0) {
+    if (($capacity - $count - $reserved) < 1) {
       $active = TRUE;
     }
 
     // Check wait list capacity against number of registrations on the wait list
     $waitlist_capacity = isset($settings['settings']['registration_waitlist_capacity']) ? $settings['settings']['registration_waitlist_capacity'] : 0;
 
+    // We only need to check how many people are on the waitlist if there is a capacity other than 0 set
     if ($active && $waitlist_capacity) {
       $waitlist_state = registration_get_states(REGISTRATION_WAITLIST_STATE);
       // get count of registrations with the waitlist state

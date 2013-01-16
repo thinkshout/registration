@@ -437,7 +437,8 @@ function registration_property_host_get(Registration $registration, array $optio
  */
 function registration_property_author_get(Registration $registration, array $options, $property_name, $entity_type) {
   if (is_numeric($registration->author_uid)) {
-    return entity_load_single('user', $registration->author_uid);
+    $entity = entity_load_single('user', $registration->author_uid);
+    return entity_metadata_wrapper('user', $entity);
   }
 }
 
@@ -448,7 +449,8 @@ function registration_property_author_get(Registration $registration, array $opt
  */
 function registration_property_user_get(Registration $registration, array $options, $property_name, $entity_type) {
   if (is_numeric($registration->user_uid)) {
-    return entity_load_single('user', $registration->user_uid);
+    $entity = entity_load_single('user', $registration->user_uid);
+    return entity_metadata_wrapper('user', $entity);
   }
 }
 

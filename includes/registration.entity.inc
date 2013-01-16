@@ -132,18 +132,12 @@ class Registration extends Entity {
     $registration_id,
     $entity_id,
     $entity_type,
-    $mail,
     $anon_mail = NULL,
     $user_uid = NULL,
     $count,
     $author_uid,
     $created,
     $updated;
-
-  public function __construct(array $values = array(), $entityType = NULL) {
-    parent::__construct($values, $entityType);
-    $this->mail = $this->mail();
-  }
 
   /**
    * Specifies the default label, which is picked up by label() by default.
@@ -185,7 +179,7 @@ class Registration extends Entity {
     // Mail
     $build['mail'] = array(
       '#prefix' => '<div class="field registration-mail"><div class="field-label">' . t('Email Address') . '</div>',
-      '#markup' => $this->mail,
+      '#markup' => $wrapper->mail->value(),
       '#suffix' => '</div>',
     );
 
@@ -266,17 +260,6 @@ class Registration extends Entity {
    */
   protected function defaultUri() {
     return array('path' => 'registration/' . $this->internalIdentifier());
-  }
-
-  /**
-   * Return email address to use with this registration.
-   *
-   * @return string
-   */
-  protected function mail() {
-    $wrapper = entity_metadata_wrapper('registration', $this);
-    $user = $wrapper->user->value();
-    return ($user) ? $user->mail : $this->anon_mail;
   }
 
   /**
@@ -371,6 +354,25 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'setter callback' => 'entity_property_verbatim_set',
     );
 
+    $properties['anon_mail'] = array(
+      'label' => t('Anonymous e-mail'),
+      'type' => 'text',
+      'schema field' => 'anon_mail',
+      'description' => t('An e-mail address associated with the registration of an anonymous user.'),
+      'getter callback' => 'registration_get_properties',
+      'setter callback' => 'registration_property_email_set',
+    );
+
+    // Provides a single calculated property that contains either the associated user's email address or the
+    // anonymous email used if no user is associated with the registration
+    $properties['mail'] = array(
+      'label' => t('Registrant e-mail'),
+      'type' => 'text',
+      'description' => t('Either the user email address, if registration is for a user, or the anonymous user email property.'),
+      'getter callback' => 'registration_get_properties',
+      'computed' => TRUE,
+    );
+
     // Entities
     $properties['entity'] = array(
       'label' => t("Host entity"),
@@ -397,15 +399,6 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'description' => t("The entity for which the registration belongs to. Usually a user."),
       'getter callback' => 'registration_property_user_get',
       'setter callback' => 'registration_property_user_set',
-    );
-
-    $properties['anon_mail'] = array(
-      'label' => t('Anonymous e-mail'),
-      'type' => 'text',
-      'schema field' => 'anon_mail',
-      'description' => t('An e-mail address associated with the registration of an anonymous user.'),
-      'getter callback' => 'registration_get_properties',
-      'setter callback' => 'registration_property_email_set',
     );
 
     $properties['state'] = array(
@@ -495,6 +488,11 @@ function registration_get_properties($entity, array $options, $name, $type) {
       break;
     case 'entity':
       return entity_metadata_wrapper($entity->entity_type, $entity->entity);
+      break;
+    case 'mail':
+      // If a user is set, use their email
+      $user =  entity_metadata_wrapper('registration', $entity)->user;
+      return ($user->value()) ? $user->mail->value() : $entity->anon_mail;
       break;
   }
 }

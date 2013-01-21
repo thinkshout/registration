@@ -4,3 +4,5 @@ package = Registration
 core = 7.x
 
 dependencies[] = registration
+
+files[] = registration_waitlist.test

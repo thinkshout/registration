@@ -347,7 +347,8 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       'view own ' . $this->registration_type_name . ' registration',
       'update own ' . $this->registration_type_name . ' registration',
       'delete own ' . $this->registration_type_name . ' registration',
-      'create ' . $this->registration_type_name . ' registration other users'
+      'create ' . $this->registration_type_name . ' registration other users',
+      'create ' . $this->registration_type_name . ' registration other anonymous'
     );
 
     $this->checkPermissions($permissions, TRUE);
@@ -434,9 +435,6 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
 
     $this->drupalGet('registration/' . $registration_b->registration_id);
     $this->assertResponse(200, t('User with permission can view registration'), 'Registration');
-
-    $this->assertTrue(registration_event_count($this->host_entity_type, $this->host_entity_id, TRUE) == 2, t('Get slots filled for a host entity.'), 'Registration');
-    $this->assertFalse(registration_has_room($this->host_entity_type, $this->host_entity_id, TRUE), t('No slots available'), 'Registration');
 
     // Test registered users
     $this->resetRegistration();

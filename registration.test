@@ -321,7 +321,11 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
 
   function testRegistrationCreateAccess() {
     // With permissions
-    $permissions = array('create ' . $this->registration_type_name . ' registration');
+    $permissions = array(
+      'create ' . $this->registration_type_name . ' registration',
+      'create ' . $this->registration_type_name . ' registration other users',
+      'create ' . $this->registration_type_name . ' registration other anonymous'
+    );
     $this->checkPermissions($permissions, TRUE); // Reset permission cache
     $user = $this->drupalCreateUser($permissions);
 

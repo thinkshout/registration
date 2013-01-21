@@ -183,7 +183,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     );
 
     $this->setHostEntitySettings($settings);
-    $db_settings = registration_entity_settings($this->host_entity_type, $this->host_entity_id);
+    $db_settings = registration_entity_settings($this->host_entity_type, $this->host_entity_id, TRUE);
     $this->assertTrue($settings['settings']['random_string'] === $db_settings['settings']['random_string'], t('Saving host entity registration settings.'), 'Registration');
   }
 
@@ -361,7 +361,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalGet($this->host_entity_path . '/register');
     $this->assertResponse(200, t('Register page loaded.'), 'Registration');
     $registration_form = array(
-      'who_is_registering' => 'registration_registrant_type_me',
+      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_ME,
     );
     $this->drupalPost($this->host_entity_path . '/register', $registration_form, t('Save Registration'));
     $this->assertText(t('Thank you, your registration has been saved.'), t('Registration saved.'), 'Registration');
@@ -431,8 +431,8 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalGet('registration/' . $registration_b->registration_id);
     $this->assertResponse(200, t('User with permission can view registration'), 'Registration');
 
-    $this->assertTrue(registration_event_count($this->host_entity_type, $this->host_entity_id) == 2, t('Get slots filled for a host entity.'), 'Registration');
-    $this->assertFalse(registration_has_room($this->host_entity_type, $this->host_entity_id), t('No slots available'), 'Registration');
+    $this->assertTrue(registration_event_count($this->host_entity_type, $this->host_entity_id, TRUE) == 2, t('Get slots filled for a host entity.'), 'Registration');
+    $this->assertFalse(registration_has_room($this->host_entity_type, $this->host_entity_id, TRUE), t('No slots available'), 'Registration');
 
     // Test registered users
     $this->resetRegistration();

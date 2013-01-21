@@ -584,11 +584,11 @@ function registration_entity_settings_page($entity_type, $entity) {
  *
  * @see registration_status()
  */
-function registration_has_room($entity_type, $entity_id, $slots = 1, $registration_id = NULL) {
-  $settings = registration_entity_settings($entity_type, $entity_id);
+function registration_has_room($entity_type, $entity_id, $slots = 1, $registration_id = NULL, $reset = FALSE) {
+  $settings = registration_entity_settings($entity_type, $entity_id, $reset);
   $capacity = $settings['capacity'];
   if ($capacity) {
-    $count = registration_event_count($entity_type, $entity_id, $registration_id) + $slots;
+    $count = registration_event_count($entity_type, $entity_id, $registration_id, $reset) + $slots;
     if (($capacity - $count) < 0) {
       return FALSE;
     }
@@ -612,9 +612,9 @@ function registration_has_room($entity_type, $entity_id, $slots = 1, $registrati
  *
  * @see registration_has_room()
  */
-function registration_event_count($entity_type, $entity_id, $registration_id = NULL) {
+function registration_event_count($entity_type, $entity_id, $registration_id = NULL, $reset = FALSE) {
   $count = &drupal_static(__FUNCTION__ . '_' . $entity_type . '_' . $entity_id . '_' . $registration_id, FALSE);
-  if (!$count) {
+  if (!$count || $reset) {
     $query = db_select('registration', 'r');
     $query->addExpression('sum(count)', 'count');
     $query->condition('entity_id', $entity_id);
@@ -723,10 +723,10 @@ function registration_entity_delete($entity, $entity_type) {
  * @return array|bool
  *   A row from {registration_entity}, or FALSE if no settings exist.
  */
-function registration_entity_settings($entity_type, $entity_id) {
+function registration_entity_settings($entity_type, $entity_id, $reset = FALSE) {
   $result = &drupal_static(__FUNCTION__ . $entity_type . $entity_id);
 
-  if (!$result) {
+  if (!$result || $reset) {
     $result = db_select('registration_entity', 're')
       ->fields('re')
       ->condition('entity_id', $entity_id, '=')
@@ -958,7 +958,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
     return $checked[$entity_type][$entity_id]['status'];
   }
 
-  $settings = registration_entity_settings($entity_type, $entity_id);
+  $settings = registration_entity_settings($entity_type, $entity_id, $reset);
   $status = $settings['status'];
   $open = isset($settings['open']) ? strtotime($settings['open']) : NULL;
   $close = isset($settings['close']) ? strtotime($settings['close']) : NULL;
@@ -967,7 +967,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
   // only explore other settings if main status is enabled
   if ($status) {
     // check capacity
-    if (!registration_has_room($entity_type, $entity_id, $slots, $registration_id)) {
+    if (!registration_has_room($entity_type, $entity_id, $slots, $registration_id, $reset)) {
       $status = FALSE;
       $errors[] = t('insufficient slots remaining');
     }

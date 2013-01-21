@@ -606,7 +606,7 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
 
   // First grant access to the entity for the specified operation if no other
   // module denies it and at least one other module says to grant access.
-  $access_results = module_invoke_all('registration_access', $op, $registration, $account, $entity_type);
+  $access_results = module_invoke_all('registration_access', $op, $entity_type, $registration, $account);
   if (in_array(FALSE, $access_results, TRUE)) {
     return FALSE;
   }

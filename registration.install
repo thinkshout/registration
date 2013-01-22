@@ -151,6 +151,8 @@ function registration_schema() {
         'description' => 'Date to send the reminder on.',
         'mysql_type' => 'datetime',
         'pgsql_type' => 'timestamp',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
         'not null' => FALSE,
       ),
       'reminder_template' => array(
@@ -163,12 +165,16 @@ function registration_schema() {
         'description' => 'Date to open registrations. Or NULL to open immediately.',
         'mysql_type' => 'datetime',
         'pgsql_type' => 'timestamp',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
         'not null' => FALSE,
       ),
       'close' => array(
         'description' => 'Date to close registrations. Or NULL to never close automatically.',
         'mysql_type' => 'datetime',
         'pgsql_type' => 'timestamp',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
         'not null' => FALSE,
       ),
       'settings' => array(

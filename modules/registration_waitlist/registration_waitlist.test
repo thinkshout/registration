@@ -35,7 +35,7 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
       'capacity' => 10,
       'settings' => array(
         'registration_waitlist_enable' => 1,
-        'registration_waitlist_capacity' => 8,
+        'registration_waitlist_capacity' => 4,
         'registration_waitlist_reserved' => 4,
       ),
     ));
@@ -43,7 +43,7 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
 
     // fill capacity
     $registrations = array();
-    for ($i = 0; $i < 6; $i++) {
+    for ($i = 0; $i < 4; $i++) {
       $registrations[$i] = $this->createRegistration(array('count' => 2));
     }
     $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is opened, filled with registrations.'), 'Registration');
@@ -58,7 +58,7 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
     // Enable waitlist, wl capacity = unlimited, no spaces reserved from waitlist
     $this->setHostEntitySettings(array(
       'status' => 1,
-      'capacity' => 10,
+      'capacity' => 6,
       'settings' => array(
         'registration_waitlist_enable' => 1,
         'registration_waitlist_capacity' => 4,

@@ -1089,7 +1089,7 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
 }
 
 /**
- * Determine is a person is registered for a host.
+ * Determine is a person has an active registration for a host entity.
  *
  * A person may be Drupal user account, identified by user uid ($uid).
  * Or a non-user, identified by an email address ($anon_mail).
@@ -1102,22 +1102,29 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
  *   (optional) An email address.
  * @param int $uid
  *   (optional) A user account uid.
+ * @param array $states
+ *   (optional) An array of states to test against. Defaults to active states.
  *
  * @return bool
  */
-function registration_is_registered(Registration $registration, $anon_mail = NULL, $uid = NULL) {
+function registration_is_registered(Registration $registration, $anon_mail = NULL, $uid = NULL, $states = array()) {
   // must provide an UID or anon_mail
   // @todo: better course of action here?
   if (!$anon_mail && !$uid) {
     return FALSE;
   }
 
+  if (empty($states)) {
+    $states = registration_get_active_states();
+  }
+
   $query = db_select('registration', 'r')
     ->condition('entity_id', $registration->entity_id)
-    ->condition('entity_type', $registration->entity_type);
+    ->condition('entity_type', $registration->entity_type)
+    ->condition('state', $states, 'IN');
 
   if ($anon_mail) {
-    // there's a user with this email, check to make sure they're not registered
+    // There's a user with this email, check to make sure they're not registered.
     if ($user = user_load_by_mail($anon_mail)) {
       $query->condition(db_or()->condition('anon_mail', $anon_mail)
         ->condition('user_uid', $user->uid));
@@ -1130,7 +1137,7 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
     $query->condition('user_uid', $uid);
   }
 
-  // exclude existing registration
+  // Exclude existing registration.
   if (isset($registration->registration_id)) {
     $query->condition('registration_id', $registration->registration_id, '<>');
   }

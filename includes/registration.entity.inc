@@ -269,22 +269,25 @@ class Registration extends Entity {
    * @param $account
    *   A Drupal user
    *
-   * @return string
-   *   Can be me, user, or anon.
+   * @return mixed string|NULL
+   *   Can be me, user, anon or NULL if account is empty and no anon email set.
    */
   public function registrant_type($account) {
+    $reg_type = NULL;
     if (!empty($account)) {
       if ($account->uid && $account->uid === $this->user_uid) {
-        return REGISTRATION_REGISTRANT_TYPE_ME;
+        $reg_type = REGISTRATION_REGISTRANT_TYPE_ME;
       }
       elseif ($this->user_uid) {
-        return REGISTRATION_REGISTRANT_TYPE_USER;
+        $reg_type = REGISTRATION_REGISTRANT_TYPE_USER;
       }
     }
     if (!empty($this->anon_mail)) {
-      return REGISTRATION_REGISTRANT_TYPE_ANON;
+      $reg_type = REGISTRATION_REGISTRANT_TYPE_ANON;
     }
+    return $reg_type;
   }
+
 }
 
 /**

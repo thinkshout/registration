@@ -972,12 +972,12 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
       $errors[] = t('insufficient slots remaining');
     }
     // check open date range
-    elseif (isset($open) && ($now < $open)) {
+    if (isset($open) && ($now < $open)) {
       $status = FALSE;
       $errors[] = t('registration is not yet open');
     }
     // check close date range
-    elseif (isset($close) && ($now >= $close)) {
+    if (isset($close) && ($now >= $close)) {
       $status = FALSE;
       $errors[] = t('registration is closed');
     }

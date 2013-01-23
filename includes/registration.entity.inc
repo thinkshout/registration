@@ -136,6 +136,7 @@ class Registration extends Entity {
     $user_uid = NULL,
     $count,
     $author_uid,
+    $state,
     $created,
     $updated;
 

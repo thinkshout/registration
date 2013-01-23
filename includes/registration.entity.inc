@@ -279,9 +279,9 @@ class Registration extends Entity {
       elseif ($this->user_uid) {
         return REGISTRATION_REGISTRANT_TYPE_USER;
       }
-      elseif (!empty($this->anon_mail)) {
-        return REGISTRATION_REGISTRANT_TYPE_ANON;
-      }
+    }
+    if (!empty($this->anon_mail)) {
+      return REGISTRATION_REGISTRANT_TYPE_ANON;
     }
   }
 }

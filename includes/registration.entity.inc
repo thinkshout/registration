@@ -249,8 +249,12 @@ class Registration extends Entity {
         $this->state = $default_state->identifier();
       }
     }
-    $this->updated = REQUEST_TIME;
-    if (!$this->registration_id) {
+
+    if (empty($this->updated)) {
+      $this->updated = REQUEST_TIME;
+    }
+
+    if (!$this->registration_id && empty($this->created)) {
       $this->created = REQUEST_TIME;
     }
     return parent::save();

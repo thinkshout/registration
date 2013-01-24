@@ -591,6 +591,12 @@ function registration_save(Registration $registration) {
  */
 function registration_access($op, $registration = NULL, $account = NULL, $entity_type) {
   $account = isset($account) ? $account : $GLOBALS['user'];
+  $type = $registration->type;
+
+  // bypass further access checks if user can administer registration
+  if (user_access('administer registration', $account) || user_access("administer $type registration", $account)) {
+    return TRUE;
+  }
 
   // Check environment for Registration.
   switch ($op) {
@@ -605,11 +611,6 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
         return FALSE;
       }
       break;
-  }
-
-  // bypass further access checks if user can administer registration
-  if (user_access('administer registration', $account)) {
-    return TRUE;
   }
 
   // First grant access to the entity for the specified operation if no other
@@ -627,7 +628,6 @@ function registration_access($op, $registration = NULL, $account = NULL, $entity
   $account_own = ($author && ($author->uid == $account->uid));
 
   // Fall back to assigned permissions
-  $type = $registration->type;
   switch ($op) {
     case 'view':
       return ($account_own && user_access("view own $type registration", $account)) || user_access("view $type registration", $account);

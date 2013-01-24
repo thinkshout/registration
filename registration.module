@@ -432,15 +432,12 @@ function registration_registrations_page($entity_type, $entity) {
     ),
     array(
       'data' => t('Email'),
-      'field' => 'mail',
-      'type' => 'property',
-      'specifier' => 'mail'
     ),
     array(
       'data' => t('User'),
       'field' => 'user_uid',
       'type' => 'property',
-      'specifier' => 'user'
+      'specifier' => 'user_uid'
     ),
     array(
       'data' => t('Created By'),

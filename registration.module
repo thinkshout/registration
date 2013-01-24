@@ -979,6 +979,9 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
       $errors[] = t('registration is closed');
     }
   }
+  else {
+    $errors[] = t('registration is disabled');
+  }
 
   // allow other mods to override status
   $context = array(

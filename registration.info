@@ -6,5 +6,11 @@ core = 7.x
 dependencies[] = entity
 
 files[] = registration.test
-files[] = includes/registration.entity.inc
+files[] = lib/registration.entity.inc
+files[] = lib/registration.metadata.inc
+files[] = lib/registration_state.controller.inc
+files[] = lib/registration_state.entity.inc
+files[] = lib/registration_state.ui_controller.inc
+files[] = lib/registration_type.entity.inc
+files[] = lib/registration_type.ui_controller.inc
 

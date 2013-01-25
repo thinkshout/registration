@@ -149,16 +149,66 @@ function registration_field_formatter_info() {
     'registration_default' => array(
       'label' => t('Default'),
       'field types' => array('registration'),
+      'settings' => array(
+        'label' => ' ',
+      ),
     ),
     'registration_link' => array(
       'label' => t('Registration Link'),
       'field types' => array('registration'),
+      'settings' => array(
+        'label' => ' ',
+      ),
     ),
     'registration_form' => array(
       'label' => t('Registration Form'),
       'field types' => array('registration'),
     ),
   );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function registration_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $element = array();
+
+  if ($display['type'] == 'registration_default' || $display['type'] == 'registration_link') {
+    $element['label'] = array(
+      '#title' => t('Label'),
+      '#type' => 'textfield',
+      '#size' => 20,
+      '#default_value' => $settings['label'],
+      '#required' => FALSE,
+      '#description' => t("Optional label to use when displaying the registration title or link. Leave blank to use the parent event's label."),
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function registration_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = '';
+
+  if ($display['type'] == 'registration_default' || $display['type'] == 'registration_link') {
+    if (!empty($settings['label'])) {
+      $summary = t('Registration label: @label.', array('@label' => $settings['label']));
+    }
+    else {
+      $summary = t('Registration label: Parent label.');
+    }
+  }
+
+  return $summary;
 }
 
 /**
@@ -170,18 +220,21 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
   // we know we should only have a single item
   if (isset($items[0]['registration_type']) && !empty($items[0]['registration_type'])) {
     $reg_type = registration_type_load($items[0]['registration_type']);
+    $settings = $display['settings'];
+    $label = !empty($settings['label']) ? $settings['label'] : $reg_type->label;
+
     switch ($display['type']) {
       case 'registration_default':
-        $element[0] = array('#markup' => $reg_type->label);
+        $element[0] = array('#markup' => $label);
         break;
       case 'registration_link':
-        // enable registration link if accessible
+        // Enable registration link if accessible.
         if (registration_register_page_access($entity_type, $entity)) {
           $uri = entity_uri($entity_type, $entity);
           $element[0] = array(
             '#markup' => theme('registration_link',
               array(
-                'label' => $reg_type->label,
+                'label' => $label,
                 'path' => $uri['path'] . '/register'
               )
             )

@@ -33,20 +33,6 @@ function registration_waitlist_registration_entity_settings($settings) {
         ),
       ),
     ),
-    'registration_waitlist_reserved' => array(
-      '#type' => 'textfield',
-      '#title' => t('Wait list reserved slots'),
-      '#size' => 5,
-      '#maxsize' => 10,
-      '#required' => TRUE,
-      '#description' => t('The number of active slots to reserve. New registrations will be added to the waitlist when this many slots remain.'),
-      '#default_value' => isset($settings['settings']['registration_waitlist_reserved']) ? $settings['settings']['registration_waitlist_reserved'] : 0,
-      '#states' => array(
-        'visible' => array(
-          ':input[name="settings[registration_waitlist_enable]"]' => array('checked' => TRUE),
-        ),
-      ),
-    ),
   );
 }
 
@@ -80,20 +66,6 @@ function registration_waitlist_registration_status_alter(&$status, &$context) {
 
   // Not unlimited capacity
   if ($capacity) {
-
-    // Check if there is still capacity (minus any reserved spaces)
-    $reserved = isset($settings['settings']['registration_waitlist_reserved']) ? $settings['settings']['registration_waitlist_reserved'] : 0;
-
-    // Get the count of active registrations for the event. Reset the cache since multiple registrations could be added in a single request?
-    $count = registration_event_count($entity_type, $entity_id, NULL, TRUE);
-
-    if (($capacity - $count - $reserved) < 1) {
-      $status = FALSE;
-      if (!in_array(t('insufficient slots remaining'), $context['errors'])) {
-        $context['errors'][] = t('insufficient slots remaining');
-      }
-    }
-
     // We only want to check if the wait list is active when the only status error relates to capacity
     $capacity_error = FALSE;
     if (count($context['errors']) == 1) {
@@ -151,13 +123,7 @@ function registration_waitlist_is_active($entity_type, $entity_id, &$errors = ar
     && isset($settings['settings']['registration_waitlist_enable'])
     && $settings['settings']['registration_waitlist_enable']) {
 
-    // Check if there is still capacity (minus any reserved spaces)
-    $reserved = isset($settings['settings']['registration_waitlist_reserved']) ? $settings['settings']['registration_waitlist_reserved'] : 0;
-
-    // Get the count of active registrations for the event. Reset the cache since multiple registrations could be added in a single request?
-    $count = registration_event_count($entity_type, $entity_id, NULL, TRUE);
-    
-    if (($capacity - $count - $reserved) < 1) {
+    if (in_array(t('insufficient slots remaining'), $errors)) {
       $active = TRUE;
     }
 

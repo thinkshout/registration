@@ -305,49 +305,6 @@ function registration_permission() {
 }
 
 /**
- * Implements hook_user_cancel().
- */
-function registration_user_cancel($edit, $account, $method) {
-  if (isset($account->uid)) {
-    if ($method == 'user_cancel_reassign') {
-      db_update('registration')
-        ->fields(array(
-        'author_uid' => 0,
-      ))
-        ->condition('author_uid', $account->uid)
-        ->execute();
-
-      db_update('registration')
-        ->fields(array(
-        'user_uid' => NULL,
-      ))
-        ->condition('user_uid', $account->uid)
-        ->execute();
-    }
-  }
-}
-
-/**
- * Implements hook_user_delete().
- */
-function registration_user_delete($account) {
-  if (isset($account->uid)) {
-    db_delete('registration')
-      ->condition('author_uid', $account->uid)
-      ->execute();
-
-    // Users associated with {registration}.user_uid do not own the
-    // registration. Simply disassociate the user with the registration.
-    db_update('registration')
-      ->fields(array(
-      'user_uid' => NULL,
-    ))
-      ->condition('user_uid', $account->uid)
-      ->execute();
-  }
-}
-
-/**
  * Builds permissions for a registration type.
  *
  * @param object $info
@@ -400,6 +357,49 @@ function registration_permission_list($info) {
       'title' => t('%type_name: Edit registration state', array('%type_name' => $label)),
     ),
   );
+}
+
+/**
+ * Implements hook_user_cancel().
+ */
+function registration_user_cancel($edit, $account, $method) {
+  if (isset($account->uid)) {
+    if ($method == 'user_cancel_reassign') {
+      db_update('registration')
+        ->fields(array(
+        'author_uid' => 0,
+      ))
+        ->condition('author_uid', $account->uid)
+        ->execute();
+
+      db_update('registration')
+        ->fields(array(
+        'user_uid' => NULL,
+      ))
+        ->condition('user_uid', $account->uid)
+        ->execute();
+    }
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function registration_user_delete($account) {
+  if (isset($account->uid)) {
+    db_delete('registration')
+      ->condition('author_uid', $account->uid)
+      ->execute();
+
+    // Users associated with {registration}.user_uid do not own the
+    // registration. Simply disassociate the user with the registration.
+    db_update('registration')
+      ->fields(array(
+      'user_uid' => NULL,
+    ))
+      ->condition('user_uid', $account->uid)
+      ->execute();
+  }
 }
 
 /**

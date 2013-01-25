@@ -150,7 +150,7 @@ class Registration extends Entity {
   }
 
   /**
-   * Determine registrant type relative to a given account
+   * Determine registrant type relative to a given account.
    *
    * @param $account
    *   A Drupal user

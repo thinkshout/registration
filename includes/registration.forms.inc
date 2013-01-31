@@ -25,7 +25,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   // default value for who is registering
   $who_default = NULL;
   if (isset($registration->registration_id)) {
-    $who_default = $registration->registrant_type($user);
+    $who_default = $registration->registrant_type($GLOBALS['user']);
   }
   elseif (count($who_options) == 1) {
     $who_default = key($who_options);

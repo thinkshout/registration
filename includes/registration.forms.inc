@@ -153,7 +153,7 @@ function registration_form_validate($form, &$form_state) {
     entity_load_single($registration->entity_type, $registration->entity_id));
 
   // Test status on new registrations.
-  if ($registration->is_new) {
+  if (isset($registration->is_new) && $registration->is_new) {
     $registration_status = registration_status($registration->entity_type, $registration->entity_id, FALSE, $count, $registration->registration_id, $errors);
 
     if (!$registration_status) {

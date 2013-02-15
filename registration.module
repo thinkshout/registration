@@ -739,6 +739,17 @@ function registration_event_count($entity_type, $entity_id, $registration_id = N
     $count = ($count == '') ? 0 : $count;
   }
 
+  // Allow other mods to override count.
+  $settings = registration_entity_settings($entity_type, $entity_id);
+  $context = array(
+    'entity_type' => $entity_type,
+    'entity_id' => $entity_id,
+    'registration_id' => $registration_id,
+    'settings' => $settings,
+  );
+
+  drupal_alter('registration_event_count', $count, $context);
+
   return $count;
 }
 

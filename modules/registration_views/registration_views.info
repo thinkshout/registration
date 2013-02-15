@@ -4,6 +4,7 @@ package = Registration
 core = 7.x
 
 dependencies[] = registration
+dependencies[] = views
 
 ; Views: Registration
 files[] = includes/registration_handler_field_registration_link.inc

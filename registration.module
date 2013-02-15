@@ -62,7 +62,8 @@ function registration_entity_info() {
       'uri callback' => 'entity_class_uri',
       'token type' => 'registration',
       'module' => 'registration',
-      'label callback' => 'entity_class_label'
+      'label callback' => 'entity_class_label',
+      'entity cache' => module_exists('entitycache'),
     ),
     'registration_type' => array(
       'label' => t('Registration type'),
@@ -86,6 +87,7 @@ function registration_entity_info() {
         'file path' => drupal_get_path('module', 'registration') . '/includes',
         'controller class' => 'RegistrationTypeUIController',
       ),
+      'entity cache' => module_exists('entitycache'),
     ),
     'registration_state' => array(
       'label' => t('Registration State'),
@@ -113,15 +115,10 @@ function registration_entity_info() {
       'token type' => 'registration_state',
       'module' => 'registration',
       'access callback' => 'registration_state_access',
-      'exportable' => TRUE
+      'exportable' => TRUE,
+      'entity cache' => module_exists('entitycache'),
     ),
   );
-
-  // Support entity cache module.
-  if (module_exists('entitycache')) {
-    $entities['registration']['field cache'] = FALSE;
-    $entities['registration']['entity cache'] = TRUE;
-  }
 
   return $entities;
 }

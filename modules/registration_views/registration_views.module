@@ -58,14 +58,15 @@ function registration_views_views_data() {
 }
 
 /**
- * Imnplements hook_entity_info_alter().
+ * Implements hook_entity_info_alter().
  */
 function registration_views_entity_info_alter(&$entity_info) {
-  // Set our custom Views controller class
+  // Set our custom Views controller class.
   $entity_info['registration']['views controller class'] = 'RegistrationViewsController';
 }
 
 class RegistrationViewsController extends EntityDefaultViewsController {
+
   public function views_data() {
     $data = parent::views_data();
 
@@ -112,10 +113,11 @@ class RegistrationViewsController extends EntityDefaultViewsController {
 
     return $data;
   }
+
 }
 
 /**
- * Implement hook_views_data_alter().
+ * Implements hook_views_data_alter().
  *
  * Create relationships between registrations, and their related entities.
  * Provide additional fields for entities with registrations.
@@ -128,7 +130,7 @@ function registration_views_views_data_alter(&$data) {
     $entity_type = $instance['entity_type'];
     $info = $entity_info[$entity_type];
 
-    // entity to Registration.
+    // Entity to Registration.
     $data[$info['base table']]['registration_rel'] = array(
       'group' => t('Registration'),
       'title' => t('@entity to Registration',
@@ -146,7 +148,7 @@ function registration_views_views_data_alter(&$data) {
       ),
     );
 
-    // relate entities to registration settings.
+    // Relate entities to registration settings.
     $data[$info['base table']]['registration_settings_rel'] = array(
       'group' => t('Registration Settings'),
       'title' => t('@entity to Registration Settings', array('@entity' => ucfirst($info['label']))),
@@ -161,7 +163,7 @@ function registration_views_views_data_alter(&$data) {
       ),
     );
 
-    // host entity: registration settings link
+    // Host entity: registration settings link.
     $data[$info['base table']]['registration_settings'] = array(
       'real field' => $info['entity keys']['id'],
       'group' => t('Registration Settings'),
@@ -172,7 +174,7 @@ function registration_views_views_data_alter(&$data) {
       ),
     );
 
-    // host entity: registration status
+    // Host entity: registration status.
     $data[$info['base table']]['registration_status'] = array(
       'real field' => $info['entity keys']['id'],
       'group' => t('Registration Settings'),
@@ -183,7 +185,7 @@ function registration_views_views_data_alter(&$data) {
       ),
     );
 
-    // host entity: used slots
+    // Host entity: used slots.
     $data[$info['base table']]['capacity_used'] = array(
       'real field' => $info['entity keys']['id'],
       'group' => t('Registration Settings'),

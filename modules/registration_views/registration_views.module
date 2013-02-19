@@ -103,6 +103,13 @@ class RegistrationViewsController extends EntityDefaultViewsController {
       'label' => t('User'),
     );
 
+    $data['registration']['type']['relationship'] = array(
+      'handler' => 'views_handler_relationship',
+      'base' => 'registration_type',
+      'base field' => 'name',
+      'label' => t('Registration type'),
+    );
+
     return $data;
   }
 }

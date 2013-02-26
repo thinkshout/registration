@@ -532,7 +532,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     $form['reminder']['reminder_settings']['token_tree'] = array(
       '#theme' => 'token_tree',
       '#token_types' => array(
-        'node',
+        $entity_type,
         'registration'
       ),
       '#global_types' => FALSE,

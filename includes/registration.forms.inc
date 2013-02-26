@@ -365,8 +365,8 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
     $form['token_tree'] = array(
       '#theme' => 'token_tree',
       '#token_types' => array(
-        'node',
-        'registration'
+        $entity_type,
+        'registration',
       ),
       '#global_types' => FALSE,
     );

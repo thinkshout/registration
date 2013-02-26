@@ -1193,6 +1193,11 @@ function registration_token_info() {
     'name' => t("Registration Host Entity"),
     'description' => t("The host entity for the registration."),
   );
+  $registration['user'] = array(
+    'name' => t("Registration User"),
+    'description' => t("The user the registration is for."),
+    'type' => 'user',
+  );
 
   return array(
     'types' => array('registration' => $type),
@@ -1207,16 +1212,29 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
   if ($type == 'registration' && !empty($data['registration'])) {
     $registration = $data['registration'];
     $wrapper = entity_metadata_wrapper('registration', $data['registration']);
+    $replacements = array();
 
     if ($entity_tokens = token_find_with_prefix($tokens, 'entity')) {
       $entity = $wrapper->entity->value();
-      return token_generate(
+      $replacements += token_generate(
         $registration->entity_type,
         $entity_tokens,
         array($registration->entity_type => $entity),
         $options
       );
     }
+
+    if ($entity_tokens = token_find_with_prefix($tokens, 'user')) {
+      $entity = $wrapper->user->value();
+      $replacements += token_generate(
+        'user',
+        $entity_tokens,
+        array('user' => $entity),
+        $options
+      );
+    }
+
+    return $replacements;
   }
 }
 

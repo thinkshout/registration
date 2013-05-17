@@ -30,6 +30,7 @@ function registration_field_info() {
             ),
           ),
           'settings' => array(
+            'multiple_slots' => -1,
             'multiple_registrations' => -1,
             'from_address' => variable_get('site_mail', ini_get('sendmail_from')),
           ),

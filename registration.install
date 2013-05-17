@@ -485,3 +485,11 @@ function registration_update_7102(&$sandbox) {
     db_create_table("cache_entity_$type", $schema["cache_entity_$type"]); 
   }
 }
+
+/**
+ * Change multiple_registrations settings name to multiple_slots.
+ */
+function registration_update_7103(&$sandbox) {
+  $sql = "UPDATE registration_entity SET settings = REPLACE(settings, 'multiple_registrations', 'multiple_slots')";
+  db_query($sql);
+}

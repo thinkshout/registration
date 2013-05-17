@@ -1315,7 +1315,9 @@ function registration_access_people(Registration $registration, $account = NULL)
   $people = array();
 
   // Me
-  if ($account->uid && ($account->uid === $registration->user_uid || !registration_is_registered($registration, NULL, $account->uid))) {
+  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+  $allow_multiple = !empty($settings['settings']['multiple_slots']) && $settings['settings']['multiple_slots'];
+  if ($account->uid && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }
 

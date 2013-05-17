@@ -95,7 +95,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#description' => $description,
     '#default_value' => isset($registration->count) ? $registration->count : 1,
     '#size' => drupal_strlen($remaining),
-    '#access' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : FALSE,
+    '#access' => isset($settings['settings']['multiple_slots']) ? $settings['settings']['multiple_slots'] : FALSE,
     '#element_validate' => array('element_validate_integer_positive')
   );
 
@@ -171,27 +171,30 @@ function registration_form_validate($form, &$form_state) {
     }
   }
 
+  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+  $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
+
   // Validate according to who's registering.
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
       if (!valid_email_address($form_state['values']['anon_mail'])) {
         form_set_error('anon_mail', t('The email address is invalid.'));
       }
-      if (registration_is_registered($registration, $form_state['values']['anon_mail'])) {
+      if (!$allow_multiple && registration_is_registered($registration, $form_state['values']['anon_mail'])) {
         form_set_error('anon_mail', t('%mail is already registered for this event.',
           array('%mail' => $form_state['values']['anon_mail'])));
       }
       break;
     case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
-      if (registration_is_registered($registration, NULL, $user->uid)) {
+      if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
         form_set_error('user', t('You are already registered for this event.'));
       }
       break;
     case REGISTRATION_REGISTRANT_TYPE_USER:
       $user = user_load_by_name($form_state['values']['user']);
       if ($user) {
-        if (registration_is_registered($registration, NULL, $user->uid)) {
+        if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
           form_set_error('user', t('%user is already registered for this event.', array('%user' => $user->name)));
         }
       }
@@ -547,10 +550,17 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#tree' => TRUE
   );
 
+  $form['settings']['multiple_slots'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Register for multiple slots'),
+    '#description' => t('If selected, users can register for more than one slot for this event in a single registration.'),
+    '#default_value' => isset($settings['settings']['multiple_slots']) ? $settings['settings']['multiple_slots'] : -1,
+  );
+
   $form['settings']['multiple_registrations'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow multiple registrations'),
-    '#description' => t('If selected, users can register for more than one slot for this event.'),
+    '#description' => t('If selected, each person can create multiple registrations for this event.'),
     '#default_value' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : -1,
   );
 

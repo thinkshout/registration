@@ -1499,6 +1499,15 @@ function registration_property_host_get(Registration $registration, array $optio
 }
 
 /**
+ * Callback to set $registration->host.
+ * @see registration_entity_property_info().
+ */
+function registration_property_host_set(Registration $registration, $name, $value, $lang, $type, $info) {
+  $registration->entity_type = $value->type();
+  $registration->entity_id = $value->getIdentifier();
+}
+
+/**
  * Callback to get $registration->author.
  *
  * @see registration_entity_property_info().

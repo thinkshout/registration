@@ -1010,8 +1010,8 @@ function registration_update_entity_settings($host_entity_type, $host_entity_id,
   // insert or update registration entity settings
   db_merge('registration_entity')
     ->key(array(
-    'host_entity_id' => $host_entity_id,
-    'host_entity_type' => $host_entity_type
+    'entity_id' => $host_entity_id,
+    'entity_type' => $host_entity_type
   ))
     ->fields($settings)
     ->execute();
@@ -1044,8 +1044,8 @@ function registration_cron() {
     // set reminder flag to off
     db_update('registration_entity')
       ->fields(array('send_reminder' => 0))
-      ->condition('host_entity_id', $result->entity_id)
-      ->condition('host_entity_type', $result->entity_type)
+      ->condition('entity_id', $result->entity_id)
+      ->condition('entity_type', $result->entity_type)
       ->execute();
   }
 }

@@ -12,6 +12,8 @@ class Registration extends Entity {
 
   public
     $registration_id,
+    $host_entity_id,
+    $host_entity_type,
     $entity_id,
     $entity_type,
     $anon_mail = NULL,
@@ -27,10 +29,10 @@ class Registration extends Entity {
    */
   protected function defaultLabel() {
     $wrapper = entity_metadata_wrapper('registration', $this);
-    $host = $wrapper->entity->value();
+    $host = $wrapper->host_entity->value();
     if ($host) {
       return t('Registration for !title', array(
-          '!title' => entity_label($this->entity_type, $host)
+          '!title' => entity_label($this->host_entity_type, $host)
         )
       );
     }
@@ -46,16 +48,16 @@ class Registration extends Entity {
     $build = parent::buildContent($view_mode, $langcode);
     $wrapper = entity_metadata_wrapper('registration', $this);
 
-    $host_entity_type_info = entity_get_info($this->entity_type);
-    $host_entity = $wrapper->entity->value();
+    $host_entity_type_info = entity_get_info($this->host_entity_type);
+    $host_entity = $wrapper->host_entity->value();
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
     $user = $wrapper->user->value();
-    list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
+    list(, , $host_entity_bundle) = entity_extract_ids($this->host_entity_type, $host_entity);
 
-    $host_label = entity_label($this->entity_type, $host_entity);
+    $host_label = entity_label($this->host_entity_type, $host_entity);
 
-    $host_uri = $host_entity ? entity_uri($this->entity_type, $host_entity) : NULL;
+    $host_uri = $host_entity ? entity_uri($this->host_entity_type, $host_entity) : NULL;
     $author_uri = $author ? entity_uri('user', $author) : NULL;
     $account_uri = $user ? entity_uri('user', $user) : NULL;
 

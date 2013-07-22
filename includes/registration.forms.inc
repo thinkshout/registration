@@ -328,8 +328,8 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
   // we'll need this info when we submit the form
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   $form_state['entity'] = array(
-    'entity_id' => $entity_id,
-    'entity_type' => $entity_type
+    'host_entity_id' => $entity_id,
+    'host_entity_type' => $entity_type
   );
 
   $form['subject'] = array(
@@ -420,19 +420,19 @@ function registration_registrations_broadcast_form_submit($form, &$form_state) {
  *
  * @param array $form
  * @param array $form_state
- * @param object $entity_type
- * @param object $entity
+ * @param object $host_entity_type
+ * @param object $host_entity
  *
  * @return array $form
  *
  * @see hook_registration_entity_settings().
  */
-function registration_entity_settings_form($form, &$form_state, $settings, $entity_type = NULL, $entity_id = NULL) {
-  if ($entity_id) {
+function registration_entity_settings_form($form, &$form_state, $settings, $host_entity_type = NULL, $host_entity_id = NULL) {
+  if ($host_entity_id) {
     // we'll need this info when we submit the form
-    $form_state['entity'] = array(
-      'entity_id' => $entity_id,
-      'entity_type' => $entity_type
+    $form_state['host_entity'] = array(
+      'host_entity_id' => $host_entity_id,
+      'host_entity_type' => $host_entity_type
     );
   }
   // Check to see if date_popup is installed so we can provide a friendlier UI.
@@ -662,13 +662,13 @@ function registration_entity_settings_form_validate($form, &$form_state) {
  * @param array $form_state
  */
 function registration_entity_settings_form_submit($form, &$form_state) {
-  $entity = $form_state['entity'];
+  $host_entity = $form_state['host_entity'];
 
   $fields = registration_convert_form_settings($form_state['values']);
 
-  registration_update_entity_settings($entity['entity_type'], $entity['entity_id'], $fields);
+  registration_update_entity_settings($host_entity['host_entity_type'], $host_entity['host_entity_id'], $fields);
 
-  $uri = entity_uri($entity['entity_type'], entity_load_single($entity['entity_type'], $entity['entity_id']));
+  $uri = entity_uri($host_entity['host_entity_type'], entity_load_single($host_entity['host_entity_type'], $host_entity['host_entity_id']));
 
   $form_state['redirect'] = $uri['path'];
 }

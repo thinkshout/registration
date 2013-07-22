@@ -126,14 +126,14 @@ function registration_entity_info() {
 /**
  * Implements hook_entity_info_alter().
  */
-function registration_entity_info_alter(&$entity_info) {
+function registration_entity_info_alter(&$host_entity_info) {
   // @todo: we're testing to ensure the schema exists; needed because running gui
   // install profile was hitting this BEFORE the schema was installed.
   if (drupal_get_schema('registration')) {
     // We are adding the info about the registration types via a hook to avoid a
     // recursion issue as loading the model types requires the entity info as well.
     foreach (registration_get_types() as $type => $info) {
-      $entity_info['registration']['bundles'][$type] = array(
+      $host_entity_info['registration']['bundles'][$type] = array(
         'label' => $info->label,
         'admin' => array(
           'path' => 'admin/structure/registration/registration_types/manage/%registration_type',
@@ -431,9 +431,9 @@ function registration_page_title(Registration $registration) {
  *
  * Check if user has access to register for a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param object $entity
+ * @param object $host_entity
  *   The host entity.
  *
  * @return bool
@@ -442,17 +442,17 @@ function registration_page_title(Registration $registration) {
  * @see registration_register_page()
  * @see registration_menu()
  */
-function registration_register_page_access($entity_type, $entity) {
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
+function registration_register_page_access($host_entity_type, $host_entity) {
+  list($host_entity_id) = entity_extract_ids($host_entity_type, $host_entity);
 
-  if ($type = registration_get_entity_registration_type($entity_type, $entity)) {
+  if ($type = registration_get_entity_registration_type($host_entity_type, $host_entity)) {
     $registration = entity_get_controller('registration')->create(array(
-      'entity_type' => $entity_type,
-      'entity_id' => $entity_id,
+      'host_entity_type' => $host_entity_type,
+      'host_entity_id' => $host_entity_id,
       'type' => $type,
     ));
     if (entity_access('create', 'registration', $registration)) {
-      $settings = registration_entity_settings($entity_type, $entity_id);
+      $settings = registration_entity_settings($host_entity_type, $host_entity_id);
       if ($settings['status']) {
         return TRUE;
       }
@@ -467,9 +467,9 @@ function registration_register_page_access($entity_type, $entity) {
  *
  * Check if user has access to administer registrations for a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param object $entity
+ * @param object $host_entity
  *   The host entity.
  *
  * @return bool
@@ -478,13 +478,13 @@ function registration_register_page_access($entity_type, $entity) {
  * @see registration_registrations_page()
  * @see registration_menu()
  */
-function registration_administer_registrations_access($entity_type, $entity) {
-  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+function registration_administer_registrations_access($host_entity_type, $host_entity) {
+  $registration_type = registration_get_entity_registration_type($host_entity_type, $host_entity);
   if ($registration_type) {
     if (user_access("administer $registration_type registration")) {
       return TRUE;
     }
-    elseif (user_access("administer own $registration_type registration") && entity_access('update', $entity_type, $entity)) {
+    elseif (user_access("administer own $registration_type registration") && entity_access('update', $host_entity_type, $host_entity)) {
       return TRUE;
     }
   }
@@ -494,9 +494,9 @@ function registration_administer_registrations_access($entity_type, $entity) {
 /**
  * Page callback: Add a new registration to a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param object $entity
+ * @param object $host_entity
  *   The host entity.
  *
  * @return array
@@ -505,29 +505,29 @@ function registration_administer_registrations_access($entity_type, $entity) {
  * @see registration_register_access()
  * @see registration_menu()
  */
-function registration_register_page($entity_type, $entity) {
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
-  if (registration_status($entity_type, $entity_id)) {
-    $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+function registration_register_page($host_entity_type, $host_entity) {
+  list($host_entity_id) = entity_extract_ids($host_entity_type, $host_entity);
+  if (registration_status($host_entity_type, $host_entity_id)) {
+    $registration_type = registration_get_entity_registration_type($host_entity_type, $host_entity);
     $registration = entity_get_controller('registration')->create(array(
-      'entity_type' => $entity_type,
-      'entity_id' => $entity_id,
+      'host_entity_type' => $host_entity_type,
+      'host_entity_id' => $host_entity_id,
       'type' => $registration_type,
     ));
     return drupal_get_form('registration_form', $registration);
   }
   else {
     return t('Sorry, registrations are no longer available for %name',
-      array('%name' => entity_label($entity_type, $entity)));
+      array('%name' => entity_label($host_entity_type, $host_entity)));
   }
 }
 
 /**
  * Page callback: Show a list of registrations for a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param object $entity
+ * @param object $host_entity
  *   The host entity.
  *
  * @return array
@@ -536,7 +536,7 @@ function registration_register_page($entity_type, $entity) {
  * @see registration_administer_registrations_access()
  * @see registration_menu()
  */
-function registration_registrations_page($entity_type, $entity) {
+function registration_registrations_page($host_entity_type, $host_entity) {
   $header = array(
     array(
       'data' => t('id'),
@@ -581,14 +581,14 @@ function registration_registrations_page($entity_type, $entity) {
     array('data' => t('Actions')),
   );
 
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
-  $label = entity_label($entity_type, $entity);
+  list($host_entity_id) = entity_extract_ids($host_entity_type, $host_entity);
+  $label = entity_label($host_entity_type, $host_entity);
 
   $query = new EntityFieldQuery;
   $result = $query
     ->entityCondition('entity_type', 'registration')
-    ->propertyCondition('entity_id', $entity_id)
-    ->propertyCondition('entity_type', $entity_type)
+    ->propertyCondition('host_entity_id', $host_entity_id)
+    ->propertyCondition('host_entity_type', $host_entity_type)
     ->pager(20)
     ->tableSort($header)
     ->execute();
@@ -633,7 +633,7 @@ function registration_registrations_page($entity_type, $entity) {
       );
     }
 
-    $settings = registration_entity_settings($entity_type, $entity_id);
+    $settings = registration_entity_settings($host_entity_type, $host_entity_id);
 
     $table = array(
       'header' => $header,
@@ -642,14 +642,14 @@ function registration_registrations_page($entity_type, $entity) {
     if ($settings['capacity'] != 0) {
       $table['caption'] = t('List of registrations for %title. !count of !capacity slots are filled.', array(
         '%title' => $label,
-        '!count' => '<strong>' . registration_event_count($entity_type, $entity_id) . '</strong>',
+        '!count' => '<strong>' . registration_event_count($host_entity_type, $host_entity_id) . '</strong>',
         '!capacity' => '<strong>' . $settings['capacity'] . '</strong>'
       ));
     }
     else {
       $table['caption'] = t('List of registrations for %title. !count slots are filled.', array(
         '%title' => $label,
-        '!count' => '<strong>' . registration_event_count($entity_type, $entity_id) . '</strong>',
+        '!count' => '<strong>' . registration_event_count($host_entity_type, $host_entity_id) . '</strong>',
       ));
     }
 
@@ -666,24 +666,24 @@ function registration_registrations_page($entity_type, $entity) {
 /**
  * Page callback for entity registration settings.
  *
- * @param $entity_type
- * @param $entity
+ * @param $host_entity_type
+ * @param $host_entity
  *
  * @return array
  *   Registration entity settings form.
  */
-function registration_entity_settings_page($entity_type, $entity) {
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
-  $settings = registration_entity_settings($entity_type, $entity_id);
-  return drupal_get_form('registration_entity_settings_form', $settings, $entity_type, $entity_id);
+function registration_entity_settings_page($host_entity_type, $host_entity) {
+  list($host_entity_id) = entity_extract_ids($host_entity_type, $host_entity);
+  $settings = registration_entity_settings($host_entity_type, $host_entity_id);
+  return drupal_get_form('registration_entity_settings_form', $settings, $host_entity_type, $host_entity_id);
 }
 
 /**
  * Determines if a host entity has slots remaining.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param int $entity_id
+ * @param int $host_entity_id
  *   The host entity ID.
  * @param int $slots
  *   (optional) Used if validating a new registration. The number of slots
@@ -695,11 +695,11 @@ function registration_entity_settings_page($entity_type, $entity) {
  *
  * @see registration_status()
  */
-function registration_has_room($entity_type, $entity_id, $slots = 1, $registration_id = NULL, $reset = FALSE) {
-  $settings = registration_entity_settings($entity_type, $entity_id, $reset);
+function registration_has_room($host_entity_type, $host_entity_id, $slots = 1, $registration_id = NULL, $reset = FALSE) {
+  $settings = registration_entity_settings($host_entity_type, $host_entity_id, $reset);
   $capacity = $settings['capacity'];
   if ($capacity) {
-    $count = registration_event_count($entity_type, $entity_id, $registration_id, $reset) + $slots;
+    $count = registration_event_count($host_entity_type, $host_entity_id, $registration_id, $reset) + $slots;
     if (($capacity - $count) < 0) {
       return FALSE;
     }
@@ -711,9 +711,9 @@ function registration_has_room($entity_type, $entity_id, $slots = 1, $registrati
 /**
  * Determines current number of slots filled for for a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param int $entity_id
+ * @param int $host_entity_id
  *   The host entity ID.
  * @param int $registration_id
  *   The registration ID. If specified, exclude identified registration from count.
@@ -723,13 +723,13 @@ function registration_has_room($entity_type, $entity_id, $slots = 1, $registrati
  *
  * @see registration_has_room()
  */
-function registration_event_count($entity_type, $entity_id, $registration_id = NULL, $reset = FALSE) {
-  $count = &drupal_static(__FUNCTION__ . '_' . $entity_type . '_' . $entity_id . '_' . $registration_id, FALSE);
+function registration_event_count($host_entity_type, $host_entity_id, $registration_id = NULL, $reset = FALSE) {
+  $count = &drupal_static(__FUNCTION__ . '_' . $host_entity_type . '_' . $host_entity_id . '_' . $registration_id, FALSE);
   if (!$count || $reset) {
     $query = db_select('registration', 'r');
     $query->addExpression('sum(count)', 'count');
-    $query->condition('entity_id', $entity_id);
-    $query->condition('entity_type', $entity_type);
+    $query->condition('host_entity_id', $host_entity_id);
+    $query->condition('host_entity_type', $host_entity_type);
     if ($registration_id != NULL) {
       $query->condition('registration_id', $registration_id, '<>');
     }
@@ -740,11 +740,11 @@ function registration_event_count($entity_type, $entity_id, $registration_id = N
   }
 
   // Allow other mods to override count.
-  $settings = registration_entity_settings($entity_type, $entity_id);
+  $settings = registration_entity_settings($host_entity_type, $host_entity_id);
   $context = array(
-    'entity_type' => $entity_type,
-    'entity_id' => $entity_id,
-    'registration_id' => $registration_id,
+    'entity_type' => $host_entity_type,
+    'host_entity_id' => $host_entity_id,
+    'host_registration_id' => $registration_id,
     'settings' => $settings,
   );
 
@@ -756,24 +756,24 @@ function registration_event_count($entity_type, $entity_id, $registration_id = N
 /**
  * Implements hook_entity_insert().
  */
-function registration_entity_insert($entity, $entity_type) {
-  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+function registration_entity_insert($host_entity, $host_entity_type) {
+  $registration_type = registration_get_entity_registration_type($host_entity_type, $host_entity);
   if ($registration_type !== FALSE) {
-    registration_entity_set_default_settings($entity_type, $entity);
+    registration_entity_set_default_settings($host_entity_type, $host_entity);
   }
 }
 
 /**
  * Implements hook_entity_update().
  */
-function registration_entity_update($entity, $entity_type) {
-  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+function registration_entity_update($host_entity, $host_entity_type) {
+  $registration_type = registration_get_entity_registration_type($host_entity_type, $host_entity);
   if ($registration_type !== FALSE) {
-    list($entity_id) = entity_extract_ids($entity_type, $entity);
-    $settings = registration_entity_settings($entity_type, $entity_id);
+    list($host_entity_id) = entity_extract_ids($host_entity_type, $host_entity);
+    $settings = registration_entity_settings($host_entity_type, $host_entity_id);
     // no settings yet, try to set defaults
     if (!$settings) {
-      registration_entity_set_default_settings($entity_type, $entity);
+      registration_entity_set_default_settings($host_entity_type, $host_entity);
     }
   }
 }
@@ -781,19 +781,19 @@ function registration_entity_update($entity, $entity_type) {
 /**
  * Sets the the registration entity settings to the deafults.
  *
- * @param $entity_type
- * @param $entity
+ * @param $host_entity_type
+ * @param $host_entity
  */
-function registration_entity_set_default_settings($entity_type, $entity) {
-  list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
+function registration_entity_set_default_settings($host_entity_type, $host_entity) {
+  list($host_entity_id, , $bundle) = entity_extract_ids($host_entity_type, $host_entity);
   $registration_instances = registration_get_registration_instances(array(
-    'entity_type' => $entity_type,
+    'entity_type' => $host_entity_type,
     'bundle' => $bundle
   ));
   foreach ($registration_instances as $instance) {
     if (isset($instance['settings']['default_registration_settings'])) {
       $settings = registration_convert_form_settings($instance['settings']['default_registration_settings']);
-      registration_update_entity_settings($entity_type, $entity_id, $settings);
+      registration_update_entity_settings($host_entity_type, $host_entity_id, $settings);
     }
   }
 }
@@ -801,30 +801,30 @@ function registration_entity_set_default_settings($entity_type, $entity) {
 /**
  * Implements hook_entity_delete().
  */
-function registration_entity_delete($entity, $entity_type) {
+function registration_entity_delete($host_entity, $host_entity_type) {
   // Delete registrations and settings for this host entity .
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
+  list($host_entity_id) = entity_extract_ids($host_entity_type, $host_entity);
   db_delete('registration')
-    ->condition('entity_id', $entity_id)
-    ->condition('entity_type', $entity_type)
+    ->condition('host_entity_id', $host_entity_id)
+    ->condition('host_entity_type', $host_entity_type)
     ->execute();
   db_delete('registration_entity')
-    ->condition('entity_id', $entity_id)
-    ->condition('entity_type', $entity_type)
+    ->condition('host_entity_id', $host_entity_id)
+    ->condition('host_entity_type', $host_entity_type)
     ->execute();
 
   // Remove references to a registration_type on host entities
-  if ($entity_type == 'registration_type') {
+  if ($host_entity_type == 'registration_type') {
     $registration_fields = field_read_fields(array('type' => 'registration'));
     if (!empty($registration_fields)) {
       foreach (array_keys($registration_fields) as $field_name) {
         $query = new EntityFieldQuery;
         $result = $query
-          ->fieldCondition($field_name, 'registration_type', $entity->name)
+          ->fieldCondition($field_name, 'registration_type', $host_entity->name)
           ->execute();
         foreach ($result as $host_entity_type => $entities) {
           $entities = entity_load($host_entity_type, array_keys($entities));
-          foreach ($entities as $entity_id => $host_entity) {
+          foreach ($entities as $host_entity_id => $host_entity) {
             $host_entity->{$field_name}[LANGUAGE_NONE][0] = NULL;
             entity_save($host_entity_type, $host_entity);
           }
@@ -837,22 +837,22 @@ function registration_entity_delete($entity, $entity_type) {
 /**
  * Get registration settings for a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param int $entity_id
+ * @param int $host_entity_id
  *   The host entity ID.
  *
  * @return array|bool
  *   A row from {registration_entity}, or FALSE if no settings exist.
  */
-function registration_entity_settings($entity_type, $entity_id, $reset = FALSE) {
-  $result = &drupal_static(__FUNCTION__ . $entity_type . $entity_id);
+function registration_entity_settings($host_entity_type, $host_entity_id, $reset = FALSE) {
+  $result = &drupal_static(__FUNCTION__ . $host_entity_type . $host_entity_id);
 
   if (!$result || $reset) {
     $result = db_select('registration_entity', 're')
       ->fields('re')
-      ->condition('entity_id', $entity_id, '=')
-      ->condition('entity_type', $entity_type, '=')
+      ->condition('host_entity_id', $host_entity_id, '=')
+      ->condition('host_entity_type', $host_entity_type, '=')
       ->execute()
       ->fetchAssoc();
 
@@ -908,28 +908,28 @@ function registration_mail($key, &$message, $params) {
 /**
  * Send an email to all registrations for a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param int $entity_id
+ * @param int $host_entity_id
  *   The host entity ID.
  * @param string $subject
  *   Subject of email.
  * @param string $message
  *   Message body of email.
  */
-function registration_send_broadcast($entity_type, $entity_id, $subject, $message) {
+function registration_send_broadcast($host_entity_type, $host_entity_id, $subject, $message) {
   global $language;
 
   // grab registration entity settings
-  $settings = registration_entity_settings($entity_type, $entity_id);
+  $settings = registration_entity_settings($host_entity_type, $host_entity_id);
   $from = $settings['settings']['from_address'];
 
   // grab all registrations
   $query = new EntityFieldQuery();
   $entities = $query
     ->entityCondition('entity_type', 'registration')
-    ->propertyCondition('entity_id', $entity_id)
-    ->propertyCondition('entity_type', $entity_type)
+    ->propertyCondition('host_entity_id', $host_entity_id)
+    ->propertyCondition('host_entity_type', $host_entity_type)
     ->propertyCondition('state', registration_get_active_states(), 'IN')
     ->execute();
 
@@ -955,10 +955,10 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
 
       $recipients[] = $wrapper->mail->value();
 
-      $entity = entity_load_single($entity_type, $entity_id);
+      $host_entity = entity_load_single($host_entity_type, $host_entity_id);
       if (module_exists('token')) {
         $message = token_replace($message_template, array(
-          $entity_type => $entity,
+          $host_entity_type => $host_entity,
           'registration' => $registration
         ));
       }
@@ -988,7 +988,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
   }
   else {
     drupal_set_message(
-      t('There are no participants registered for this %type.', array('%type' => $entity_type)),
+      t('There are no participants registered for this %type.', array('%type' => $host_entity_type)),
       'warning'
     );
   }
@@ -999,19 +999,19 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
  *
  * Updates settings for a host entity, and displays a message to the user.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param int $entity_id
+ * @param int $host_entity_id
  *   The host entity ID.
  * @param array $settings
  *   Array keyed by field names from {registration_entity}
  */
-function registration_update_entity_settings($entity_type, $entity_id, $settings) {
+function registration_update_entity_settings($host_entity_type, $host_entity_id, $settings) {
   // insert or update registration entity settings
   db_merge('registration_entity')
     ->key(array(
-    'entity_id' => $entity_id,
-    'entity_type' => $entity_type
+    'host_entity_id' => $host_entity_id,
+    'host_entity_type' => $host_entity_type
   ))
     ->fields($settings)
     ->execute();
@@ -1036,16 +1036,16 @@ function registration_cron() {
     ->fetchAllAssoc('entity_id');
 
   foreach ($results as $result) {
-    $entity = entity_load_single($result->entity_type, $result->entity_id);
+    $host_entity = entity_load_single($result->entity_type, $result->entity_id);
     $message = $result->reminder_template;
-    $subject = 'Reminder for ' . entity_label($result->entity_type, $entity);
+    $subject = 'Reminder for ' . entity_label($result->entity_type, $host_entity);
     registration_send_broadcast($result->entity_type, $result->entity_id, $subject, $message);
 
     // set reminder flag to off
     db_update('registration_entity')
       ->fields(array('send_reminder' => 0))
-      ->condition('entity_id', $result->entity_id)
-      ->condition('entity_type', $result->entity_type)
+      ->condition('host_entity_id', $result->entity_id)
+      ->condition('host_entity_type', $result->entity_type)
       ->execute();
   }
 }
@@ -1056,9 +1056,9 @@ function registration_cron() {
  * Modules may implement hook_registration_status_alter() to alter the status at
  * runtime.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param int $entity_id
+ * @param int $host_entity_id
  *   The host entity ID.
  * @param bool $reset
  *   (optional) Whether to force checking status in case registration_status
@@ -1072,22 +1072,22 @@ function registration_cron() {
  *
  * @return bool
  */
-function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 1, $registration_id = NULL, &$errors = array()) {
+function registration_status($host_entity_type, $host_entity_id, $reset = FALSE, $slots = 1, $registration_id = NULL, &$errors = array()) {
   $checked = &drupal_static(__FUNCTION__, array());
 
-  if (!$reset && isset($checked[$entity_type][$entity_id])) {
-    $errors = is_array($errors) ? array_merge($errors, $checked[$entity_type][$entity_id]['errors']) : $checked[$entity_type][$entity_id]['errors'];
-    return $checked[$entity_type][$entity_id]['status'];
+  if (!$reset && isset($checked[$host_entity_type][$host_entity_id])) {
+    $errors = is_array($errors) ? array_merge($errors, $checked[$host_entity_type][$host_entity_id]['errors']) : $checked[$host_entity_type][$host_entity_id]['errors'];
+    return $checked[$host_entity_type][$host_entity_id]['status'];
   }
 
-  $entity = entity_load_single($entity_type, $entity_id);
-  $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+  $host_entity = entity_load_single($host_entity_type, $host_entity_id);
+  $registration_type = registration_get_entity_registration_type($host_entity_type, $host_entity);
   // bypass further access checks if user can administer registration
   if (user_access('administer registration') || user_access("administer $registration_type registration")) {
     return TRUE;
   }
 
-  $settings = registration_entity_settings($entity_type, $entity_id, $reset);
+  $settings = registration_entity_settings($host_entity_type, $host_entity_id, $reset);
   $status = $settings['status'];
   $open = isset($settings['open']) ? strtotime($settings['open']) : NULL;
   $close = isset($settings['close']) ? strtotime($settings['close']) : NULL;
@@ -1096,7 +1096,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
   // only explore other settings if main status is enabled
   if ($status) {
     // check capacity
-    if (!registration_has_room($entity_type, $entity_id, $slots, $registration_id, $reset)) {
+    if (!registration_has_room($host_entity_type, $host_entity_id, $slots, $registration_id, $reset)) {
       $status = FALSE;
       $errors[] = t('insufficient slots remaining');
     }
@@ -1117,14 +1117,14 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
 
   // allow other mods to override status
   $context = array(
-    'entity_type' => $entity_type,
-    'entity_id' => $entity_id,
+    'host_entity_type' => $host_entity_type,
+    'host_entity_id' => $host_entity_id,
     'errors' => &$errors
   );
 
   drupal_alter('registration_status', $status, $context);
 
-  $checked[$entity_type][$entity_id] = array(
+  $checked[$host_entity_type][$host_entity_id] = array(
     'status' => $status,
     'errors' => $errors,
   );
@@ -1135,20 +1135,20 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
 /**
  * Get the registration type bundle for a host entity.
  *
- * @param string $entity_type
+ * @param string $host_entity_type
  *   The host entity type.
- * @param object $entity
+ * @param object $host_entity
  *   The host entity.
  *
  * @return string|bool
  *   Registration type associated with a host entity, or FALSE if none is
  *   associated.
  */
-function registration_get_entity_registration_type($entity_type, $entity) {
+function registration_get_entity_registration_type($host_entity_type, $host_entity) {
   $fields = field_read_fields(array('type' => 'registration'));
   foreach ($fields as $field) {
-    if (isset($entity->{$field['field_name']})) {
-      $items = field_get_items($entity_type, $entity, $field['field_name']);
+    if (isset($host_entity->{$field['field_name']})) {
+      $items = field_get_items($host_entity_type, $host_entity, $field['field_name']);
       // we're assuming there's only a single value in this field
       if (!empty($items) && count($items) == 1 && !empty($items[0]['registration_type'])) {
         return $items[0]['registration_type'];
@@ -1214,12 +1214,12 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
     $wrapper = entity_metadata_wrapper('registration', $data['registration']);
     $replacements = array();
 
-    if ($entity_tokens = token_find_with_prefix($tokens, 'entity')) {
-      $entity = $wrapper->entity->value();
+    if ($host_entity_tokens = token_find_with_prefix($tokens, 'host_entity')) {
+      $host_entity = $wrapper->host_entity->value();
       $replacements += token_generate(
         $registration->entity_type,
-        $entity_tokens,
-        array($registration->entity_type => $entity),
+        $host_entity_tokens,
+        array($registration->host_entity_type => $host_entity),
         $options
       );
     }
@@ -1269,8 +1269,8 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
   }
 
   $query = db_select('registration', 'r')
-    ->condition('entity_id', $registration->entity_id)
-    ->condition('entity_type', $registration->entity_type)
+    ->condition('host_entity_id', $registration->entity_id)
+    ->condition('host_entity_type', $registration->entity_type)
     ->condition('state', $states, 'IN');
 
   if ($anon_mail) {
@@ -1412,10 +1412,10 @@ function registration_states($conditions = array()) {
     return $states;
   }
 
-  $entity_type = 'registration_state';
+  $host_entity_type = 'registration_state';
   $query = new EntityFieldQuery();
   $query
-    ->entityCondition('entity_type', $entity_type)
+    ->entityCondition('entity_type', $host_entity_type)
     ->propertyOrderBy('weight', 'ASC');
 
   foreach ($conditions as $col => $val) {
@@ -1423,7 +1423,7 @@ function registration_states($conditions = array()) {
   }
 
   if ($results = $query->execute()) {
-    $states = entity_load($entity_type, array_keys($results[$entity_type]));
+    $states = entity_load($host_entity_type, array_keys($results[$host_entity_type]));
   }
 
   return $states;
@@ -1493,9 +1493,9 @@ function registration_get_states_options($conditions = array()) {
  *
  * @see registration_entity_property_info().
  */
-function registration_property_host_get(Registration $registration, array $options, $property_name, $entity_type) {
-  $entity = entity_load_single($registration->entity_type, $registration->entity_id);
-  return entity_metadata_wrapper($registration->entity_type, $entity);
+function registration_property_host_get(Registration $registration, array $options, $property_name, $host_entity_type) {
+  $host_entity = entity_load_single($registration->entity_type, $registration->entity_id);
+  return entity_metadata_wrapper($registration->entity_type, $host_entity);
 }
 
 /**
@@ -1512,10 +1512,10 @@ function registration_property_host_set(Registration $registration, $name, $valu
  *
  * @see registration_entity_property_info().
  */
-function registration_property_author_get(Registration $registration, array $options, $property_name, $entity_type) {
+function registration_property_author_get(Registration $registration, array $options, $property_name, $host_entity_type) {
   if (is_numeric($registration->author_uid)) {
-    $entity = entity_load_single('user', $registration->author_uid);
-    return entity_metadata_wrapper('user', $entity);
+    $host_entity = entity_load_single('user', $registration->author_uid);
+    return entity_metadata_wrapper('user', $host_entity);
   }
 }
 
@@ -1524,10 +1524,10 @@ function registration_property_author_get(Registration $registration, array $opt
  *
  * @see registration_entity_property_info().
  */
-function registration_property_user_get(Registration $registration, array $options, $property_name, $entity_type) {
+function registration_property_user_get(Registration $registration, array $options, $property_name, $host_entity_type) {
   if (is_numeric($registration->user_uid)) {
-    $entity = entity_load_single('user', $registration->user_uid);
-    return entity_metadata_wrapper('user', $entity);
+    $host_entity = entity_load_single('user', $registration->user_uid);
+    return entity_metadata_wrapper('user', $host_entity);
   }
 }
 
@@ -1558,25 +1558,25 @@ function registration_property_email_set(Registration $registration, $name, $val
 /**
  * Required by RegistrationMetadataController for Views integration.
  *
- * @param $entity
+ * @param $host_entity
  * @param array $options
  * @param $name
  * @param $type
  *
  * @return EntityMetadataWrapper
  */
-function registration_get_properties($entity, array $options, $name, $type) {
+function registration_get_properties($host_entity, array $options, $name, $type) {
   switch ($name) {
     case 'anon_mail':
-      return $entity->anon_mail;
+      return $host_entity->anon_mail;
       break;
     case 'entity':
-      return entity_metadata_wrapper($entity->entity_type, $entity->entity);
+      return entity_metadata_wrapper($host_entity->entity_type, $host_entity->entity);
       break;
     case 'mail':
       // If a user is set, use their email
-      $user =  entity_metadata_wrapper('registration', $entity)->user;
-      return ($user->value()) ? $user->mail->value() : $entity->anon_mail;
+      $user =  entity_metadata_wrapper('registration', $host_entity)->user;
+      return ($user->value()) ? $user->mail->value() : $host_entity->anon_mail;
       break;
   }
 }
@@ -1753,7 +1753,7 @@ function registration_type_load($type) {
 /**
  * Access callback for the entity API.
  */
-function registration_type_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
+function registration_type_access($op, $host_entity = NULL, $account = NULL, $host_entity_type = NULL) {
   return user_access('administer registration types', $account);
 }
 
@@ -1774,6 +1774,6 @@ function registration_type_delete(RegistrationType $type) {
 /**
  * Access callback for the entity API.
  */
-function registration_state_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
+function registration_state_access($op, $host_entity = NULL, $account = NULL, $host_entity_type = NULL) {
   return user_access('administer registration states', $account);
 }

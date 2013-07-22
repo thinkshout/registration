@@ -25,14 +25,27 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
+      'host_entity_id' => array(
+        'description' => 'The id of the host entity for this registration.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'host_entity_type' => array(
+        'description' => 'The entity type of the host entity for this registration.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
       'entity_id' => array(
-        'description' => 'The id of the entity this registration is associated with.',
+        'description' => 'The id of the entity that is registered.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
       'entity_type' => array(
-        'description' => 'The entity type of the entity this registration is associated with.',
+        'description' => 'The entity type of the entity that is registered.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
@@ -49,12 +62,6 @@ function registration_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,
-      ),
-      'user_uid' => array(
-        'description' => 'The uid of the user associated with this registration.',
-        'type' => 'int',
-        'not null' => FALSE,
-        'default' => 0,
       ),
       'author_uid' => array(
         'description' => 'The uid of the user who created this registration.',
@@ -92,10 +99,6 @@ function registration_schema() {
       'registration_author' => array(
         'table' => 'users',
         'columns' => array('author_uid' => 'uid'),
-      ),
-      'registration_user' => array(
-        'table' => 'users',
-        'columns' => array('user_uid' => 'uid'),
       ),
       'registration_state' => array(
         'table' => 'registration_state',
@@ -492,4 +495,14 @@ function registration_update_7102(&$sandbox) {
 function registration_update_7103(&$sandbox) {
   $sql = "UPDATE registration_entity SET settings = REPLACE(settings, 'multiple_registrations', 'multiple_slots')";
   db_query($sql);
+}
+
+/**
+ * Update registration table to allow any entity type to be registered.
+ */
+function registration_update_7200(&$sandbox) {
+  // Change existing entity_type and entity_id columns to host_entity_type and host_entity_id.
+  // Add new entity_type and entity_id columns
+  // Update existing registrations
+  // Drop user_uid column
 }

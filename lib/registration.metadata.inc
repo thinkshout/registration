@@ -27,21 +27,21 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'setter callback' => 'entity_property_verbatim_set',
     );
 
-    $properties['entity_type'] = array(
+    $properties['host_entity_type'] = array(
       'label' => t("Host entity type"),
       'type' => 'token',
       'description' => t("The entity type of the host entity."),
       'required' => TRUE,
-      'schema field' => 'entity_type',
+      'schema field' => 'host_entity_type',
       'setter callback' => 'entity_property_verbatim_set',
     );
 
-    $properties['entity_id'] = array(
+    $properties['host_entity_id'] = array(
       'label' => t("Host entity ID"),
       'type' => 'integer',
       'description' => t("The entity ID of the host entity."),
       'required' => TRUE,
-      'schema field' => 'entity_id',
+      'schema field' => 'host_entity_id',
       'setter callback' => 'entity_property_verbatim_set',
     );
 
@@ -89,10 +89,10 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
     );
 
     // Entities
-    $properties['entity'] = array(
+    $properties['host_entity'] = array(
       'label' => t("Host entity"),
       'type' => 'entity',
-      'schema field' => 'entity',
+      'schema field' => 'host_entity',
       'description' => t("The host entity."),
       'getter callback' => 'registration_property_host_get',
       'setter callback' => 'registration_property_host_set',

@@ -49,8 +49,8 @@ function hook_registration_entity_settings($settings) {
  *
  * @param array $context
  *   array(
- *     'entity_type' => $entity_type,
- *     'entity_id' => $entity_id,
+ *     'host_entity_type' => $host_entity_type,
+ *     'host_entity_id' => $host_entity_id,
  *     'registration_id' => $registration_id,
  *     'settings' => $settings,
  *   );

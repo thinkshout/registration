@@ -84,9 +84,24 @@ function registration_form($form, &$form_state, Registration $registration) {
   $capacity = $settings['capacity'];
   $remaining = 0;
   $description = '';
-  if ($capacity) {
-    $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
+  $limit = $settings['settings']['multiple_slots'];
+  $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
+  if ($capacity && $limit) {
+    $description = t('The number of slots you wish to reserve. @slots_remaining slots remaining. You may register up to @max slots.',
+      array(
+        '@slots_remaining' => $remaining,
+        '@max' => min($limit, $remaining),
+      )
+    );
+  }
+  elseif ($capacity) {
     $description = t('The number of slots you wish to reserve. @slots_remaining slots remaining.', array('@slots_remaining' => $remaining));
+  }
+  elseif ($limit) {
+    $description = t('The number of slots you wish to reserve. You may register up to @max slots.', array('@max' => $limit));
+  }
+  else {
+    $description = t('The number of slots you wish to reserve.');
   }
 
   $form['count'] = array(

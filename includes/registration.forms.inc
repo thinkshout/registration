@@ -623,7 +623,13 @@ function registration_entity_settings_form_validate($form, &$form_state) {
   // Ensure capacity is a non-negative integer.
   $capacity = $form_state['values']['capacity'];
   if (!is_numeric($capacity) || ((int) $capacity != $capacity) || ($capacity < 0)) {
-    form_set_error('capacity', t('Capacity must be a positive integer.'));
+    form_set_error('capacity', t('"Capacity" must be a positive integer or 0 for unlimited.'));
+  }
+
+  // Ensure slot limit is a non-negative integer.
+  $slot_limit = $form_state['values']['settings']['multiple_slots'];
+  if (!is_numeric($slot_limit) || ((int) $slot_limit != $slot_limit) || ($slot_limit < 0)) {
+    form_set_error('multiple_slots', t('"Slots allowed" must be a positive integer or 0 for unlimited.'));
   }
 
   // Validate from address:

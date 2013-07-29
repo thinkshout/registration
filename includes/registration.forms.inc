@@ -95,8 +95,8 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#description' => $description,
     '#default_value' => isset($registration->count) ? $registration->count : 1,
     '#size' => drupal_strlen($remaining),
-    '#access' => isset($settings['settings']['multiple_slots']) ? $settings['settings']['multiple_slots'] : FALSE,
-    '#element_validate' => array('element_validate_integer_positive')
+    '#access' => $settings['settings']['multiple_slots'] == 1 ? FALSE : TRUE,
+    '#element_validate' => array('element_validate_integer_positive', '_registration_validate_slot_request'),
   );
 
   $default_state = registration_get_default_state();
@@ -137,6 +137,7 @@ function registration_form($form, &$form_state, Registration $registration) {
       '#href' => $uri['path'],
     );
   }
+  $form['#registration_settings'] = $settings;
 
   return $form;
 }
@@ -953,4 +954,10 @@ function theme_registration_state_overview_form($variables) {
 
   $output .= drupal_render_children($form);
   return $output;
+}
+
+function _registration_validate_slot_request($element, &$form_state, $form) {
+  if ($form_state['input']['count'] > $form['#registration_settings']['settings']['multiple_slots']) {
+    form_error($element, t('You may not register for more than @count slots.', array('@count' => $form['#registration_settings']['settings']['multiple_slots'])));
+  };
 }

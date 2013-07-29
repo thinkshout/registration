@@ -45,7 +45,7 @@ function registration_schema() {
         'description' => "Anonymous registrant's e-mail address.",
       ),
       'count' => array(
-        'description' => 'How many slots this registration should use towards the total capacity for this event.',
+        'description' => 'How many spaces this registration should use towards the total capacity for this event.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,

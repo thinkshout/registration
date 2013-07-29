@@ -640,14 +640,14 @@ function registration_registrations_page($entity_type, $entity) {
       'rows' => $rows
     );
     if ($settings['capacity'] != 0) {
-      $table['caption'] = t('List of registrations for %title. !count of !capacity slots are filled.', array(
+      $table['caption'] = t('List of registrations for %title. !count of !capacity spaces are filled.', array(
         '%title' => $label,
         '!count' => '<strong>' . registration_event_count($entity_type, $entity_id) . '</strong>',
         '!capacity' => '<strong>' . $settings['capacity'] . '</strong>'
       ));
     }
     else {
-      $table['caption'] = t('List of registrations for %title. !count slots are filled.', array(
+      $table['caption'] = t('List of registrations for %title. !count spaces are filled.', array(
         '%title' => $label,
         '!count' => '<strong>' . registration_event_count($entity_type, $entity_id) . '</strong>',
       ));
@@ -679,14 +679,14 @@ function registration_entity_settings_page($entity_type, $entity) {
 }
 
 /**
- * Determines if a host entity has slots remaining.
+ * Determines if a host entity has spaces remaining.
  *
  * @param string $entity_type
  *   The host entity type.
  * @param int $entity_id
  *   The host entity ID.
- * @param int $slots
- *   (optional) Used if validating a new registration. The number of slots
+ * @param int $spaces
+ *   (optional) Used if validating a new registration. The number of spaces
  *   attempting to fill.
  * @param int $registration_id
  *   The registration ID. Used to exclude specified registration from count.
@@ -695,11 +695,11 @@ function registration_entity_settings_page($entity_type, $entity) {
  *
  * @see registration_status()
  */
-function registration_has_room($entity_type, $entity_id, $slots = 1, $registration_id = NULL, $reset = FALSE) {
+function registration_has_room($entity_type, $entity_id, $spaces = 1, $registration_id = NULL, $reset = FALSE) {
   $settings = registration_entity_settings($entity_type, $entity_id, $reset);
   $capacity = $settings['capacity'];
   if ($capacity) {
-    $count = registration_event_count($entity_type, $entity_id, $registration_id, $reset) + $slots;
+    $count = registration_event_count($entity_type, $entity_id, $registration_id, $reset) + $spaces;
     if (($capacity - $count) < 0) {
       return FALSE;
     }
@@ -709,7 +709,7 @@ function registration_has_room($entity_type, $entity_id, $slots = 1, $registrati
 }
 
 /**
- * Determines current number of slots filled for for a host entity.
+ * Determines current number of spaces filled for a host entity.
  *
  * @param string $entity_type
  *   The host entity type.

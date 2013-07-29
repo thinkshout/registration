@@ -84,34 +84,33 @@ function registration_form($form, &$form_state, Registration $registration) {
   $capacity = $settings['capacity'];
   $remaining = 0;
   $description = '';
-  $limit = $settings['settings']['multiple_slots'];
+  $limit = $settings['settings']['maximum_spaces'];
   $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
   if ($capacity && $limit) {
-    $description = t('The number of slots you wish to reserve. @slots_remaining slots remaining. You may register up to @max slots.',
+    $description = t('The number of spaces you wish to reserve. @spaces_remaining spaces remaining. You may register up to @max spaces.',
       array(
-        '@slots_remaining' => $remaining,
+        '@spaces_remaining' => $remaining,
         '@max' => min($limit, $remaining),
       )
     );
   }
   elseif ($capacity) {
-    $description = t('The number of slots you wish to reserve. @slots_remaining slots remaining.', array('@slots_remaining' => $remaining));
+    $description = t('The number of spaces you wish to reserve. @spaces_remaining spaces remaining.', array('@spaces_remaining' => $remaining));
   }
   elseif ($limit) {
     $description = t('The number of slots you wish to reserve. You may register up to @max slots.', array('@max' => $limit));
+    $description = t('The number of spaces you wish to reserve. You may register up to @max spaces.', array('@max' => $limit));
   }
   else {
-    $description = t('The number of slots you wish to reserve.');
+    $description = t('The number of spaces you wish to reserve.');
   }
 
   $form['count'] = array(
     '#type' => 'textfield',
-    '#title' => t('Slots'),
+    '#title' => t('Spaces'),
     '#description' => $description,
     '#default_value' => isset($registration->count) ? $registration->count : 1,
     '#size' => drupal_strlen($remaining),
-    '#access' => $settings['settings']['multiple_slots'] == 1 ? FALSE : TRUE,
-    '#element_validate' => array('element_validate_integer_positive', '_registration_validate_slot_request'),
   );
 
   $default_state = registration_get_default_state();
@@ -182,7 +181,7 @@ function registration_form_validate($form, &$form_state) {
   else if (in_array($registration->state, registration_get_active_states())) {
     $has_room = registration_has_room($registration->entity_type, $registration->entity_id, $count, $registration->registration_id);
     if (!$has_room) {
-      form_set_error('', t('Sorry, unable to register for %label due to: insufficient slots remaining.',
+      form_set_error('', t('Sorry, unable to register for %label due to: insufficient spaces remaining.',
         array('%label' => $label)));
     }
   }
@@ -590,14 +589,14 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#tree' => TRUE,
   );
 
-  $form['settings']['multiple_slots'] = array(
+  $form['settings']['maximum_spaces'] = array(
     '#type' => 'textfield',
-    '#title' => t('Slots allowed'),
+    '#title' => t('Spaces allowed'),
     '#size' => 5,
     '#maxlength' => 10,
     '#required' => TRUE,
-    '#description' => t('The maximum number of slots allowed for each registrations. For no limit, use 0. (Default is 1)'),
-    '#default_value' => isset($settings['settings']['multiple_slots']) ? $settings['settings']['multiple_slots'] : 1,
+    '#description' => t('The maximum number of spaces allowed for each registrations. For no limit, use 0. (Default is 1)'),
+    '#default_value' => isset($settings['settings']['maximum_spaces']) ? $settings['settings']['maximum_spaces'] : 1,
   );
 
   $form['settings']['multiple_registrations'] = array(
@@ -643,9 +642,9 @@ function registration_entity_settings_form_validate($form, &$form_state) {
   }
 
   // Ensure slot limit is a non-negative integer.
-  $slot_limit = $form_state['values']['settings']['multiple_slots'];
+  $slot_limit = $form_state['values']['settings']['maximum_spaces'];
   if (!is_numeric($slot_limit) || ((int) $slot_limit != $slot_limit) || ($slot_limit < 0)) {
-    form_set_error('multiple_slots', t('"Slots allowed" must be a positive integer or 0 for unlimited.'));
+    form_set_error('maximum_spaces', t('"Spaces allowed" must be a positive integer or 0 for unlimited.'));
   }
 
   // Validate from address:
@@ -971,8 +970,11 @@ function theme_registration_state_overview_form($variables) {
   return $output;
 }
 
-function _registration_validate_slot_request($element, &$form_state, $form) {
-  if ($form_state['input']['count'] > $form['#registration_settings']['settings']['multiple_slots']) {
-    form_error($element, t('You may not register for more than @count slots.', array('@count' => $form['#registration_settings']['settings']['multiple_slots'])));
+/**
+ * Validation helper function to confirm the spaces requested are within limits.
+ */
+function _registration_validate_space_request($element, &$form_state, $form) {
+  if ($form_state['input']['count'] > $form['#registration_settings']['settings']['maximum_spaces']) {
+    form_error($element, t('You may not register for more than @count spaces.', array('@count' => $form['#registration_settings']['settings']['maximum_spaces'])));
   };
 }

@@ -38,7 +38,7 @@ function registration_field_info() {
       ),
       'default_widget' => 'registration_select',
       'default_formatter' => 'registration_default',
-      'no_ui' => FALSE
+      'no_ui' => FALSE,
     ),
   );
 }

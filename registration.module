@@ -1189,14 +1189,13 @@ function registration_token_info() {
     'description' => t('Tokens related to individual Registrations.'),
     'needs-data' => 'registration',
   );
-  $registration['entity'] = array(
+  $registration['host_entity'] = array(
     'name' => t("Registration Host Entity"),
     'description' => t("The host entity for the registration."),
   );
-  $registration['user'] = array(
-    'name' => t("Registration User"),
-    'description' => t("The user the registration is for."),
-    'type' => 'user',
+  $registration['entity'] = array(
+    'name' => t("Registration entity"),
+    'description' => t("The entity the registration is for."),
   );
 
   return array(
@@ -1224,12 +1223,12 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
       );
     }
 
-    if ($entity_tokens = token_find_with_prefix($tokens, 'user')) {
-      $entity = $wrapper->user->value();
+    if ($entity_tokens = token_find_with_prefix($tokens, 'entity')) {
+      $entity = $wrapper->entity->value();
       $replacements += token_generate(
-        'user',
+        'entity',
         $entity_tokens,
-        array('user' => $entity),
+        array('entity' => $entity),
         $options
       );
     }

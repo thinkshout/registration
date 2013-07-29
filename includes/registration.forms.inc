@@ -98,7 +98,6 @@ function registration_form($form, &$form_state, Registration $registration) {
     $description = t('The number of spaces you wish to reserve. @spaces_remaining spaces remaining.', array('@spaces_remaining' => $remaining));
   }
   elseif ($limit) {
-    $description = t('The number of slots you wish to reserve. You may register up to @max slots.', array('@max' => $limit));
     $description = t('The number of spaces you wish to reserve. You may register up to @max spaces.', array('@max' => $limit));
   }
   else {
@@ -111,6 +110,8 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#description' => $description,
     '#default_value' => isset($registration->count) ? $registration->count : 1,
     '#size' => drupal_strlen($remaining),
+    '#access' => $settings['settings']['maximum_spaces'] == 1 ? FALSE : TRUE,
+    '#element_validate' => array('element_validate_integer_positive', '_registration_validate_space_request'),
   );
 
   $default_state = registration_get_default_state();

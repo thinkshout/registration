@@ -719,7 +719,7 @@ function registration_has_room($entity_type, $entity_id, $spaces = 1, $registrat
  *   The registration ID. If specified, exclude identified registration from count.
  *
  * @return int
- *   The number of slots remaining for a host entity.
+ *   The number of spaces remaining for a host entity.
  *
  * @see registration_has_room()
  */
@@ -1063,8 +1063,8 @@ function registration_cron() {
  * @param bool $reset
  *   (optional) Whether to force checking status in case registration_status
  *   may have been called previously for this host entity.
- * @param int $slots
- *   (optional) The number of slots to check that there is space for.
+ * @param int $spaces
+ *   (optional) The number of spaces to check that there is room for.
  * @param int $registration_id
  *   (optional) A registration id to exclude from the has room check.
  * @param array $errors
@@ -1072,7 +1072,7 @@ function registration_cron() {
  *
  * @return bool
  */
-function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 1, $registration_id = NULL, &$errors = array()) {
+function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces = 1, $registration_id = NULL, &$errors = array()) {
   $checked = &drupal_static(__FUNCTION__, array());
 
   if (!$reset && isset($checked[$entity_type][$entity_id])) {
@@ -1096,9 +1096,9 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $slots = 
   // only explore other settings if main status is enabled
   if ($status) {
     // check capacity
-    if (!registration_has_room($entity_type, $entity_id, $slots, $registration_id, $reset)) {
+    if (!registration_has_room($entity_type, $entity_id, $spaces, $registration_id, $reset)) {
       $status = FALSE;
-      $errors[] = t('insufficient slots remaining');
+      $errors[] = t('insufficient spaces remaining');
     }
     // check open date range
     if (isset($open) && ($now < $open)) {
@@ -1316,7 +1316,7 @@ function registration_access_people(Registration $registration, $account = NULL)
 
   // Me
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
-  $allow_multiple = !empty($settings['settings']['multiple_slots']) && $settings['settings']['multiple_slots'];
+  $allow_multiple = !empty($settings['settings']['maximum_spaces']) && $settings['settings']['maximum_spaces'];
   if ($account->uid && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }
@@ -1370,9 +1370,9 @@ function registration_field_extra_fields() {
           'description' => t('When the registration was updated.'),
           'weight' => 0,
         ),
-        'slots' => array(
-          'label' => t('Slots Used'),
-          'description' => t('How many slots were used in this registration.'),
+        'spaces' => array(
+          'label' => t('Spaces Used'),
+          'description' => t('How many spaces were used in this registration.'),
           'weight' => 0,
         ),
         'author' => array(

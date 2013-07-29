@@ -575,10 +575,13 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
   );
 
   $form['settings']['multiple_slots'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Register for multiple slots'),
-    '#description' => t('If selected, users can register for more than one slot for this event in a single registration.'),
-    '#default_value' => isset($settings['settings']['multiple_slots']) ? $settings['settings']['multiple_slots'] : -1,
+    '#type' => 'textfield',
+    '#title' => t('Slots allowed'),
+    '#size' => 5,
+    '#maxlength' => 10,
+    '#required' => TRUE,
+    '#description' => t('The maximum number of slots allowed for each registrations. For no limit, use 0. (Default is 1)'),
+    '#default_value' => isset($settings['settings']['multiple_slots']) ? $settings['settings']['multiple_slots'] : 1,
   );
 
   $form['settings']['multiple_registrations'] = array(

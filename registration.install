@@ -493,3 +493,40 @@ function registration_update_7103(&$sandbox) {
   $sql = "UPDATE registration_entity SET settings = REPLACE(settings, 'multiple_registrations', 'multiple_slots')";
   db_query($sql);
 }
+
+/**
+ * Updates settings for multiple registration limits and slots/spaces renaming.
+ */
+function registration_update_7104(&$sandbox) {
+  $registration_entities = db_select('registration_entity', 'r')
+    ->fields('r', array('entity_id', 'settings'))
+    ->execute()
+    ->fetchAll();
+
+  $success = TRUE;
+  foreach ($registration_entities as $ent) {
+    $settings = $ent->settings;
+    $settings = unserialize($settings);
+    $result = TRUE;
+    if (!empty($settings['multiple_slots'])) {
+      $settings['maximum_spaces'] = 0;
+    }
+    else {
+      $settings['maximum_spaces'] = 1;
+    }
+    unset($settings['multiple_slots']);
+    $settings = serialize($settings);
+    $result = db_update('registration_entity')
+      ->fields(array('settings' => $settings))
+      ->condition('entity_id', $ent->entity_id)
+      ->execute();
+  }
+  $success = $result && $success;
+  if ($success) {
+    $t = get_t();
+    return $t('Registrations settings have been updated.');
+  }
+  else {
+    throw new DrupalUpdateException('There was a problem updating your Registrations.');
+  }
+}

@@ -975,7 +975,7 @@ function theme_registration_state_overview_form($variables) {
  * Validation helper function to confirm the spaces requested are within limits.
  */
 function _registration_validate_space_request($element, &$form_state, $form) {
-  if ($form_state['input']['count'] > $form['#registration_settings']['settings']['maximum_spaces']) {
+  if (isset($form_state['input']['count']) && $form_state['input']['count'] > $form['#registration_settings']['settings']['maximum_spaces']) {
     form_error($element, t('You may not register for more than @count spaces.', array('@count' => $form['#registration_settings']['settings']['maximum_spaces'])));
   };
 }

@@ -503,12 +503,10 @@ function registration_update_7104(&$sandbox) {
     ->execute()
     ->fetchAll();
 
-  $success = TRUE;
   foreach ($registration_entities as $ent) {
     $settings = $ent->settings;
     $settings = unserialize($settings);
-    $result = TRUE;
-    if (!empty($settings['multiple_slots'])) {
+    if (isset($settings['multiple_slots']) && (bool) $settings['multiple_slots'] === TRUE) {
       $settings['maximum_spaces'] = 0;
     }
     else {
@@ -516,17 +514,31 @@ function registration_update_7104(&$sandbox) {
     }
     unset($settings['multiple_slots']);
     $settings = serialize($settings);
-    $result = db_update('registration_entity')
-      ->fields(array('settings' => $settings))
-      ->condition('entity_id', $ent->entity_id)
-      ->execute();
+    try {
+      db_update('registration_entity')
+        ->fields(array('settings' => $settings))
+        ->condition('entity_id', $ent->entity_id)
+        ->execute();
+    }
+    catch (Exception $e) {
+      throw new DrupalUpdateException($e->getMessage());
+    }
   }
-  $success = $result && $success;
-  if ($success) {
-    $t = get_t();
-    return $t('Registrations settings have been updated.');
+
+  $field_instances = registration_get_registration_instances();
+  foreach ($field_instances as $instance) {
+    $settings = &$instance['settings']['default_registration_settings']['settings'];
+    $new_value = $settings['multiple_slots']  ? 0 : 1;
+    $settings['maximum_capacity'] = $new_value;
+    unset($settings['multiple_slots']);
+    try {
+      field_update_instance($instance);
+    }
+    catch(FieldException $e) {
+      throw new DrupalUpdateException($e->getMessage());
+    }
   }
-  else {
-    throw new DrupalUpdateException('There was a problem updating your Registrations.');
-  }
+
+  $t = get_t();
+  return $t('Registrations settings have been updated.');
 }

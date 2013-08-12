@@ -22,7 +22,7 @@ function registration_form($form, &$form_state, Registration $registration) {
 
   $who_options = registration_access_people($registration);
 
-  // default value for who is registering
+  // Default value for who is registering.
   $who_default = NULL;
   if (isset($registration->registration_id)) {
     $who_default = $registration->registrant_type($GLOBALS['user']);
@@ -32,12 +32,12 @@ function registration_form($form, &$form_state, Registration $registration) {
     $who_default = reset($keys);
   }
 
-  // show a message if there's only one option as we're going to hide the form
+  // Show a message if there's only one option as we're going to hide the form.
   if (count($who_options) == 1 && !user_is_anonymous()) {
     $form['who_message'] = array(
       '#markup' => '<div class="registration-who-msg">' .
-        t('You are registering: %who', array('%who' => current($who_options))) .
-        '</div>',
+      t('You are registering: %who', array('%who' => current($who_options))) .
+      '</div>',
     );
   }
 
@@ -47,7 +47,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#options' => $who_options,
     '#default_value' => $who_default,
     '#required' => TRUE,
-    '#access' => (count($who_options) > 1)
+    '#access' => (count($who_options) > 1),
   );
 
   $form['user'] = array(
@@ -62,8 +62,8 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#states' => array(
       'visible' => array(
         ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
-      )
-    )
+      ),
+    ),
   );
 
   $form['anon_mail'] = array(
@@ -83,8 +83,6 @@ function registration_form($form, &$form_state, Registration $registration) {
 
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $capacity = $settings['capacity'];
-  $remaining = 0;
-  $description = '';
   $limit = isset($settings['settings']['maximum_spaces']) ? $settings['settings']['maximum_spaces'] : 1;
   $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
   if ($capacity && $limit) {

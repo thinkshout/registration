@@ -389,10 +389,12 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->setHostEntitySettings(array(
       'status' => 1,
       'capacity' => 2,
-      'maximum_spaces' => 1,
+      'settings' => array(
+        'maximum_spaces' => 1,
+      ),
     ));
 
-    // Submit a Registration form
+    // Submit a Registration form.
     $this->drupalGet($this->host_entity_path . '/register');
     $this->assertResponse(200, t('Register page loaded.'), 'Registration');
     $registration_form = array(

@@ -1343,6 +1343,11 @@ function registration_field_extra_fields() {
   foreach (registration_get_types() as $type => $reg_type) {
     $extra['registration'][$type] = array(
       'form' => array(
+        'who_is_registering' => array(
+          'label' => t('Registrant'),
+          'description' => t('Select who is registering for this event.'),
+          'weight' => 0,
+        ),
         'anon_mail' => array(
           'label' => t('Email'),
           'description' => t('Registrant\'s email address.'),

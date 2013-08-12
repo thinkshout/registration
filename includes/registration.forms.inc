@@ -85,7 +85,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $capacity = $settings['capacity'];
   $remaining = 0;
   $description = '';
-  $limit = $settings['settings']['maximum_spaces'];
+  $limit = isset($settings['settings']['maximum_spaces']) ? $settings['settings']['maximum_spaces'] : 1;
   $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
   if ($capacity && $limit) {
     $description = t('The number of spaces you wish to reserve. @spaces_remaining spaces remaining. You may register up to @max spaces.',
@@ -111,7 +111,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#description' => $description,
     '#default_value' => isset($registration->count) ? $registration->count : 1,
     '#size' => drupal_strlen($remaining),
-    '#access' => $settings['settings']['maximum_spaces'] == 1 ? FALSE : TRUE,
+    '#access' => (isset($settings['settings']['maximum_spaces']) && $settings['settings']['maximum_spaces'] == 1) ? FALSE : TRUE,
     '#element_validate' => array('element_validate_integer_positive', '_registration_validate_space_request'),
   );
 

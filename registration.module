@@ -965,7 +965,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
         $message = token_replace($message_template, array(
           $entity_type => $entity,
           'registration' => $registration
-        ));
+        ), array('clear' => TRUE));
       }
       $params['message'] = $message;
 

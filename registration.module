@@ -615,11 +615,16 @@ function registration_registrations_page($entity_type, $entity) {
         $user_col = l($user->name, $uri['path']);
       }
 
-      $actions = array(
-        l(t('View'), 'registration/' . $registration->registration_id),
-        l(t('Edit'), 'registration/' . $registration->registration_id . '/edit', array('query' => drupal_get_destination())),
-        l(t('Delete'), 'registration/' . $registration->registration_id . '/delete', array('query' => drupal_get_destination())),
-      );
+      $actions = array();
+      if (entity_access('view', 'registration', $registration)) {
+        $actions[] = l(t('View'), 'registration/' . $registration->registration_id);
+      }
+      if (entity_access('update', 'registration', $registration)) {
+        $actions[] = l(t('Edit'), 'registration/' . $registration->registration_id . '/edit', array('query' => drupal_get_destination()));
+      }
+      if (entity_access('delete', 'registration', $registration)) {
+        $actions[] = l(t('Delete'), 'registration/' . $registration->registration_id . '/delete', array('query' => drupal_get_destination()));
+      }
 
       $rows[] = array(
         l($registration->registration_id, 'registration/' . $registration->registration_id),

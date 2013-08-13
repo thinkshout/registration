@@ -178,7 +178,7 @@ function registration_form_validate($form, &$form_state) {
     }
   }
   // Only check capacity for existing registrations that are active.
-  else if (in_array($registration->state, registration_get_active_states())) {
+  elseif (in_array($registration->state, registration_get_active_states())) {
     $has_room = registration_has_room($registration->entity_type, $registration->entity_id, $count, $registration->registration_id);
     if (!$has_room) {
       form_set_error('', t('Sorry, unable to register for %label due to: insufficient spaces remaining.',

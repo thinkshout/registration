@@ -169,7 +169,7 @@ function registration_form_validate($form, &$form_state) {
 
   // Test status on new registrations.
   if (isset($registration->is_new) && $registration->is_new) {
-    $registration_status = registration_status($registration->entity_type, $registration->entity_id, FALSE, $count, $registration->registration_id, $errors);
+    $registration_status = registration_status($registration->entity_type, $registration->entity_id, TRUE, $count, $registration->registration_id, $errors);
 
     if (!$registration_status) {
       form_set_error('', t('Sorry, unable to register for %label due to: %errors.',

@@ -1087,6 +1087,12 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
 
   $entity = entity_load_single($entity_type, $entity_id);
   $registration_type = registration_get_entity_registration_type($entity_type, $entity);
+
+  // The host entity does not have registrations enabled.
+  if (!$registration_type) {
+    return FALSE;
+  }
+
   // bypass further access checks if user can administer registration
   if (user_access('administer registration') || user_access("administer $registration_type registration")) {
     return TRUE;

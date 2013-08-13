@@ -12,6 +12,7 @@ class Registration extends Entity {
 
   public
     $registration_id,
+    $type,
     $entity_id,
     $entity_type,
     $anon_mail = NULL,

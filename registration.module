@@ -1661,7 +1661,7 @@ function registration_save(Registration $registration) {
  *
  * @param string $op
  *   Operation user wishes to perform.
- * @param object $registration
+ * @param Registration $registration
  *   (optional) A fully loaded registration object.
  * @param object $account
  *   (optional) An user object, or omit for logged in user.
@@ -1670,7 +1670,7 @@ function registration_save(Registration $registration) {
  *
  * @see registration_entity_info()
  */
-function registration_access($op, $registration = NULL, $account = NULL) {
+function registration_access($op, Registration $registration = NULL, $account = NULL) {
   $account = isset($account) ? $account : $GLOBALS['user'];
   $admin = user_access('administer registration', $account);
 
@@ -1678,7 +1678,7 @@ function registration_access($op, $registration = NULL, $account = NULL) {
     return $admin;
   }
 
-  $type = $registration->type;
+  $type = $registration->bundle();
 
   // bypass further access checks if user can administer registration
   if ($admin || user_access("administer $type registration", $account)) {

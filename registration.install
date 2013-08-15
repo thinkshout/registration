@@ -490,7 +490,7 @@ function registration_update_7102(&$sandbox) {
  * Change multiple_registrations settings name to multiple_slots.
  */
 function registration_update_7103(&$sandbox) {
-  $sql = "UPDATE registration_entity SET settings = REPLACE(settings, 'multiple_registrations', 'multiple_slots')";
+  $sql = "UPDATE {registration_entity} SET settings = REPLACE(settings, 'multiple_registrations', 'multiple_slots')";
   db_query($sql);
 }
 

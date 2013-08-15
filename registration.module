@@ -384,18 +384,24 @@ function registration_user_cancel($edit, $account, $method) {
  */
 function registration_user_delete($account) {
   if (isset($account->uid)) {
-    db_delete('registration')
-      ->condition('author_uid', $account->uid)
+    $query = new EntityFieldQuery();
+    $result = $query
+      ->entityCondition('entity_type', 'registration')
+      ->propertyCondition('author_uid', $account->uid)
       ->execute();
 
-    // Users associated with {registration}.user_uid do not own the
-    // registration. Simply disassociate the user with the registration.
-    db_update('registration')
-      ->fields(array(
-      'user_uid' => NULL,
-    ))
-      ->condition('user_uid', $account->uid)
-      ->execute();
+    if ($result) {
+      registration_delete_multiple(array_keys($result['registration']));
+
+      // Users associated with {registration}.user_uid do not own the
+      // registration. Simply disassociate the user with the registration.
+      db_update('registration')
+        ->fields(array(
+          'user_uid' => NULL,
+        ))
+        ->condition('user_uid', $account->uid)
+        ->execute();
+    }
   }
 }
 

@@ -133,9 +133,7 @@ class Registration extends Entity {
       }
     }
 
-    if (empty($this->updated)) {
-      $this->updated = REQUEST_TIME;
-    }
+    $this->updated = REQUEST_TIME;
 
     if (!$this->registration_id && empty($this->created)) {
       $this->created = REQUEST_TIME;

@@ -1333,7 +1333,7 @@ function registration_access_people(Registration $registration, $account = NULL)
 
   // Me
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
-  $allow_multiple = !empty($settings['settings']['maximum_spaces']) && $settings['settings']['maximum_spaces'];
+  $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
   if ($account->uid && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }

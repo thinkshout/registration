@@ -235,11 +235,6 @@ function registration_form_submit($form, &$form_state) {
   }
   $registration->count = $form_state['values']['count'];
 
-  if (user_access('edit ' . $registration->type . ' registration state')) {
-    $registration->state = (!empty($form_state['values']['state']))
-      ? $form_state['values']['state'] : NULL;
-  }
-
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
       $registration->anon_mail = $form_state['values']['anon_mail'];

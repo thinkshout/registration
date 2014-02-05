@@ -143,7 +143,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     );
   }
 
-  if ($host) {
+  if ($host && entity_access('view', $registration->entity_type, $host)) {
     $uri = entity_uri($registration->entity_type, $host);
     $form['actions']['cancel'] = array(
       '#type' => 'link',

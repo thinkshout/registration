@@ -259,7 +259,10 @@ function registration_form_submit($form, &$form_state) {
 
   // Save the registration and redirect.
   if (registration_save($registration)) {
-    drupal_set_message(t('Registration has been saved.'));
+    $reg_config = registration_entity_settings($registration->entity_type, $registration->entity_id);
+    if (!empty($reg_config['settings']['confirmation']) && strlen($reg_config['settings']['confirmation'])) {
+      drupal_set_message(t($reg_config['settings']['confirmation']));
+    }
     $wrapper = entity_metadata_wrapper('registration', $registration);
     $host = $wrapper->entity->value();
 
@@ -611,6 +614,16 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#description' => t('From email address to use for confirmations, reminders, and broadcast emails.'),
     '#required' => TRUE,
     '#default_value' => isset($settings['settings']['from_address']) ? $settings['settings']['from_address'] : variable_get('site_mail', ini_get('sendmail_from')),
+  );
+
+  $form['settings']['confirmation'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Confirmation Message'),
+    '#description' => t('The message to display when someone registers. Leave blank for none.'),
+    '#size' => 60,
+    '#maxlength' => 120,
+    '#required' => FALSE,
+    '#default_value' =>  isset($settings['settings']['confirmation']) ? $settings['settings']['confirmation'] : 'Registration has been saved.',
   );
 
   // Allow other modules to add their own custom settings:

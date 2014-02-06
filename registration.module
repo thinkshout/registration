@@ -392,16 +392,17 @@ function registration_user_delete($account) {
 
     if ($result) {
       registration_delete_multiple(array_keys($result['registration']));
-
-      // Users associated with {registration}.user_uid do not own the
-      // registration. Simply disassociate the user with the registration.
-      db_update('registration')
-        ->fields(array(
-          'user_uid' => NULL,
-        ))
-        ->condition('user_uid', $account->uid)
-        ->execute();
     }
+    // Users associated with {registration}.user_uid do not own the
+    // registration. Simply disassociate the user with the registration.
+    db_update('registration')
+      ->fields(array(
+        'user_uid' => NULL,
+      ))
+      ->condition('user_uid', $account->uid)
+      ->execute();
+    // Delete entries in the cache as well.
+    cache_clear_all('*', 'cache_entity_registration', TRUE);
   }
 }
 

@@ -84,6 +84,8 @@ function registration_form($form, &$form_state, Registration $registration) {
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $capacity = $settings['capacity'];
   $limit = isset($settings['settings']['maximum_spaces']) ? $settings['settings']['maximum_spaces'] : 1;
+  // Just in case it was unset:
+  $settings['settings']['maximum_spaces'] = $limit;
   $remaining = $capacity - registration_event_count($registration->entity_type, $registration->entity_id);
   if ($capacity && $limit) {
     $description = t('The number of spaces you wish to reserve. @spaces_remaining spaces remaining. You may register up to @max spaces.',

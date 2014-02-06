@@ -606,19 +606,17 @@ function registration_registrations_page($entity_type, $entity) {
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
       $author = $wrapper->author->value();
+      $user = $wrapper->user->value();
       $state = $wrapper->state->value();
 
       $author_col = '';
       if ($registration->author_uid) {
-        $uri = entity_uri('user', $author);
-        $author_col = l($author->name, $uri['path']);
+        $author_col = theme('username', array('account' => $author));
       }
 
       $user_col = '';
       if ($registration->user_uid) {
-        $user = user_load($registration->user_uid);
-        $uri = entity_uri('user', $user);
-        $user_col = l($user->name, $uri['path']);
+        $user_col = theme('username', array('account' => $user));
       }
 
       $actions = array();

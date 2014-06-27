@@ -829,6 +829,12 @@ function registration_state_form($form, &$form_state, $registration_state, $op =
     '#default_value' => isset($registration_state->active) ?
       $registration_state->active : 0,
   );
+  $form['held'] = array(
+    '#title' => t('Held'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($registration_state->held) ?
+      $registration_state->held : 0,
+  );
   $form['show_on_form'] = array(
     '#title' => t('Show on form'),
     '#type' => 'checkbox',
@@ -905,6 +911,11 @@ function registration_state_overview_form($form, &$form_state) {
         '#type' => 'checkbox',
         '#default_value' => $state->active,
       );
+      $form['state'][$sid]['held'] = array(
+        '#title' => t('Held'),
+        '#type' => 'checkbox',
+        '#default_value' => $state->held,
+      );
       $form['state'][$sid]['show_on_form'] = array(
         '#title' => t('Show on form'),
         '#type' => 'checkbox',
@@ -946,6 +957,7 @@ function registration_state_overview_form_submit($form, &$form_state) {
     $registration_state->label = $state['label'];
     $registration_state->default_state = $state['sid'] == $default_state;
     $registration_state->active = isset($state['active']) ? $state['active'] : 0;
+    $registration_state->held = isset($state['held']) ? $state['held'] : 0;
     $registration_state->show_on_form = isset($state['show_on_form']) ? $state['show_on_form'] : 0;
     $registration_state->weight = $state['weight'];
     $registration_state->description = $state['description'];
@@ -968,6 +980,7 @@ function theme_registration_state_overview_form($variables) {
     array('data' => t('Description')),
     array('data' => t('Default')),
     array('data' => t('Active')),
+    array('data' => t('Held')),
     array('data' => t('Show on form')),
     array('data' => t('Weight')),
     array('data' => t('Operations'), 'colspan' => 2)
@@ -980,6 +993,7 @@ function theme_registration_state_overview_form($variables) {
                'description',
                'default_state',
                'active',
+               'held',
                'show_on_form',
                'weight',
                'delete',

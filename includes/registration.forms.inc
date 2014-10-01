@@ -691,6 +691,13 @@ function registration_entity_settings_form_validate($form, &$form_state) {
   ) {
     form_set_error('reminder][reminder_settings][reminder_date', t('Reminder date is invalid.'));
   }
+
+  // Ensure reminder date is not in the past when "send_reminder" is TRUE
+  if ($reminder['send_reminder'] && !empty($reminder['reminder_settings']['reminder_date'])) {
+    if (strtotime($reminder['reminder_settings']['reminder_date']) <= time()) {
+      form_set_error('reminder][reminder_settings][reminder_date', t('Reminder must be in the future.'));
+    }
+  }
 }
 
 /**

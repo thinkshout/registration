@@ -273,6 +273,25 @@ function registration_menu() {
 }
 
 /**
+ * Implements hook_admin_paths().
+ */
+function registration_admin_paths() {
+  $paths = array();
+  if (variable_get('registration_paths_administrative', FALSE)) {
+    foreach (registration_get_registration_instances() as $instance) {
+      $type = $instance['entity_type'];
+      if (!in_array($type, array('registration', 'registration_type'))) {
+        $paths[$type . '/*/registrations'] = TRUE;
+        $paths[$type . '/*/registrations/list'] = TRUE;
+        $paths[$type . '/*/registrations/settings'] = TRUE;
+        $paths[$type . '/*/registrations/broadcast'] = TRUE;
+      }
+    }
+  }
+  return $paths;
+}
+
+/**
  * Implements hook_permission().
  */
 function registration_permission() {

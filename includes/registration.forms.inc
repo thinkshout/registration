@@ -268,16 +268,22 @@ function registration_form_submit($form, &$form_state) {
     $wrapper = entity_metadata_wrapper('registration', $registration);
     $host = $wrapper->entity->value();
 
-    // Redirect to registration
-    if (entity_access('view', 'registration', $registration)) {
-      $uri = entity_uri('registration', $registration);
-      $form_state['redirect'] = $uri['path'];
+    // Set redirect to configured value, if there is one.
+    if (!empty($reg_config['settings']['confirmation_redirect']) && strlen($reg_config['settings']['confirmation_redirect'])) {
+      $form_state['redirect'] = $reg_config['settings']['confirmation_redirect'];
     }
-    // Redirect to host entity
     else {
-      if (entity_access('view', $registration->entity_type, $host)) {
-        $uri = entity_uri($registration->entity_type, $host);
+      // Redirect to registration
+      if (entity_access('view', 'registration', $registration)) {
+        $uri = entity_uri('registration', $registration);
         $form_state['redirect'] = $uri['path'];
+      }
+      // Redirect to host entity
+      else {
+        if (entity_access('view', $registration->entity_type, $host)) {
+          $uri = entity_uri($registration->entity_type, $host);
+          $form_state['redirect'] = $uri['path'];
+        }
       }
     }
   }
@@ -626,6 +632,16 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#maxlength' => 120,
     '#required' => FALSE,
     '#default_value' =>  isset($settings['settings']['confirmation']) ? $settings['settings']['confirmation'] : 'Registration has been saved.',
+  );
+
+  $form['settings']['confirmation_redirect'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Confirmation redirect path'),
+    '#description' => t('Optional path to redirect to when someone registers. Leave blank to redirect to the registration itself if the user has permission or the host entity if they do not.'),
+    '#size' => 60,
+    '#maxlength' => 120,
+    '#required' => FALSE,
+    '#default_value' =>  isset($settings['settings']['confirmation_redirect']) ? $settings['settings']['confirmation_redirect'] : '',
   );
 
   // Allow other modules to add their own custom settings:

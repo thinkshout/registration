@@ -905,7 +905,29 @@ function registration_theme() {
       'file' => 'includes/registration.forms.inc',
       'render element' => 'form',
     ),
+    'registration_property_field' => array(
+      'variables' => array(
+        'label_hidden' => FALSE,
+        'title_attributes' => NULL,
+        'label' => '',
+        'content_attributes' => NULL,
+        'items' => array(),
+        'item_attributes' => array(0 => ''),
+        'classes' => '',
+        'attributes' => '',
+      ),
+    ),
   );
+}
+
+/**
+ * Theme function for registration properties.
+ *
+ * Simple wrapper around theme_field that sets default values and ensures
+ * properties render consistently with fields.
+ */
+function theme_registration_property_field($variables) {
+  return theme_field($variables);
 }
 
 /**

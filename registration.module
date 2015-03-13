@@ -1067,7 +1067,7 @@ function registration_cron() {
   foreach ($results as $result) {
     $entity = entity_load_single($result->entity_type, $result->entity_id);
     $message = $result->reminder_template;
-    $subject = 'Reminder for ' . entity_label($result->entity_type, $entity);
+    $subject = t('Reminder for !label', array('!label' => entity_label($result->entity_type, $entity)));
     registration_send_broadcast($result->entity_type, $result->entity_id, $subject, $message);
 
     // set reminder flag to off
@@ -1126,7 +1126,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
   // only explore other settings if main status is enabled
   if ($status) {
     // check max allowed spaces per registration
-    if ($spaces > $settings['settings']['maximum_spaces']) {
+    if ((isset($settings['settings']['maximum_spaces']) && $settings['settings']['maximum_spaces']) && $spaces > $settings['settings']['maximum_spaces']) {
       $status = FALSE;
       $errors[] = t('You may not register for more than @count spaces.', array('@count' => $settings['settings']['maximum_spaces']));
     }

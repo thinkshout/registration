@@ -55,6 +55,6 @@ function hook_registration_entity_settings($settings) {
  *     'settings' => $settings,
  *   );
  */
-function hook_registration_even_count_alter($count, $context) {
+function hook_registration_event_count_alter(&$count, $context) {
 
 }

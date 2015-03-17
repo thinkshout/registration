@@ -684,12 +684,12 @@ function registration_entity_settings_form_validate($form, &$form_state) {
   }
 
   // Validate open date:
-  if (!empty($form_state['values']['scheduling']['open']) && strtotime($form_state['values']['scheduling']['open']) === FALSE) {
+  if (!empty($form_state['values']['scheduling']['open']) && is_string($form_state['values']['scheduling']['open']) && strtotime($form_state['values']['scheduling']['open']) === FALSE) {
     form_set_error('scheduling][open', t('Date is invalid.'));
   }
 
   // Validate close date:
-  if (!empty($form_state['values']['scheduling']['close']) && strtotime($form_state['values']['scheduling']['close']) === FALSE) {
+  if (!empty($form_state['values']['scheduling']['close']) && is_string($form_state['values']['scheduling']['close']) && strtotime($form_state['values']['scheduling']['close']) === FALSE) {
     form_set_error('scheduling][close', t('Date is invalid.'));
   }
 

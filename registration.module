@@ -1081,6 +1081,9 @@ function registration_cron() {
     ->fields('re')
     ->condition('send_reminder', 1)
     ->condition('reminder_date', date('Y-m-d G:i:s'), '<=')
+    // Omit any registrations whose reminder dates are too far in the past.
+    // If two days have past, it's too late, so ignore them.
+    ->condition('reminder_date', date('Y-m-d G:i:s', strtotime('-2 days')), '>')
     ->range(0, 10)
     ->addTag('registration_cron_select')
     ->execute()

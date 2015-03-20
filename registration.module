@@ -1076,7 +1076,8 @@ function registration_update_entity_settings($entity_type, $entity_id, $settings
 function registration_cron() {
   //@TODO: need to have a sensible batch limit, passed in as a limit param
 
-  // grab all registrations that have reminders set for this day
+  // Send reminder emails.
+  // Grab all registrations that have reminders set for this day.
   $results = db_select('registration_entity', 're')
     ->fields('re')
     ->condition('send_reminder', 1)
@@ -1095,7 +1096,7 @@ function registration_cron() {
     $subject = t('Reminder for !label', array('!label' => entity_label($result->entity_type, $entity)));
     registration_send_broadcast($result->entity_type, $result->entity_id, $subject, $message);
 
-    // set reminder flag to off
+    // Set reminder flag to off.
     db_update('registration_entity')
       ->fields(array('send_reminder' => 0))
       ->condition('entity_id', $result->entity_id)

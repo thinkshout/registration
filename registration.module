@@ -1158,21 +1158,21 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
     // check capacity
     if (!registration_has_room($entity_type, $entity_id, $spaces, $registration_id, $reset)) {
       $status = FALSE;
-      $errors[] = t('insufficient spaces remaining');
+      $errors[] = t('Insufficient spaces remaining.');
     }
     // check open date range
     if (isset($open) && ($now < $open)) {
       $status = FALSE;
-      $errors[] = t('registration is not yet open');
+      $errors[] = t('Registration is not yet open.');
     }
     // check close date range
     if (isset($close) && ($now >= $close)) {
       $status = FALSE;
-      $errors[] = t('registration is closed');
+      $errors[] = t('Registration is closed.');
     }
   }
   else {
-    $errors[] = t('registration is disabled');
+    $errors[] = t('Registration is disabled.');
   }
 
   // allow other mods to override status

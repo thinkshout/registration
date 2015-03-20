@@ -7,6 +7,7 @@ class RegistrationType extends Entity {
 
   public $name;
   public $label;
+  public $data;
   public $locked;
 
   public function __construct($values = array()) {

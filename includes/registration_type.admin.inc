@@ -34,6 +34,37 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     ),
     '#description' => t('A unique machine-readable name for this registration type. It must only contain lowercase letters, numbers, and underscores.'),
   );
+  // Settings for registration type.
+  $form['data'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Additional Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  // Setting for how long a held registration will exist before it is removed from held state.
+  $form['data']['held_expire'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Hold expiration hours'),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#required' => FALSE,
+    '#description' => t('The minimum number of hours a registration can remain held before it is taken out of held state and no longer counts against capacity. For no limit, use 0 (default is 1).<br><strong>Note</strong>: registrations are removed from held state by cron, so the number of hours specified is the minimum amount of time a registration will be held for; it can be held for longer depending on when the next cron run is after the minimum amount of time has elapsed.'),
+    '#default_value' => isset($registration_type->held_expire) ? $registration_type->held_expire : 1,
+  );
+  // Setting for which state a registration will be put in if its hold expires.
+  $states = registration_get_states();
+  foreach ($states as $key => $value) {
+    $states[$key] = $value->label;
+  }
+  $form['data']['held_expire_state'] = array(
+    '#type' => 'select',
+    '#title' => t('Hold expiration state'),
+    '#options' => $states,
+    '#required' => FALSE,
+    '#description' => t('The state a registration will be put into when its hold expires (default is "canceled").'),
+    '#default_value' => isset($registration_type->held_expire_state) ? $registration_type->held_expire_state : 'canceled',
+  );
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(

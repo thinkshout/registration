@@ -762,7 +762,8 @@ function registration_event_count($entity_type, $entity_id, $registration_id = N
     if ($registration_id != NULL) {
       $query->condition('registration_id', $registration_id, '<>');
     }
-    $query->condition('state', array_merge(registration_get_active_states(), registration_get_held_states() ), 'IN');
+    $active_held_states = array_merge(registration_get_active_states(), registration_get_held_states());
+    $query->condition('state', $active_held_states, 'IN');
     $result = $query->execute();
     $count = $result->fetchField();
     $count = ($count == '') ? 0 : $count;

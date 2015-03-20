@@ -562,3 +562,18 @@ function registration_update_7104(&$sandbox) {
   $t = get_t();
   return $t('Registrations settings have been updated.');
 }
+
+/**
+ * Adds column to registration_state table for held property.
+ */
+function registration_update_7105(&$sandbox) {
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+    'description' => 'A flag showing held registration states.',
+  );
+
+  db_add_field( 'registration_state', 'held', $spec);
+}

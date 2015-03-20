@@ -617,6 +617,16 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#default_value' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : -1,
   );
 
+  $form['settings']['held_expire'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Hold expiration hours'),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#required' => FALSE,
+    '#description' => t('The minimum number of hours a registration can remain held before it is taken out of held state and no longer counts against capacity. For no limit, use 0 (default is 1).<br><strong>Note</strong>: registrations are removed from held state by cron, so the number of hours specified is the minimum amount of time a registration will be held for; it can be held for longer depending on when the next cron run is after the minimum amount of time has elapsed.'),
+    '#default_value' => isset($settings['settings']['held_expire']) ? $settings['settings']['held_expire'] : 1,
+  );
+
   $form['settings']['from_address'] = array(
     '#type' => 'textfield',
     '#title' => t('From Address'),

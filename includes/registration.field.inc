@@ -32,6 +32,7 @@ function registration_field_info() {
           'settings' => array(
             'maximum_spaces' => 1,
             'multiple_registrations' => -1,
+            'held_expire' => 1,
             'from_address' => variable_get('site_mail', ini_get('sendmail_from')),
           ),
         ),

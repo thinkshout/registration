@@ -165,6 +165,47 @@ class Registration extends Entity {
    * @see entity_save()
    */
   public function save() {
+    // Check to see if registrations are permitted for the host entity.
+    $errors = array();
+    if (!registration_status($this->entity_type, $this->entity_id, FALSE, 1, NULL, $errors)) {
+      form_set_error('', t('Sorry, unable to save new registration due to: %errors.',
+        array('%errors' => implode(', ', $errors))
+      ));
+      return FALSE;
+    }
+    // Check to see if the user being registered is permitted to register.
+    $settings = registration_entity_settings($this->entity_type, $this->entity_id);
+    // We only care whether this is the user's second registration because
+    // they would not be able to see the registration form if they were not
+    // permitted to register for another reason.
+    if (!$settings['settings']['multiple_registrations']) {
+      // Registration is for a person with an account.
+      if (isset($this->user_uid)) {
+        // Registration is for the user creating it.
+        if ($this->user_uid == $this->author_uid) {
+          if (registration_is_registered($this, NULL, $this->user_uid)) {
+            form_set_error('user', t('You are already registered for this event.'));
+            return FALSE;
+          }
+        }
+        // Registration is for a different user than the one creating it.
+        else {
+          if (registration_is_registered($this, NULL, $this->user_uid)) {
+            $user = user_load($this->user_uid);
+            form_set_error('user', t('%user is already food for this event.', array('%user' => $user->name)));
+          }
+        }
+      }
+      // Registration is for an anonymous person.
+      else {
+        if (registration_is_registered($this, $this->anon_mail)) {
+          form_set_error('anon_mail', t('%mail is already registered for this event.',
+            array('%mail' => $this->anon_mail)));
+          return FALSE;
+        }
+      }
+    }
+
     // Set a default state if not provided.
     $wrapper = entity_metadata_wrapper('registration', $this);
     $state = $wrapper->state->value();

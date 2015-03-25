@@ -192,7 +192,8 @@ class Registration extends Entity {
         else {
           if (registration_is_registered($this, NULL, $this->user_uid)) {
             $user = user_load($this->user_uid);
-            form_set_error('user', t('%user is already food for this event.', array('%user' => $user->name)));
+            form_set_error('user', t('%user is already registered for this event.',
+              array('%user' => $user->name)));
           }
         }
       }

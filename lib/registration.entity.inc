@@ -168,7 +168,7 @@ class Registration extends Entity {
     // Check to see if registrations are permitted for the host entity.
     $errors = array();
     if (!registration_status($this->entity_type, $this->entity_id, FALSE, 1, NULL, $errors)) {
-      form_set_error('', t('Sorry, unable to save new registration due to: %errors.',
+      form_set_error('', t('Sorry, unable to save new registration due to: %errors',
         array('%errors' => implode(', ', $errors))
       ));
       return FALSE;

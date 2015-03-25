@@ -497,6 +497,9 @@ function registration_register_page_access($entity_type, $entity) {
  *   The host entity type.
  * @param object $entity
  *   The host entity.
+ * @param object $account = NULL
+ *   An account for which to check access. If NULL is provided the current
+ *   user is used.
  *
  * @return bool
  *   Whether a user can view registrations for a host entity.
@@ -504,13 +507,13 @@ function registration_register_page_access($entity_type, $entity) {
  * @see registration_registrations_page()
  * @see registration_menu()
  */
-function registration_administer_registrations_access($entity_type, $entity) {
+function registration_administer_registrations_access($entity_type, $entity, $account = NULL) {
   $registration_type = registration_get_entity_registration_type($entity_type, $entity);
   if ($registration_type) {
-    if (user_access("administer $registration_type registration")) {
+    if (user_access("administer $registration_type registration", $account)) {
       return TRUE;
     }
-    elseif (user_access("administer own $registration_type registration") && entity_access('update', $entity_type, $entity)) {
+    elseif (user_access("update own $registration_type registration", $account) && entity_access('update', $entity_type, $entity, $account)) {
       return TRUE;
     }
   }

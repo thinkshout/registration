@@ -1002,12 +1002,12 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
 
     // Give other modules a chance to alter registrations (for example, did
     // someone opt-out of the reminder?
-    // Invoke hook_registration_broadcast_registrations_alter(),
-    // hook_registration_broadcast_registrations_ENTITY_TYPE_alter() and
-    // hook_registration_broadcast_registrations_ENTITY_TYPE_ENTITY_ID_alter()
-    $hooks = array('registration_broadcast_registrations');
-    $hooks[] = 'registration_broadcast_registrations_' . $entity_type;
-    $hooks[] = 'registration_broadcast_registrations_' . $entity_type.'_'.$entity_id;
+    // Invoke hook_registration_send_broadcast_alter(),
+    // hook_registration_send_broadcast_ENTITY_TYPE_alter() and
+    // hook_registration_send_broadcast_ENTITY_TYPE_ENTITY_ID_alter()
+    $hooks = array('registration_send_broadcast');
+    $hooks[] = 'registration_send_broadcast_' . $entity_type;
+    $hooks[] = 'registration_send_broadcast_' . $entity_type.'_'.$entity_id;
     $context = array(
       'entity_type' => $entity_type,
       'entity_id' => $entity_id,

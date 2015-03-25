@@ -215,6 +215,12 @@ function registration_schema() {
         'default' => 0,
         'size' => 'tiny',
       ),
+      'default_state' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'The machine name of the default registration state.',
+      ),
       'data' => array(
         'type' => 'text',
         'not null' => FALSE,
@@ -567,13 +573,32 @@ function registration_update_7104(&$sandbox) {
  * Adds column to registration_state table for held property.
  */
 function registration_update_7105(&$sandbox) {
-  $spec = array(
-    'type' => 'int',
-    'not null' => TRUE,
-    'default' => 0,
-    'size' => 'tiny',
-    'description' => 'A flag showing held registration states.',
-  );
+  if (!db_field_exists('registration_state', 'held')) {
+    $spec = array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+      'size' => 'tiny',
+      'description' => 'A flag showing held registration states.',
+    );
 
-  db_add_field( 'registration_state', 'held', $spec);
+    db_add_field('registration_state', 'held', $spec);
+  }
+}
+
+/**
+ * Add the new default_state field to the registration_type table
+ */
+
+function registration_update_7106(&$sandbox) {
+  if (!db_field_exists('registration_type', 'default_state')) {
+    db_add_field('registration_type', 'default_state',
+      array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'The machine name of the default registration state.',
+      )
+    );
+  }
 }

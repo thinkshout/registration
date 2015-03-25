@@ -211,7 +211,7 @@ class Registration extends Entity {
     $wrapper = entity_metadata_wrapper('registration', $this);
     $state = $wrapper->state->value();
     if (!$state) {
-      $default_state = registration_get_default_state();
+      $default_state = registration_get_default_state($wrapper->type->value());
       if ($default_state) {
         $this->state = $default_state->identifier();
       }

@@ -1555,8 +1555,16 @@ function registration_get_held_states() {
  *
  * @return array
  */
-function registration_get_default_state() {
-  $states = registration_states(array('default_state' => 1));
+function registration_get_default_state($type = NULL) {
+  // If a type of registration is specified, look for its default registration
+  // state before using the global default.
+  $states_query = array('default_state' => 1);
+  if (isset($type)) {
+    $reg_type = registration_get_types($type);
+    $states_query = isset($reg_type->default_state) ? array('name' => $reg_type->default_state) : $states_query;
+  }
+  $states = registration_states($states_query);
+
   return !empty($states) ? reset($states) : NULL;
 }
 

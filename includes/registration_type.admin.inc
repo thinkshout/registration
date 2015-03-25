@@ -34,6 +34,16 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     ),
     '#description' => t('A unique machine-readable name for this registration type. It must only contain lowercase letters, numbers, and underscores.'),
   );
+  // Setting for default state for regsitrations of this type.
+  // Overrides global default state setting.
+  $state_options = registration_get_states_options();
+  $form['default_state'] = array(
+    '#title' => 'Default state',
+    '#type' => 'select',
+    '#description' => t('The default state for this registration type. Overrides the global default state set at /admin/structure/registration/registration_states.'),
+    '#default_value' => isset($registration_type->default_state) ? $registration_type->default_state : 0,
+    '#options' => array('none' => 'None') + $state_options,
+  );
   // Settings for registration type.
   $form['data'] = array(
     '#type' => 'fieldset',
@@ -53,14 +63,10 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     '#default_value' => isset($registration_type->held_expire) ? $registration_type->held_expire : 1,
   );
   // Setting for which state a registration will be put in if its hold expires.
-  $states = registration_get_states();
-  foreach ($states as $key => $value) {
-    $states[$key] = $value->label;
-  }
   $form['data']['held_expire_state'] = array(
     '#type' => 'select',
     '#title' => t('Hold expiration state'),
-    '#options' => $states,
+    '#options' => $state_options,
     '#required' => FALSE,
     '#description' => t('The state a registration will be put into when its hold expires (default is "canceled").'),
     '#default_value' => isset($registration_type->held_expire_state) ? $registration_type->held_expire_state : 'canceled',
@@ -90,6 +96,11 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
  * Form API submit callback for the type form.
  */
 function registration_type_form_submit(&$form, &$form_state) {
+  // Set default state to NULL if 'none' is selected for database insert.
+  if ($form_state['values']['default_state'] == 'none') {
+    $form_state['values']['default_state'] = NULL;
+  }
+
   $registration_type = entity_ui_form_submit_build_entity($form, $form_state);
   $registration_type->save();
   $form_state['redirect'] = 'admin/structure/registration/registration_types';

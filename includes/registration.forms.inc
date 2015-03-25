@@ -17,6 +17,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $user = $wrapper->user->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
+  $type = $wrapper->type->value();
 
   $form_state['registration'] = $registration;
 
@@ -115,8 +116,13 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#element_validate' => array('element_validate_integer_positive', '_registration_validate_space_request'),
   );
 
-  $default_state = registration_get_default_state();
+  $default_state = registration_get_default_state($type);
   $states = registration_get_states_options(array('show_on_form' => TRUE));
+
+  // Ensure default state is in options or it won't be set.
+  if (!in_array($default_state->label, $states)) {
+    $states[$default_state->name] = $default_state->label;
+  }
 
   $form['state'] = array(
     '#type' => 'select',

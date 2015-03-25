@@ -1217,7 +1217,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
     $errors[] = t('Registration is disabled.');
   }
 
-  // allow other mods to override status
+  // Allow other mods to override status.
   $context = array(
     'entity_type' => $entity_type,
     'entity_id' => $entity_id,

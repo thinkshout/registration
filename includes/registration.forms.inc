@@ -699,13 +699,23 @@ function registration_entity_settings_form_validate($form, &$form_state) {
     form_set_error('scheduling][close', t('Date is invalid.'));
   }
 
-  // if sending a reminder, ensure date and template are set
+  // If sending a reminder, ensure date and template are set.
   $reminder = $form_state['values']['reminder'];
   if ($reminder['send_reminder']
     && (empty($reminder['reminder_settings']['reminder_date']) ||
       empty($reminder['reminder_settings']['reminder_template']))
   ) {
     form_set_error('reminder][send_reminder', t('If sending a reminder, provide a date and template.'));
+  }
+
+  // If reminder date or template are set, ensure we're sending a reminder.
+  if (empty($reminder['send_reminder'])) {
+    if (!empty($reminder['reminder_settings']['reminder_template'])) {
+      form_set_error('reminder][reminder_settings][reminder_template', t('You have provided a reminder template, but not opted to send a reminder. Either check the box to send a reminder, or do not provide a reminder template.'));
+    }
+    if (!empty($reminder['reminder_settings']['reminder_date'])) {
+      form_set_error('reminder][reminder_settings][reminder_date', t('You have provided a reminder date, but not opted to send a reminder. Either check the box to send a reminder, or do not provide a reminder date.'));
+    }
   }
 
   // Validate reminder date
@@ -753,17 +763,16 @@ function registration_convert_form_settings($values) {
     'status' => $values['status'],
     'capacity' => $values['capacity'],
     'send_reminder' => isset($values['reminder']['send_reminder']) ? $values['reminder']['send_reminder'] : 0,
+    'reminder_date' => NULL,
+    'reminder_template' => isset($values['reminder']['reminder_settings']['reminder_template']) ? $values['reminder']['reminder_settings']['reminder_template'] : NULL,
     'settings' => serialize($values['settings']),
     'open' => NULL,
     'close' => NULL,
   );
 
-  // reminder settings
-  if (isset($values['reminder']['send_reminder']) && $values['reminder']['send_reminder']) {
-    if (!empty($values['reminder']['reminder_settings']['reminder_date'])) {
-      $fields['reminder_date'] = date('Y-m-d H:i:s', strtotime($values['reminder']['reminder_settings']['reminder_date']));
-    }
-    $fields['reminder_template'] = $values['reminder']['reminder_settings']['reminder_template'];
+  // Reminder: Reminder Date
+  if (!empty($values['reminder']['reminder_settings']['reminder_date'])) {
+    $fields['reminder_date'] = date('Y-m-d H:i:s', strtotime($values['reminder']['reminder_settings']['reminder_date']));
   }
 
   // Scheduling: open date

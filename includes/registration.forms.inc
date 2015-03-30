@@ -201,6 +201,7 @@ function registration_form_validate($form, &$form_state) {
   // Validate according to who's registering.
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
+      $form_state['values']['anon_mail'] = trim($form_state['values']['anon_mail']);
       if (!valid_email_address($form_state['values']['anon_mail'])) {
         form_set_error('anon_mail', t('The email address is invalid.'));
       }
@@ -250,7 +251,7 @@ function registration_form_submit($form, &$form_state) {
 
   switch ($form_state['values']['who_is_registering']) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
-      $registration->anon_mail = $form_state['values']['anon_mail'];
+      $registration->anon_mail = trim($form_state['values']['anon_mail']);
       break;
     case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;

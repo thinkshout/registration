@@ -766,7 +766,9 @@ function registration_event_count($entity_type, $entity_id, $registration_id = N
       $query->condition('registration_id', $registration_id, '<>');
     }
     $active_held_states = array_merge(registration_get_active_states(), registration_get_held_states());
-    $query->condition('state', $active_held_states, 'IN');
+    if (!empty($active_held_states)) {
+      $query->condition('state', $active_held_states, 'IN');
+    }
     $result = $query->execute();
     $count = $result->fetchField();
     $count = ($count == '') ? 0 : $count;
@@ -975,6 +977,15 @@ function registration_mail($key, &$message, $params) {
 function registration_send_broadcast($entity_type, $entity_id, $subject, $message) {
   global $language;
 
+  // Return early if there are no active registration states configured.
+  $active_states = registration_get_held_states();
+  if (empty($active_states)) {
+    $error_message = t('There are no active registration states configured. For email to be sent to registrants, an active registration state must be specified at "admin/structure/registration/registration_states".');
+    drupal_set_message($error_message, 'error');
+    watchdog('registration', $error_message, WATCHDOG_ERROR);
+    return;
+  }
+
   // grab registration entity settings
   $settings = registration_entity_settings($entity_type, $entity_id);
   $from = $settings['settings']['from_address'];
@@ -985,7 +996,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     ->entityCondition('entity_type', 'registration')
     ->propertyCondition('entity_id', $entity_id)
     ->propertyCondition('entity_type', $entity_type)
-    ->propertyCondition('state', registration_get_active_states(), 'IN')
+    ->propertyCondition('state', $active_states, 'IN')
     ->execute();
 
   if (!empty($entities)) {
@@ -1374,6 +1385,11 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
 
   if (empty($states)) {
     $states = registration_get_active_states();
+  }
+
+  // Ensure we have active states before querying against them.
+  if (empty($states)) {
+    return FALSE;
   }
 
   $query = db_select('registration', 'r')

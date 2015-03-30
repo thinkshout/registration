@@ -1123,25 +1123,28 @@ function registration_cron() {
   }
 
   // Remove any registrations from held state that qualify.
-  $results = db_select('registration', 'r')
-    ->fields('r')
-    ->condition('state', registration_get_held_states(), 'IN')
-    ->execute()
-    ->fetchAllAssoc('registration_id');
+  $held_states = registration_get_held_states();
+  if (!empty($held_states)) {
+    $results = db_select('registration', 'r')
+      ->fields('r')
+      ->condition('state', $held_states, 'IN')
+      ->execute()
+      ->fetchAllAssoc('registration_id');
 
-  foreach ($results as $result) {
-    $entity = entity_load_single('registration', $result->registration_id);
-    $wrapper = entity_metadata_wrapper('registration', $entity);
+    foreach ($results as $result) {
+      $entity = entity_load_single('registration', $result->registration_id);
+      $wrapper = entity_metadata_wrapper('registration', $entity);
 
-    // Determine whether hold expire minimum time time has elapsed.
-    // Setting for how long the hold lasts is stored on the registration type entity.
-    $registration_type = entity_load_single('registration_type', $wrapper->entity_id->value());
-    // Change registration state if hold has expired.
-    // Expiration time is in hours - hence the multiplication.
-    if ((time() - ($registration_type->held_expire * 60 * 60)) > $result->updated) {
-      // Set registration state to what is configured for its registration type.
-      $wrapper->state->set($registration_type->held_expire_state);
-      $wrapper->save();
+      // Determine whether hold expire minimum time time has elapsed.
+      // Setting for how long the hold lasts is stored on the registration type entity.
+      $registration_type = entity_load_single('registration_type', $wrapper->entity_id->value());
+      // Change registration state if hold has expired.
+      // Expiration time is in hours - hence the multiplication.
+      if ((time() - ($registration_type->held_expire * 60 * 60)) > $result->updated) {
+        // Set registration state to what is configured for its registration type.
+        $wrapper->state->set($registration_type->held_expire_state);
+        $wrapper->save();
+      }
     }
   }
 }

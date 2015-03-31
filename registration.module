@@ -1834,6 +1834,7 @@ function registration_access($op, Registration $registration = NULL, $account = 
       if (!isset($registrant_type) && !isset($people[$registrant_type])) {
         return FALSE;
       }
+      break;
     case 'create':
       if (!count(registration_access_people($registration))) {
         return FALSE;

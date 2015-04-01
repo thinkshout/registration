@@ -563,7 +563,7 @@ function registration_update_7104(&$sandbox) {
     try {
       field_update_instance($instance);
     }
-    catch(FieldException $e) {
+    catch (FieldException $e) {
       throw new DrupalUpdateException($e->getMessage());
     }
   }

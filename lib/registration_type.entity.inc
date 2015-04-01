@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * The class used for model type entities
  */
 class RegistrationType extends Entity {

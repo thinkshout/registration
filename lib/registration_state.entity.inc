@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * The class used for registration state entities
  */
 class RegistrationState extends Entity {

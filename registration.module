@@ -978,7 +978,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
   global $language;
 
   // Return early if there are no active registration states configured.
-  $active_states = registration_get_held_states();
+  $active_states = registration_get_active_states();
   if (empty($active_states)) {
     $error_message = t('There are no active registration states configured. For email to be sent to registrants, an active registration state must be specified at "admin/structure/registration/registration_states".');
     drupal_set_message($error_message, 'error');

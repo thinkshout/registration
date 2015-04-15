@@ -152,6 +152,7 @@ function registration_field_formatter_info() {
       'field types' => array('registration'),
       'settings' => array(
         'label' => NULL,
+        'i18n_string_key' => NULL,
       ),
     ),
     'registration_form' => array(
@@ -179,6 +180,38 @@ function registration_field_formatter_settings_form($field, $instance, $view_mod
       '#required' => FALSE,
       '#description' => t("Optional label to use when displaying the registration title or link. Leave blank to use the parent event's label."),
     );
+
+    // Store a key so we can store/retrieve translated strings for this field
+    // formatter instance.
+    $element['i18n_string_key'] = array('#type' => 'value', '#value' => implode(':', array(
+      $instance['entity_type'],
+      $instance['bundle'],
+      $view_mode,
+      $instance['field_name'],
+    )));
+  }
+
+  // Since we have translatable strings, we'll need to register them when the
+  // form is submitted.
+  $element['#process'][] = 'registration_field_formatter_settings_form_process';
+
+  return $element;
+}
+
+/**
+ * Form element process handler for registration_field_formatter_settings_form().
+ */
+function registration_field_formatter_settings_form_process($element, &$form_state, &$form) {
+  // For reasons I don't fully understand, when you click the gear button to
+  // open the settings, $form_state['submitted'] === TRUE; but after you set the
+  // settings and click the 'Update' button, $form_state['submitted'] === FALSE.
+  // Furthermore, it's impossible to add a submit handler to this sub-form or
+  // the 'Manage Display' form as a whole.
+  //
+  // Anyway, to avoid blowing away the string translation if the user just
+  // wants to look at the string without changing it.
+  if ($form_state['submitted'] === FALSE) {
+    _registration_translate_update($element['i18n_string_key']['#value'] . ':label', $element['label']['#default_value']);
   }
 
   return $element;
@@ -215,7 +248,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
   if (isset($items[0]['registration_type']) && !empty($items[0]['registration_type'])) {
     $reg_type = registration_type_load($items[0]['registration_type']);
     $settings = $display['settings'];
-    $label = !empty($settings['label']) ? $settings['label'] : $reg_type->label;
+    $label = !empty($settings['label']) ? _registration_translate($settings['i18n_string_key'] . ':label', $settings['label']) : $reg_type->label;
 
     switch ($display['type']) {
       case 'registration_link':

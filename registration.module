@@ -1935,3 +1935,65 @@ function registration_type_delete(RegistrationType $type) {
 function registration_state_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
   return user_access('administer registration states', $account);
 }
+
+/**
+ * Implements hook_i18n_string_info().
+ */
+function registration_i18n_string_info() {
+  $groups = array();
+
+  $groups['registration'] = array(
+    'title' => t('Entity registration'),
+    'description' => t('Translatable registration settings.'),
+    'format' => FALSE,
+    'list' => TRUE,
+  );
+
+  return $groups;
+}
+
+/**
+ * Translates a config string to the current language or to a given language.
+ *
+ * @param $name string
+ *   A key *without* a textgroup (this module's textgroup will be prefixed
+ *   automatically).
+ * @param $string string
+ *   A user-entered configuration string in the default language. The default
+ *   language may or may not be English.
+ * @param $langcode string
+ *   The language code. Defaults to NULL.
+ *
+ * @return string
+ *   The translated string, if i18n_string() is available. Otherwise, returns
+ *   $string.
+ *
+ * @see https://drupal.org/node/1114010
+ * @see i18n_string()
+ */
+function _registration_translate($name, $string, $langcode = NULL) {
+  return function_exists('i18n_string') ? i18n_string('registration:' . $name, $string, array('langcode' => $langcode)) : $string;
+}
+
+/**
+ * Registers a config string so it can later be translated.
+ *
+ * @param $name string
+ *   A key *without* a textgroup (this module's textgroup will be prefixed
+ *   automatically).
+ * @param $string string
+ *   A user-entered configuration string in the default language. The default
+ *   language may or may not be English.
+ * @param $langcode string
+ *   The language code. Defaults to NULL.
+ *
+ * @return string
+ *   The translated string, if i18n_string() is available. Otherwise, returns
+ *   $string.
+ *
+ * @see https://drupal.org/node/1114010
+ * @see i18n_string()
+ */
+function _registration_translate_update($name, $string, $langcode = NULL) {
+  return function_exists('i18n_string') ? i18n_string('registration:' . $name, $string, array('update' => TRUE, 'langcode' => $langcode)) : FALSE;
+}

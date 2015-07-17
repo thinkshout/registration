@@ -55,7 +55,7 @@ function registration_field_instance_settings_form($field, $instance) {
   $form['register_tab'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable Register Tab'),
-    '#default_value' => isset($settings['register_tab']) ? $settings['register_tab'] : TRUE,
+    '#default_value' => isset($default_settings['register_tab']) ? $default_settings['register_tab'] : TRUE,
     '#required' => FALSE,
     '#description' => t('Enable a tab on the content displaying the registration form.'),
   );

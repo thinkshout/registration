@@ -2,6 +2,7 @@ name = Registration
 description = Entity based registration system.
 package = Registration
 core = 7.x
+configure = admin/structure/registration
 
 dependencies[] = entity
 

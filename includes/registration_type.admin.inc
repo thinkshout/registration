@@ -1,4 +1,4 @@
-<?php
+g<?php
 
 /**
  * @file
@@ -34,6 +34,79 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     ),
     '#description' => t('A unique machine-readable name for this registration type. It must only contain lowercase letters, numbers, and underscores.'),
   );
+
+  // Greg
+  $form['drupal_entity'] = array(
+    '#title' => t('Drupal entity'),
+    '#type' => 'fieldset',
+    '#attributes' => array(
+      'id' => array('registration-drupal-entity'),
+    ),
+  );
+
+  // Prep the entity type list before creating the form item:
+  $entity_types = array('' => t('-- Select --'));
+  foreach (entity_get_info() as $entity_type => $info) {
+
+    // Ignore registration entity types:
+    if (strpos($entity_type, 'registration') === FALSE) {
+      $entity_types[$entity_type] = $info['label'];
+    }
+  }
+  asort($entity_types);
+  $form['data']['registrant_entity_type'] = array(
+    '#title' => t('Entity type'),
+    '#type' => 'select',
+    '#options' => $entity_types,
+    '#default_value' => '',
+    '#required' => TRUE,
+    '#description' => t('Select an entity type to enable registration on.'),
+    '#ajax' => array(
+      'callback' => 'registration_mapping_form_callback',
+      'wrapper' => 'registration-drupal-entity',
+    ),
+  );
+
+  $form_entity_type = & $form_state['values']['registrant_entity_type'];
+  if ($form_entity_type) {
+
+    // Prep the bundle list before creating the form item:
+    $bundles = array('' => t('-- Select --'));
+    $info  = entity_get_info($form_entity_type);
+    foreach ($info['bundles'] as $key => $bundle) {
+      $bundles[$key] = $bundle['label'];
+    }
+    asort($bundles);
+    $form['data']['registrant_bundle'] = array(
+      '#title' => t('Entity bundle'),
+      '#type' => 'select',
+      '#required' => TRUE,
+      '#description' => t('Select a Drupal entity bundle with an email address.'),
+      '#options' => $bundles,
+      '#default_value' => '',
+      '#ajax' => array(
+        'callback' => 'registration_mapping_form_callback',
+        'wrapper' => 'registration-drupal-entity',
+      ),
+    );
+
+    $form_bundle = & $form_state['values']['registrant_bundle'];
+    if ($form_bundle) {
+
+      // Prep the field & properties list before creating the form item:
+      $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);
+      $form['data']['registrant_email_property'] = array(
+        '#title' => t('Email Property'),
+        '#type' => 'select',
+        '#required' => TRUE,
+        '#description' => t('Select the field which contains the email address'),
+        '#options' => $fields,
+        '#default_value' => '',
+        '#maxlength' => 127,
+      );
+    }
+  }
+
   // Setting for default state for regsitrations of this type.
   // Overrides global default state setting.
   $state_options = registration_get_states_options();
@@ -93,6 +166,13 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
 }
 
 /**
+ * Ajax callback for registration_mapping_form().
+ */
+function registration_mapping_form_callback($form, &$form_state) {
+  return $form['drupal_entity'];
+}
+
+/**
  * Form API submit callback for the type form.
  */
 function registration_type_form_submit(&$form, &$form_state) {
@@ -103,6 +183,7 @@ function registration_type_form_submit(&$form, &$form_state) {
 
   $registration_type = entity_ui_form_submit_build_entity($form, $form_state);
   $registration_type->save();
+  menu_rebuild();
   $form_state['redirect'] = 'admin/structure/registration/registration_types';
 }
 
@@ -111,4 +192,46 @@ function registration_type_form_submit(&$form, &$form_state) {
  */
 function registration_type_form_submit_delete(&$form, &$form_state) {
   $form_state['redirect'] = 'admin/structure/registration/registration_types/manage/' . $form_state['registration_type']->name . '/delete';
+}
+
+/**
+ * Return all possible Drupal properties for a given entity type.
+ *
+ * @param string $entity_type
+ *   Name of entity whose properties to list.
+ * @param string $entity_bundle
+ *   Optional entity bundle to get properties for.
+ *
+ * @return array
+ *   List of entities that can be used as an #options list.
+ */
+function registration_email_fieldmap_options($entity_type, $entity_bundle = NULL) {
+  $options = array('' => t('-- Select --'));
+
+  $properties = entity_get_all_property_info($entity_type);
+  if (isset($entity_bundle)) {
+    $info = entity_get_property_info($entity_type);
+    $properties = $info['properties'];
+    if (isset($info['bundles'][$entity_bundle])) {
+      $properties += $info['bundles'][$entity_bundle]['properties'];
+    }
+  }
+
+  foreach ($properties as $key => $property) {
+    $type = isset($property['type']) ? entity_property_extract_innermost_type($property['type']) : 'text';
+    $is_entity = ($type == 'entity') || (bool) entity_get_info($type);
+    // Leave entities out of this.
+    if (!$is_entity) {
+      if (isset($property['field']) && $property['field'] && !empty($property['property info'])) {
+        foreach ($property['property info'] as $sub_key => $sub_prop) {
+          $options[$property['label']][$key . ':' . $sub_key] = $sub_prop['label'];
+        }
+      }
+      else {
+        $options[$key] = $property['label'];
+      }
+    }
+  }
+
+  return $options;
 }

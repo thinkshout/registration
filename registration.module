@@ -1779,6 +1779,15 @@ function registration_load_multiple($registration_ids = array(), $conditions = a
  *   TRUE on success, FALSE otherwise.
  */
 function registration_delete_multiple($registration_ids) {
+
+  if (!empty($registration_ids)) {
+    $registrations = registration_load_multiple($registration_ids, array());
+
+    foreach ($registrations as $rid => $registration) {
+      module_invoke_all('entity_delete', $registration);
+    }
+  }
+
   return entity_get_controller('registration')->delete($registration_ids);
 }
 

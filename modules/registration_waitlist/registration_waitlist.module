@@ -147,7 +147,7 @@ function registration_waitlist_is_active($entity_type, $entity_id, &$errors = ar
 
       if (($waitlist_capacity - $waitlist_count) < 1) {
         $active = FALSE;
-        $errors[] = t('waitlist is full');
+        $errors[] = t('Waitlist is full.');
       }
     }
   }

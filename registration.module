@@ -366,6 +366,9 @@ function registration_permission_list($info) {
     "delete any $type registration" => array(
       'title' => t('%type_name: Delete any registrations', array('%type_name' => $label)),
     ),
+    "create $type registration self" => array(
+      'title' => t('%type_name: Register self', array('%type_name' => $label)),
+    ),
     "create $type registration other users" => array(
       'title' => t('%type_name: Register other accounts', array('%type_name' => $label)),
     ),
@@ -1444,7 +1447,7 @@ function registration_access_people(Registration $registration, $account = NULL)
   // Me
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
-  if ($account->uid && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
+  if ($account->uid && (user_access("create $registration->type registration self", $account)) && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }
 

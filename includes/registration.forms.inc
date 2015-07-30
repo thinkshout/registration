@@ -72,12 +72,14 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#title' => t('Email'),
     '#description' => t('The email to associate with this registration.'),
     '#default_value' => isset($registration->anon_mail) ? $registration->anon_mail : '',
-    '#required' => TRUE,
     '#size' => 40,
     '#maxlength' => 255,
     '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_ANON]),
     '#states' => array(
       'visible' => array(
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_ANON),
+      ),
+      'required' => array(
         ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_ANON),
       ),
     ),

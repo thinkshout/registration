@@ -617,3 +617,44 @@ function registration_update_7107() {
     }
   }
 }
+
+/**
+ * Add registrant_type field to the registration_type table
+ */
+function registration_update_7108(&$sandbox) {
+  if (!db_field_exists('registration_type', 'registrant_entity_type')) {
+    db_add_field('registration_type', 'registrant_entity_type',
+      array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'user',
+        'description' => 'The machine name of the registrant\'s entity type.',
+      )
+    );
+  }
+
+  if (!db_field_exists('registration_type', 'registrant_bundle')) {
+    db_add_field('registration_type', 'registrant_bundle',
+      array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'user',
+        'description' => 'The machine name of the registrant\'s bundle.',
+      )
+    );
+  }
+
+  if (!db_field_exists('registration_type', 'registrant_email_property')) {
+    db_add_field('registration_type', 'registrant_email_property',
+      array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'email',
+        'description' => 'The machine name of the registrant\'s entity email property.',
+      )
+    );
+  }
+}

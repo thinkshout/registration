@@ -21,6 +21,14 @@ function registration_form($form, &$form_state, Registration $registration) {
 
   $form_state['registration'] = $registration;
 
+  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+
+  if (!registration_has_room($registration->entity_type, $registration->entity_id)) {
+    if ($settings['settings']['registration_waitlist_enable'] == 1 && $settings['settings']['registration_waitlist_message_enable'] == 1) {
+      drupal_set_message(t($settings['settings']['registration_waitlist_message']), 'warning');
+    }
+  }
+
   $who_options = registration_access_people($registration);
 
   // Default value for who is registering.

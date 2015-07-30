@@ -1,4 +1,4 @@
-g<?php
+<?php
 
 /**
  * @file
@@ -54,7 +54,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     }
   }
   asort($entity_types);
-  $form['data']['registrant_entity_type'] = array(
+  $form['drupal_entity']['registrant_entity_type'] = array(
     '#title' => t('Entity type'),
     '#type' => 'select',
     '#options' => $entity_types,
@@ -77,7 +77,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       $bundles[$key] = $bundle['label'];
     }
     asort($bundles);
-    $form['data']['registrant_bundle'] = array(
+    $form['drupal_entity']['registrant_bundle'] = array(
       '#title' => t('Entity bundle'),
       '#type' => 'select',
       '#required' => TRUE,
@@ -95,7 +95,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
 
       // Prep the field & properties list before creating the form item:
       $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);
-      $form['data']['registrant_email_property'] = array(
+      $form['drupal_entity']['registrant_email_property'] = array(
         '#title' => t('Email Property'),
         '#type' => 'select',
         '#required' => TRUE,

@@ -267,7 +267,10 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
             '#markup' => theme('registration_link',
               array(
                 'label' => $label,
-                'path' => $uri['path'] . '/register'
+                'path' => $uri['path'] . '/register',
+                'registration type' => $reg_type,
+                'entity_type' => $entity_type,
+                'entity' => $entity,
               )
             )
           );

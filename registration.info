@@ -12,6 +12,7 @@ files[] = lib/registration.metadata.inc
 files[] = lib/registration_state.controller.inc
 files[] = lib/registration_state.entity.inc
 files[] = lib/registration_state.ui_controller.inc
+files[] = lib/registration_type.controller.inc
 files[] = lib/registration_type.entity.inc
 files[] = lib/registration_type.ui_controller.inc
 

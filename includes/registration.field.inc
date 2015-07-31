@@ -52,14 +52,6 @@ function registration_field_instance_settings_form($field, $instance) {
   $form = $form_state = array();
   $default_settings = isset($instance['settings']['default_registration_settings']) ? $instance['settings']['default_registration_settings'] : array();
 
-  $form['register_tab'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable Register Tab'),
-    '#default_value' => isset($default_settings['register_tab']) ? $default_settings['register_tab'] : TRUE,
-    '#required' => FALSE,
-    '#description' => t('Enable a tab on the content displaying the registration form.'),
-  );
-
   // Flatten scheduling and reminder settings since this form is in tree mode.
   foreach ($default_settings as $key => $val) {
     if ($key != 'settings' and is_array($val)) {
@@ -89,6 +81,14 @@ function registration_field_instance_settings_form($field, $instance) {
   // Unset the save button just in case.
   unset($settings_form['save']);
   $form['default_registration_settings'] += $settings_form;
+
+  $form['register_tab'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Register Tab'),
+    '#default_value' => $default_settings['register_tab'],
+    '#required' => FALSE,
+    '#description' => t('Enable a tab on the content displaying the registration form.'),
+  );
 
   // @todo: validation
   return $form;

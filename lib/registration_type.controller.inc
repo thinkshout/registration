@@ -6,14 +6,20 @@
  */
 class RegistrationTypeController extends EntityAPIControllerExportable {
 
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    // Move the data properties into data before saving.
+  /**
+   * Overridden.
+   */
+  public function export($entity, $prefix = '') {
+    // Ensure our data properties are properly structured.
     $data_properties = array('held_expire', 'held_expire_state');
     foreach ($data_properties as $data_property) {
-      $entity->data[$data_property] = $entity->$data_property;
+      if (isset($entity->$data_property)) {
+        $entity->data[$data_property] = $entity->$data_property;
+        unset($entity->$data_property);
+      }
     }
 
-    parent::save($entity, $transaction);
+    return parent::export($entity, $prefix);
   }
 
 }

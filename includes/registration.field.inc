@@ -167,6 +167,10 @@ function registration_field_formatter_info() {
       'label' => t('Registration Form'),
       'field types' => array('registration'),
     ),
+    'registration_type' => array(
+      'label' => t('Registration Type'),
+      'field types' => array('registration'),
+    ),
   );
 }
 
@@ -287,6 +291,11 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
           ));
           $element[0] = drupal_get_form('registration_form', $registration);
         }
+        break;
+      case 'registration_type':
+        $element[0] = array(
+          '#markup' => $label,
+        );
         break;
     }
   }

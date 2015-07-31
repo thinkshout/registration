@@ -1444,14 +1444,14 @@ function registration_access_people(Registration $registration, $account = NULL)
   $account = isset($account) ? $account : $GLOBALS['user'];
   $people = array();
 
-  // Me
+  // Me:
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
   if ($account->uid && (user_access("create $registration->type registration self", $account)) && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }
 
-  // Other users
+  // Other users:
   if (user_access("create $registration->type registration other users", $account)) {
     $people[REGISTRATION_REGISTRANT_TYPE_USER] = t('Other account');
   }

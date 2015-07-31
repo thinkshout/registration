@@ -233,11 +233,21 @@ function registration_form_validate($form, &$form_state) {
       $user = user_load_by_name($form_state['values']['user']);
       if ($user) {
         if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
-          form_set_error('user', t('%user is already registered for this event.', array('%user' => $user->name)));
+          if (user_access('access user profiles')) {
+            form_set_error('user', t('%user is already registered for this event.', array('%user' => $user->name)));
+          }
+          else {
+            form_set_error('user', t('Registration Failed.'));
+          }
         }
       }
       else {
-        form_set_error('user', t('%user is not a valid user.', array('%user' => $form_state['values']['user'])));
+        if (user_access('access user profiles')) {
+          form_set_error('user', t('%user is not a valid user.', array('%user' => $form_state['values']['user'])));
+        }
+        else {
+          form_set_error('user', t('Registration Failed.'));
+        }
       }
       break;
   }

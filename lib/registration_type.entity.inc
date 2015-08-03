@@ -12,6 +12,8 @@ class RegistrationType extends Entity {
   public $default_state;
   public $data;
 
+  // IDE Auto complete
+
   public function __construct($values = array()) {
     parent::__construct($values, 'registration_type');
   }

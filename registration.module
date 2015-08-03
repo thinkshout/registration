@@ -68,6 +68,7 @@ function registration_entity_info() {
     'registration_type' => array(
       'label' => t('Registration type'),
       'entity class' => 'RegistrationType',
+      'metadata controller class' => 'RegistrationTypeMetadataController',
       'controller class' => 'EntityAPIControllerExportable',
       'base table' => 'registration_type',
       'fieldable' => FALSE,

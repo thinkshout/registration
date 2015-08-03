@@ -8,6 +8,7 @@ dependencies[] = entity
 files[] = tests/registration.test
 files[] = lib/registration.entity.inc
 files[] = lib/registration.metadata.inc
+files[] = lib/registration_type.metadata.inc
 files[] = lib/registration_state.controller.inc
 files[] = lib/registration_state.entity.inc
 files[] = lib/registration_state.ui_controller.inc

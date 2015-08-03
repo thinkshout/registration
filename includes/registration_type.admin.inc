@@ -58,7 +58,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     '#title' => t('Entity type'),
     '#type' => 'select',
     '#options' => $entity_types,
-    '#default_value' => '',
+    '#default_value' => isset($registration_type->registrant_entity_type) ? $registration_type->registrant_entity_type : '',
     '#required' => TRUE,
     '#description' => t('Select an entity type to enable registration on.'),
     '#ajax' => array(
@@ -83,7 +83,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       '#required' => TRUE,
       '#description' => t('Select a Drupal entity bundle with an email address.'),
       '#options' => $bundles,
-      '#default_value' => '',
+      '#default_value' => isset($registration_type->registrant_bundle) ? $registration_type->registrant_bundle : '',
       '#ajax' => array(
         'callback' => 'registration_mapping_form_callback',
         'wrapper' => 'registration-drupal-entity',
@@ -101,7 +101,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
         '#required' => TRUE,
         '#description' => t('Select the field which contains the email address'),
         '#options' => $fields,
-        '#default_value' => '',
+        '#default_value' => isset($registration_type->registrant_email_property) ? $registration_type->registrant_email_property : '',
         '#maxlength' => 127,
       );
     }
@@ -117,14 +117,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     '#default_value' => isset($registration_type->default_state) ? $registration_type->default_state : 0,
     '#options' => array('none' => 'None') + $state_options,
   );
-  // Settings for registration type.
-  $form['data'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Additional Settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#tree' => TRUE,
-  );
+
   // Setting for how long a held registration will exist before it is removed from held state.
   $form['data']['held_expire'] = array(
     '#type' => 'textfield',

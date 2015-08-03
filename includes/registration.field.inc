@@ -422,6 +422,19 @@ function registration_field_delete_instance($instance) {
 }
 
 /**
+ * Implements hook_field_update_instance().
+ *
+ * Rebuild the menu if the registration tab setting has changed.
+ */
+function registration_field_update_instance($instance, $prior_instance) {
+  $prev = isset($prior_instance['settings']['hide_register_tab']) ? $prior_instance['settings']['hide_register_tab'] : NULL;
+  $cur = isset($instance['settings']['hide_register_tab']) ? $instance['settings']['hide_register_tab'] : NULL;
+  if ($prev != $cur) {
+    _registration_menu_rebuild($instance);
+  }
+}
+
+/**
  * Rebuild the menu for a given registraiton field instance.
  *
  * @param $instance

@@ -580,7 +580,7 @@ function registration_registrations_page($entity_type, $entity) {
       'data' => t('id'),
       'field' => 'registration_id',
       'type' => 'property',
-      'specifier' => 'registration_id'
+      'specifier' => 'registration_id',
     ),
     array(
       'data' => t('Email'),
@@ -589,32 +589,32 @@ function registration_registrations_page($entity_type, $entity) {
       'data' => t('User'),
       'field' => 'user_uid',
       'type' => 'property',
-      'specifier' => 'user_uid'
+      'specifier' => 'user_uid',
     ),
     array(
       'data' => t('Created By'),
       'field' => 'author_uid',
       'type' => 'property',
-      'specifier' => 'author_uid'
+      'specifier' => 'author_uid',
     ),
     array(
       'data' => t('Count'),
       'field' => 'count',
       'type' => 'property',
-      'specifier' => 'count'
+      'specifier' => 'count',
     ),
     array(
       'data' => t('Created'),
       'field' => 'created',
       'sort' => 'desc',
       'type' => 'property',
-      'specifier' => 'created'
+      'specifier' => 'created',
     ),
     array(
       'data' => t('State'),
       'field' => 'state',
       'type' => 'property',
-      'specifier' => 'state'
+      'specifier' => 'state',
     ),
     array('data' => t('Actions')),
   );
@@ -622,7 +622,7 @@ function registration_registrations_page($entity_type, $entity) {
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   $label = entity_label($entity_type, $entity);
 
-  $query = new EntityFieldQuery;
+  $query = new EntityFieldQuery();
   $result = $query
     ->entityCondition('entity_type', 'registration')
     ->propertyCondition('entity_id', $entity_id)

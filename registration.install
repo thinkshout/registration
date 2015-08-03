@@ -605,15 +605,3 @@ function registration_update_7106(&$sandbox) {
     );
   }
 }
-
-/**
- * Set default configuration for "register tab" display.
- */
-function registration_update_7107() {
-  foreach (registration_get_registration_instances() as $instance) {
-    if (!isset($instance['settings']['register_tab'])) {
-      $instance['settings']['register_tab'] = 1;
-      field_update_instance($instance);
-    }
-  }
-}

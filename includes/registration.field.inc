@@ -82,12 +82,12 @@ function registration_field_instance_settings_form($field, $instance) {
   unset($settings_form['save']);
   $form['default_registration_settings'] += $settings_form;
 
-  $form['register_tab'] = array(
+  $form['hide_register_tab'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable Register Tab'),
-    '#default_value' => $default_settings['register_tab'],
+    '#title' => t('Hide Register Tab'),
+    '#default_value' => isset($default_settings['hide_register_tab']) ? $default_settings['hide_register_tab'] : 0,
     '#required' => FALSE,
-    '#description' => t('Enable a tab on the content displaying the registration form.'),
+    '#description' => t('Hide the tab on the content displaying the registration form.'),
   );
 
   // @todo: validation

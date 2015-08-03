@@ -199,6 +199,10 @@ function registration_menu() {
   foreach (registration_get_registration_instances() as $instance) {
     $type = $instance['entity_type'];
     if (!in_array($type, array('registration', 'registration_type'))) {
+      $hide_register_tab = FALSE;
+      if (isset($instance['settings']['hide_register_tab'])) {
+        $hide_register_tab = $instance['settings']['hide_register_tab'];
+      }
       $items[$type . '/%entity_object/register'] = array(
         'load arguments' => array($type),
         'title' => 'Register',
@@ -206,7 +210,7 @@ function registration_menu() {
         'page arguments' => array(0, 1),
         'access callback' => 'registration_register_page_access',
         'access arguments' => array(0, 1),
-        'type' => empty($instance['settings']['register_tab']) ? MENU_CALLBACK : MENU_LOCAL_TASK,
+        'type' => $hide_register_tab ? MENU_CALLBACK : MENU_LOCAL_TASK,
       );
       $items[$type . '/%entity_object/registrations'] = array(
         'load arguments' => array($type),

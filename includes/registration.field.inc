@@ -261,6 +261,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
     $reg_type = registration_type_load($items[0]['registration_type']);
     $settings = $display['settings'];
     $label = !empty($settings['label']) ? _registration_translate($settings['i18n_string_key'] . ':label', $settings['label']) : $reg_type->label;
+    list($entity_id) = entity_extract_ids($entity_type, $entity);
 
     switch ($display['type']) {
       case 'registration_link':
@@ -276,13 +277,13 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
                 'entity_type' => $entity_type,
                 'entity' => $entity,
               )
-            )
+            ),
           );
         }
         break;
+
       case 'registration_form':
-        // Enable registration link if accessible.
-        list($entity_id) = entity_extract_ids($entity_type, $entity);
+        // Enable registration form if accessible.
         if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
           $registration = entity_get_controller('registration')->create(array(
             'entity_type' => $entity_type,
@@ -292,6 +293,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
           $element[0] = drupal_get_form('registration_form', $registration);
         }
         break;
+
       case 'registration_type':
         $element[0] = array(
           '#markup' => $label,

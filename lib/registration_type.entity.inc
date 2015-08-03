@@ -11,11 +11,11 @@ class RegistrationType extends Entity {
   public $locked;
   public $default_state;
   public $data;
-
-  // IDE Auto complete
+  public $registrant_entity_type;
+  public $registrant_bundle;
+  public $registrant_email_property;
 
   public function __construct($values = array()) {
     parent::__construct($values, 'registration_type');
   }
-
 }

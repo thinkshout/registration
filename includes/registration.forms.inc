@@ -72,6 +72,9 @@ function registration_form($form, &$form_state, Registration $registration) {
       'visible' => array(
         ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
       ),
+      'required' => array(
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
+      ),
     ),
   );
 
@@ -230,6 +233,9 @@ function registration_form_validate($form, &$form_state) {
       break;
 
     case REGISTRATION_REGISTRANT_TYPE_USER:
+      if (empty($form_state['values']['user'])) {
+        form_set_error('user', t('User name is required.'));
+      }
       $user = user_load_by_name($form_state['values']['user']);
       if ($user) {
         if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {

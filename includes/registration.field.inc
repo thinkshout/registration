@@ -85,7 +85,7 @@ function registration_field_instance_settings_form($field, $instance) {
   $form['hide_register_tab'] = array(
     '#type' => 'checkbox',
     '#title' => t('Hide Register Tab'),
-    '#default_value' => isset($default_settings['hide_register_tab']) ? $default_settings['hide_register_tab'] : 0,
+    '#default_value' => isset($instance['settings']['hide_register_tab']) ? $instance['settings']['hide_register_tab'] : 0,
     '#required' => FALSE,
     '#description' => t('Hide the tab on the content displaying the registration form. The form can still be embedded or linked to by changing the field display settings.'),
   );

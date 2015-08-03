@@ -265,7 +265,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
     switch ($display['type']) {
       case 'registration_link':
         // Enable registration link if accessible.
-        if (registration_register_page_access($entity_type, $entity)) {
+        if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
           $uri = entity_uri($entity_type, $entity);
           $element[0] = array(
             '#markup' => theme('registration_link',

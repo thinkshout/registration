@@ -14,6 +14,7 @@
  */
 function registration_form($form, &$form_state, Registration $registration) {
   $wrapper = entity_metadata_wrapper('registration', $registration);
+  // TODO: replace user with entity
   $user = $wrapper->user->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
@@ -34,6 +35,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   }
 
   // Show a message if there's only one option as we're going to hide the form.
+  // TODO: review to make sure this is the way to go once there's a single option.
   if (count($who_options) == 1 && !user_is_anonymous()) {
     $form['who_message'] = array(
       '#markup' => '<div class="registration-who-msg">' .
@@ -41,7 +43,7 @@ function registration_form($form, &$form_state, Registration $registration) {
       '</div>',
     );
   }
-
+  // TODO: Expand who to support custom entities
   $form['who_is_registering'] = array(
     '#type' => 'select',
     '#title' => t('This registration is for:'),
@@ -50,7 +52,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#required' => TRUE,
     '#access' => (count($who_options) > 1),
   );
-
+  // TODO: replace with form registrant
   $form['user'] = array(
     '#type' => 'textfield',
     '#title' => t('User'),
@@ -210,14 +212,14 @@ function registration_form_validate($form, &$form_state) {
           array('%mail' => $form_state['values']['anon_mail'])));
       }
       break;
-
+    // TODO: Replace this or remove it?
     case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
       if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
         form_set_error('user', t('You are already registered for this event.'));
       }
       break;
-
+    // TODO: replace user_load_by_name
     case REGISTRATION_REGISTRANT_TYPE_USER:
       $user = user_load_by_name($form_state['values']['user']);
       if ($user) {
@@ -255,12 +257,12 @@ function registration_form_submit($form, &$form_state) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
       $registration->anon_mail = trim($form_state['values']['anon_mail']);
       break;
-
+    // TODO: Replace register type me
     case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
       $registration->user_uid = $user->uid;
       break;
-
+    // TODO: Expand to use custom entities
     case REGISTRATION_REGISTRANT_TYPE_USER:
       if ($reg_user = user_load_by_name($form_state['values']['user'])) {
         $registration->user_uid = $reg_user->uid;

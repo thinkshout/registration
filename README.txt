@@ -59,8 +59,4 @@ That's it. Now, when a registration is added, users can complete one or more
 field collections for each registrant.
 
 # Roadmap
-1. Tighter integration with Field Collection for a more robust registration ->
-registrant system. Namely, mapping the registration capacity to the number of
-field collections per registration.
-3. Registration Feature that bundles everything you need in a tidy package to
-start using registrations out of the box.
+https://www.drupal.org/node/2543090

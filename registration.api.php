@@ -14,7 +14,9 @@
  * @return bool
  */
 function hook_registration_access($op, $registration, $account = NULL) {
+  // TODO: How should permissions work
   if ($registration->user_uid == $account->uid) {
+
     return TRUE;
   }
 }
@@ -75,6 +77,8 @@ function hook_registration_event_count_alter(&$count, $context) {
  *   );
  */
 function hook_registration_send_broadcast_alter(&$registrations, $context) {
+
+  // TODO: how do we handle broadcast email
   // Loop through each registration.
   foreach ($registrations as $reg_id => $registration) {
     // Only send broadcast email for registrations where
@@ -102,6 +106,8 @@ function hook_registration_send_broadcast_alter(&$registrations, $context) {
  *   );
  */
 function hook_registration_send_broadcast_ENTITY_TYPE_alter(&$registrations, $context) {
+
+  //TODO: How to handle broadcast email
   // Loop through each registration.
   foreach ($registrations as $reg_id => $registration) {
     // Only send broadcast email for registrations where
@@ -129,6 +135,8 @@ function hook_registration_send_broadcast_ENTITY_TYPE_alter(&$registrations, $co
  *   );
  */
 function hook_registration_send_broadcast_ENTITY_TYPE_ID_alter(&$registrations, $context) {
+
+  // TODO: How to handle broadcast email
   // Loop through each registration.
   foreach ($registrations as $reg_id => $registration) {
     // Only send broadcast email for registrations where

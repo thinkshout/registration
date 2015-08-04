@@ -16,6 +16,7 @@ class Registration extends Entity {
     $entity_id,
     $entity_type,
     $anon_mail = NULL,
+    // TODO: Registrant ID
     $user_uid = NULL,
     $count,
     $author_uid,
@@ -52,6 +53,7 @@ class Registration extends Entity {
     $host_entity = $wrapper->entity->value();
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
+    // TODO: Replace user wrapper with entity
     $user = $wrapper->user->value();
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
 
@@ -130,7 +132,7 @@ class Registration extends Entity {
         '#attributes' => '',
       );
     }
-
+    // TODO: if registrant
     if ($user) {
       $build['user'] = array(
         '#theme' => 'registration_property_field',
@@ -192,7 +194,7 @@ class Registration extends Entity {
 
   /**
    * Determine registrant type relative to a given account.
-   *
+   * // TODO: Refactor this
    * @object $account
    *   A Drupal user
    *

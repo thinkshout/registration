@@ -9,6 +9,7 @@ module_load_include('inc', 'registration', 'includes/registration.field');
 module_load_include('inc', 'registration', 'includes/registration.forms');
 
 define('REGISTRATION_STATE_ONE', 1);
+define('REGISTRATION_INSUFFICIENT_SPACES_MESSAGE', 'Insufficient spaces remaining.');
 
 /**
  * If user has access to create registrations for his account.
@@ -773,7 +774,7 @@ function registration_event_count($entity_type, $entity_id, $registration_id = N
     if ($registration_id != NULL) {
       $query->condition('registration_id', $registration_id, '<>');
     }
-    $active_held_states = registration_states(array('held' => TRUE, 'active' => TRUE));
+    $active_held_states = array_merge(registration_get_active_states(), registration_get_held_states());
     if (!empty($active_held_states)) {
       $query->condition('state', $active_held_states, 'IN');
     }
@@ -1225,7 +1226,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
     // check capacity
     if (!registration_has_room($entity_type, $entity_id, $spaces, $registration_id, $reset)) {
       $status = FALSE;
-      $errors[] = t('Insufficient spaces remaining.');
+      $errors[] = t(REGISTRATION_INSUFFICIENT_SPACES_MESSAGE);
     }
     // check open date range
     if (isset($open) && ($now < $open)) {
@@ -1790,6 +1791,15 @@ function registration_load_multiple($registration_ids = array(), $conditions = a
  *   TRUE on success, FALSE otherwise.
  */
 function registration_delete_multiple($registration_ids) {
+
+  if (!empty($registration_ids)) {
+    $registrations = registration_load_multiple($registration_ids, array());
+
+    foreach ($registrations as $rid => $registration) {
+      module_invoke_all('entity_delete', $registration);
+    }
+  }
+
   return entity_get_controller('registration')->delete($registration_ids);
 }
 

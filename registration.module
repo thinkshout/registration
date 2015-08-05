@@ -1738,10 +1738,10 @@ function registration_get_properties($entity, array $options, $name, $type) {
       return entity_metadata_wrapper($entity->entity_type, $entity->entity);
       break;
     case 'mail':
-      // If a user is set, use their email
-      // TODO: replace with entity.
-      $user =  entity_metadata_wrapper('registration', $entity)->user;
-      return ($user->value()) ? $user->mail->value() : $entity->anon_mail;
+      // TODO: Refactor this to allow for contacts without email. replace call to registrant->mail
+      // If the entity has an email
+      $registrant =  entity_metadata_wrapper('registration', $entity)->registrant;
+      return ($registrant->value()) ? $registrant->mail->value() : $entity->anon_mail;
       break;
   }
 }

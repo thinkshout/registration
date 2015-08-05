@@ -52,8 +52,7 @@ class Registration extends Entity {
     $host_entity = $wrapper->entity->value();
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
-    // TODO: Replace user wrapper with entity
-    $user = $wrapper->registrant->value();
+    $registrant = $wrapper->registrant->value();
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
 
     $host_label = entity_label($this->entity_type, $host_entity);
@@ -131,14 +130,13 @@ class Registration extends Entity {
         '#attributes' => '',
       );
     }
-    // TODO: if registrant
-    if ($user) {
-      $build['user'] = array(
+    if ($registrant) {
+      $build['registrant'] = array(
         '#theme' => 'registration_property_field',
-        '#label' => t('User'),
+        '#label' => t('Registrant'),
         '#items' => array(
           array(
-            '#markup' => theme('username', array('account' => $user)),
+            '#markup' => theme('username', array('account' => $registrant)),
           ),
         ),
         '#classes' => 'field field-label-inline clearfix',
@@ -203,10 +201,10 @@ class Registration extends Entity {
   public function registrant_type($account) {
     $reg_type = NULL;
     if (!empty($account)) {
-      if ($account->uid && $account->uid === $this->user_uid) {
+      if ($account->uid && $account->uid === $this->registrant_id) {
         $reg_type = REGISTRATION_REGISTRANT_TYPE_ME;
       }
-      elseif ($this->user_uid) {
+      elseif ($this->registrant_id) {
         $reg_type = REGISTRATION_REGISTRANT_TYPE_USER;
       }
     }

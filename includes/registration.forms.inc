@@ -15,11 +15,14 @@
 function registration_form($form, &$form_state, Registration $registration) {
   $wrapper = entity_metadata_wrapper('registration', $registration);
   // TODO: replace user with entity
-  $user = $wrapper->registrant->value();
+  $registrant = $wrapper->registrant->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
   $type = $wrapper->type->value();
-
+  $type_wrapper = entity_metadata_wrapper('registration_type', $type);
+  $email_property = $type_wrapper->registrant_email_property->value();
+  $name_property = 'name'; // TODO: Replace with property from settings form.
+  $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
   $form_state['registration'] = $registration;
 
   $who_options = registration_access_people($registration);
@@ -56,7 +59,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $form['user'] = array(
     '#type' => 'textfield',
     '#title' => t('User'),
-    '#default_value' => ($user ? $user->name : ''),
+    '#default_value' => ($registrant ? $registrant->$name_property->value() : ''),
     '#maxlength' => 60,
     '#size' => 30,
     '#description' => t('Select a user by typing their username to get a list of matches.'),

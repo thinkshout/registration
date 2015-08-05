@@ -224,7 +224,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
 
   /**
    * Tests email broadcast functionality.
-   *
+   * // TODO: Refactor this test to not be user specific
    * Generates registrations for a host entity, and confirms that emails
    * were sent out to all registrants.
    */

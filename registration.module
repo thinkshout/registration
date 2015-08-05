@@ -638,8 +638,12 @@ function registration_registrations_page($entity_type, $entity) {
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
       $author = $wrapper->author->value();
-      $user = $wrapper->registrant->value();
+      $registrant = $wrapper->registrant->value();
       $state = $wrapper->state->value();
+      $type = $wrapper->type->value();
+      $type_wrapper = entity_metadata_wrapper('registration_type', $type);
+      $email_property = $type_wrapper->registrant_email_property->value();
+      $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
 
       $author_col = '';
       if ($registration->author_uid) {
@@ -648,7 +652,7 @@ function registration_registrations_page($entity_type, $entity) {
 
       $user_col = '';
       if ($registration->registrant_id) {
-        $user_col = theme('username', array('account' => $user));
+        $user_col = theme('username', array('account' => $registrant));
       }
 
       $actions = array();
@@ -664,7 +668,7 @@ function registration_registrations_page($entity_type, $entity) {
 
       $rows[] = array(
         l($registration->registration_id, 'registration/' . $registration->registration_id),
-        l($wrapper->mail->value(), 'mailto:' . $wrapper->mail->value()),
+        l($wrapper->$email_property->value(), 'mailto:' . $wrapper->$email_property->value()),
         $user_col,
         $author_col,
         $registration->count,
@@ -1041,8 +1045,12 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     $success_count = 0;
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
+      $type = $wrapper->type->value();
+      $type_wrapper = entity_metadata_wrapper('registration_type', $type);
+      $email_property = $type_wrapper->registrant_email_property->value();
+      $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
 
-      $recipients[] = $wrapper->mail->value();
+      $recipients[] = $wrapper->$email_property->value();
 
       $entity = entity_load_single($entity_type, $entity_id);
       if (module_exists('token')) {
@@ -1054,14 +1062,14 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
       $params['message'] = $message;
 
       $result = drupal_mail('registration', 'broadcast',
-        $wrapper->mail->value(), $language, $params, $from
+        $wrapper->$email_property->value(), $language, $params, $from
       );
       if ($result['result']) {
         $success_count++;
       }
       else {
         watchdog('registration', 'Failed to send registration broadcast email to %email.',
-          array('%email' => $wrapper->mail->value()), WATCHDOG_ERROR
+          array('%email' => $wrapper->$email_property->value()), WATCHDOG_ERROR
         );
       }
     }
@@ -1730,6 +1738,11 @@ function registration_property_email_set(Registration $registration, $name, $val
  * @return EntityMetadataWrapper
  */
 function registration_get_properties($entity, array $options, $name, $type) {
+  $wrapper = entity_metadata_wrapper('registration', $entity);
+  $type = $wrapper->type->value();
+  $type_wrapper = entity_metadata_wrapper('registration_type', $type);
+  $email_property = $type_wrapper->registrant_email_property->value();
+  $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
   switch ($name) {
     case 'anon_mail':
       return $entity->anon_mail;
@@ -1738,10 +1751,10 @@ function registration_get_properties($entity, array $options, $name, $type) {
       return entity_metadata_wrapper($entity->entity_type, $entity->entity);
       break;
     case 'mail':
-      // TODO: Refactor this to allow for contacts without email. replace call to registrant->mail
+      
       // If the entity has an email
       $registrant =  entity_metadata_wrapper('registration', $entity)->registrant;
-      return ($registrant->value()) ? $registrant->mail->value() : $entity->anon_mail;
+      return ($registrant->value()) ? $registrant->$email_property->value() : $entity->anon_mail;
       break;
   }
 }

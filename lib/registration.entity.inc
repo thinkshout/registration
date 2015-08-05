@@ -47,16 +47,18 @@ class Registration extends Entity {
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     $build = parent::buildContent($view_mode, $langcode);
     $wrapper = entity_metadata_wrapper('registration', $this);
-
     $host_entity_type_info = entity_get_info($this->entity_type);
     $host_entity = $wrapper->entity->value();
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
     $registrant = $wrapper->registrant->value();
+    $type = $wrapper->type->value();
+    $type_wrapper = entity_metadata_wrapper('registration_type', $type);
+    $email_property = $type_wrapper->registrant_email_property->value();
+    $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
+
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
-
     $host_label = entity_label($this->entity_type, $host_entity);
-
     $host_uri = $host_entity ? entity_uri($this->entity_type, $host_entity) : NULL;
 
     $build['mail'] = array(
@@ -64,7 +66,7 @@ class Registration extends Entity {
       '#label' => t('Email Address'),
       '#items' => array(
         array(
-          '#markup' => $wrapper->mail->value(),
+          '#markup' => $wrapper->$email_property->value(),
         ),
       ),
       '#classes' => 'field field-label-inline clearfix',
@@ -213,6 +215,5 @@ class Registration extends Entity {
     }
     return $reg_type;
   }
-
 }
 

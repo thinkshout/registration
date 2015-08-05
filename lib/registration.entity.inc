@@ -16,8 +16,7 @@ class Registration extends Entity {
     $entity_id,
     $entity_type,
     $anon_mail = NULL,
-    // TODO: Registrant ID
-    $user_uid = NULL,
+    $registrant_id = NULL,
     $count,
     $author_uid,
     $state,

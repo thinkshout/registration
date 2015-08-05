@@ -396,9 +396,9 @@ function registration_user_cancel($edit, $account, $method) {
 
       db_update('registration')
         ->fields(array(
-        'user_uid' => NULL,
+        'registrant_id' => NULL,
       ))
-        ->condition('user_uid', $account->uid)
+        ->condition('registrant_id', $account->uid)
         ->execute();
     }
   }
@@ -424,9 +424,9 @@ function registration_user_delete($account) {
     // registration. Simply disassociate the user with the registration.
     db_update('registration')
       ->fields(array(
-        'user_uid' => NULL,
+        'registrant_id' => NULL,
       ))
-      ->condition('user_uid', $account->uid)
+      ->condition('registrant_id', $account->uid)
       ->execute();
     // Delete entries in the cache as well.
     cache_clear_all('*', 'cache_entity_registration', TRUE);
@@ -585,10 +585,10 @@ function registration_registrations_page($entity_type, $entity) {
       'data' => t('Email'),
     ),
     array(
-      'data' => t('User'),
-      'field' => 'user_uid',
+      'data' => t('Registrant'),
+      'field' => 'registrant_id',
       'type' => 'property',
-      'specifier' => 'user_uid'
+      'specifier' => 'registrant_id'
     ),
     array(
       'data' => t('Created By'),
@@ -647,7 +647,7 @@ function registration_registrations_page($entity_type, $entity) {
       }
 
       $user_col = '';
-      if ($registration->user_uid) {
+      if ($registration->registrant_id) {
         $user_col = theme('username', array('account' => $user));
       }
 
@@ -1411,14 +1411,14 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
     // There's a user with this email, check to make sure they're not registered.
     if ($user = user_load_by_mail($anon_mail)) {
       $query->condition(db_or()->condition('anon_mail', $anon_mail)
-        ->condition('user_uid', $user->uid));
+        ->condition('registrant_id', $user->uid));
     }
     else {
       $query->condition('anon_mail', $anon_mail);
     }
   }
   elseif ($uid) {
-    $query->condition('user_uid', $uid);
+    $query->condition('registrant_id', $uid);
   }
 
   // Exclude existing registration.
@@ -1452,7 +1452,7 @@ function registration_access_people(Registration $registration, $account = NULL)
   // TODO: Remove Me myself registration, unless registering users?
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
-  if ($account->uid && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
+  if ($account->uid && ($account->uid === $registration->registrant_id || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }
 
@@ -1683,24 +1683,24 @@ function registration_property_author_get(Registration $registration, array $opt
 
 /**
  * Callback to get $registration->user.
- * // TODO: replace user with entity
+ * // TODO: test this
  *
  * @see registration_entity_property_info().
  */
-function registration_property_user_get(Registration $registration, array $options, $property_name, $entity_type) {
-  if (is_numeric($registration->user_uid)) {
-    $entity = entity_load_single('user', $registration->user_uid);
+function registration_property_registrant_get(Registration $registration, array $options, $property_name, $entity_type) {
+  if (is_numeric($registration->registrant_id)) {
+    $entity = entity_load_single('user', $registration->registrant_id);
     return entity_metadata_wrapper('user', $entity);
   }
 }
 
 /**
- * Callback to set $registration->user that supports null value.
- * // TODO: Replace user with entity
+ * Callback to set $registration->registrant that supports null value.
+ * // TODO: test this
  */
-function registration_property_user_set(Registration $registration, $name, $value, $lang, $type, $info) {
-  if (is_object($value) && $account = $value->value()) {
-    $registration->{$info['schema field']} = $account->uid;
+function registration_property_registrant_set(Registration $registration, $name, $value, $lang, $type, $info) {
+  if (is_object($value) && $entity = $value->value()) {
+    $registration->{$info['schema field']} = $entity->identifier();
   }
   else {
     $registration->{$info['schema field']} = NULL;

@@ -74,7 +74,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#title' => t('Email'),
     '#description' => t('The email to associate with this registration.'),
     '#default_value' => isset($registration->anon_mail) ? $registration->anon_mail : '',
-    '#required' => TRUE,
+    '#required' => FALSE,
     '#size' => 40,
     '#maxlength' => 255,
     '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_ANON]),
@@ -261,12 +261,12 @@ function registration_form_submit($form, &$form_state) {
     // TODO: Replace register type me
     case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
-      $registration->user_uid = $user->uid;
+      $registration->registrant_id = $user->uid;
       break;
     // TODO: Expand to use custom entities
     case REGISTRATION_REGISTRANT_TYPE_USER:
       if ($reg_user = user_load_by_name($form_state['values']['user'])) {
-        $registration->user_uid = $reg_user->uid;
+        $registration->registrant_id = $reg_user->uid;
       }
       break;
   }

@@ -108,13 +108,13 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'setter callback' => 'entity_property_verbatim_set',
     );
 
-    $properties['user'] = array(
-      'label' => t("User entity"),
+    $properties['registrant'] = array(
+      'label' => t("Registrant entity"),
       'type' => 'entity',
-      'schema field' => 'user_uid',
+      'schema field' => 'registrant_id',
       'description' => t("The entity for which the registration belongs to. Usually a user."),
-      'getter callback' => 'registration_property_user_get',
-      'setter callback' => 'registration_property_user_set',
+      'getter callback' => 'registration_property_registrant_get',
+      'setter callback' => 'registration_property_registrant_set',
     );
 
     $properties['state'] = array(

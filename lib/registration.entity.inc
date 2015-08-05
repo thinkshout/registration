@@ -53,7 +53,7 @@ class Registration extends Entity {
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
     // TODO: Replace user wrapper with entity
-    $user = $wrapper->user->value();
+    $user = $wrapper->registrant->value();
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
 
     $host_label = entity_label($this->entity_type, $host_entity);

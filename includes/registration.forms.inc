@@ -15,7 +15,7 @@
 function registration_form($form, &$form_state, Registration $registration) {
   $wrapper = entity_metadata_wrapper('registration', $registration);
   // TODO: replace user with entity
-  $user = $wrapper->user->value();
+  $user = $wrapper->registrant->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
   $type = $wrapper->type->value();
@@ -74,7 +74,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#title' => t('Email'),
     '#description' => t('The email to associate with this registration.'),
     '#default_value' => isset($registration->anon_mail) ? $registration->anon_mail : '',
-    '#required' => FALSE,
+    '#required' => TRUE,
     '#size' => 40,
     '#maxlength' => 255,
     '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_ANON]),

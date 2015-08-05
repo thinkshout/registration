@@ -638,7 +638,7 @@ function registration_registrations_page($entity_type, $entity) {
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
       $author = $wrapper->author->value();
-      $user = $wrapper->user->value();
+      $user = $wrapper->registrant->value();
       $state = $wrapper->state->value();
 
       $author_col = '';
@@ -1351,13 +1351,13 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
         $options
       );
     }
-    // TODO: Replae user token with entity tokens
+    // TODO: Replace user token with entity tokens
     if ($entity_tokens = token_find_with_prefix($tokens, 'user')) {
-      $entity = $wrapper->user->value();
+      $registrant = $wrapper->registrant->value();
       $replacements += token_generate(
         'user',
         $entity_tokens,
-        array('user' => $entity),
+        array('user' => $registrant),
         $options
       );
     }

@@ -223,16 +223,16 @@ function registration_form_validate($form, &$form_state) {
         form_set_error('user', t('You are already registered for this event.'));
       }
       break;
-    // TODO: replace user_load_by_name
+    // TODO: replace replace call to user name
     case REGISTRATION_REGISTRANT_TYPE_USER:
-      $user = user_load_by_name($form_state['values']['user']);
-      if ($user) {
-        if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
-          form_set_error('user', t('%user is already registered for this event.', array('%user' => $user->name)));
+      $registrant = entity_load_multiple_by_name($registrant_type, $form_state['values']['registrant']);
+      if ($registrant) {
+        if (!$allow_multiple && registration_is_registered($registration, NULL, $registrant->uid)) {
+          form_set_error('registrant', t('%registrant is already registered for this event.', array('%registrant' => $registrant->name)));
         }
       }
       else {
-        form_set_error('user', t('%user is not a valid user.', array('%user' => $form_state['values']['user'])));
+        form_set_error('registrant', t('%registrant is not a valid registrant.', array('%registrant' => $form_state['values']['registrant'])));
       }
       break;
   }
@@ -266,10 +266,10 @@ function registration_form_submit($form, &$form_state) {
       global $user;
       $registration->registrant_id = $user->uid;
       break;
-    // TODO: Expand to use custom entities
+    // TODO: Replace uid to use custom entities
     case REGISTRATION_REGISTRANT_TYPE_USER:
-      if ($reg_user = user_load_by_name($form_state['values']['user'])) {
-        $registration->registrant_id = $reg_user->uid;
+      if ($registrant = entity_load_multiple_by_name($registrant_type, $form_state['values']['registrant'])) {
+        $registration->registrant_id = $registrant->uid;
       }
       break;
   }

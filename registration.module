@@ -1751,7 +1751,7 @@ function registration_get_properties($entity, array $options, $name, $type) {
       return entity_metadata_wrapper($entity->entity_type, $entity->entity);
       break;
     case 'mail':
-      
+
       // If the entity has an email
       $registrant =  entity_metadata_wrapper('registration', $entity)->registrant;
       return ($registrant->value()) ? $registrant->$email_property->value() : $entity->anon_mail;

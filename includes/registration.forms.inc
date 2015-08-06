@@ -23,7 +23,13 @@ function registration_form($form, &$form_state, Registration $registration) {
   $email_property = $type_wrapper->registrant_email_property->value();
   $name_property = 'name'; // TODO: Replace with property from settings form.
   $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
+
+  // Save configuration to the form to use with validation and submission.
   $form_state['registration'] = $registration;
+  $form_state['registration_type'] = $wrapper->type->value();
+  $form_state['registrant_type'] = $type_wrapper->registrant_entity_type->value();
+
+
 
   $who_options = registration_access_people($registration);
 
@@ -175,6 +181,9 @@ function registration_form($form, &$form_state, Registration $registration) {
  */
 function registration_form_validate($form, &$form_state) {
   $registration = $form_state['registration'];
+  $type = $form_state['registration_type'];
+  $registrant_type =  $form_state['registrant_type'];
+  $registrant_type = 'user';
 
   $count = $form_state['values']['count'];
 

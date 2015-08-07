@@ -18,7 +18,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $registrant = $wrapper->registrant->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
-  $type = $wrapper->type->value();
+  $type = $wrapper->getBundle();
   $type_wrapper = entity_metadata_wrapper('registration_type', $type);
   $email_property = $type_wrapper->registrant_email_property->value();
   $name_property = 'name'; // TODO: Replace with property from settings form.
@@ -26,7 +26,7 @@ function registration_form($form, &$form_state, Registration $registration) {
 
   // Save configuration to the form to use with validation and submission.
   $form_state['registration'] = $registration;
-  $form_state['registration_type'] = $wrapper->type->value();
+  $form_state['registration_type'] = $type;
   $form_state['registrant_type'] = $type_wrapper->registrant_entity_type->value();
 
 
@@ -182,7 +182,6 @@ function registration_form($form, &$form_state, Registration $registration) {
 function registration_form_validate($form, &$form_state) {
   $registration = $form_state['registration'];
   $type = $form_state['registration_type'];
-  $registrant_type =  $form_state['registrant_type'];
   $registrant_type = 'user';
 
   $count = $form_state['values']['count'];
@@ -255,6 +254,7 @@ function registration_form_validate($form, &$form_state) {
  */
 function registration_form_submit($form, &$form_state) {
   $registration = $form_state['registration'];
+  $registrant_type =  $form_state['registrant_type'];
 
   // Set the registration's author uid:
   if (!isset($registration->registration_id)) {

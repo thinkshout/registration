@@ -12,5 +12,4 @@ class RegistrationState extends Entity {
   public function __construct($values = array()) {
     parent::__construct($values, 'registration_state');
   }
-
 }

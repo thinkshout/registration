@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * API documentation for Relation module.
+ * API Registration module.
  */
 
 /**

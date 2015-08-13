@@ -20,6 +20,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $state = $wrapper->state->value();
   $type = $wrapper->getBundle();
   $type_wrapper = entity_metadata_wrapper('registration_type', $type);
+  $registrant_type = $type_wrapper->registrant_entity_type->value();
   $email_property = $type_wrapper->registrant_email_property->value();
   $name_property = 'name'; // TODO: Replace with property from settings form.
   $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
@@ -27,8 +28,8 @@ function registration_form($form, &$form_state, Registration $registration) {
   // Save configuration to the form to use with validation and submission.
   $form_state['registration'] = $registration;
   $form_state['registration_type'] = $type;
-  $form_state['registrant_type'] = $type_wrapper->registrant_entity_type->value();
-
+  $form_state['registrant_type'] = $registrant_type;
+  $form_state['registrant_name'] = $type_wrapper->$name_property->value();
 
 
   $who_options = registration_access_people($registration);
@@ -62,13 +63,13 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#access' => (count($who_options) > 1),
   );
   // TODO: replace with form registrant
-  $form['user'] = array(
+  $form['registrant'] = array(
     '#type' => 'textfield',
-    '#title' => t('User'),
+    '#title' => t('Registrant'),
     '#default_value' => ($registrant ? $registrant->$name_property->value() : ''),
     '#maxlength' => 60,
     '#size' => 30,
-    '#description' => t('Select a user by typing their username to get a list of matches.'),
+    '#description' => t('Select a registrant by typing their name to get a list of matches.'),
     '#autocomplete_path' => 'user/autocomplete',
     '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_USER]),
     '#states' => array(
@@ -181,7 +182,8 @@ function registration_form($form, &$form_state, Registration $registration) {
  */
 function registration_form_validate($form, &$form_state) {
   $registration = $form_state['registration'];
-  $type = $form_state['registration_type'];
+  $registrant_type =  $form_state['registrant_type'];
+  $registrant_name =  $form_state['registrant_name'];
   $registrant_type = 'user';
 
   $count = $form_state['values']['count'];
@@ -235,8 +237,9 @@ function registration_form_validate($form, &$form_state) {
     case REGISTRATION_REGISTRANT_TYPE_USER:
       $registrant = entity_load_multiple_by_name($registrant_type, $form_state['values']['registrant']);
       if ($registrant) {
-        if (!$allow_multiple && registration_is_registered($registration, NULL, $registrant->uid)) {
-          form_set_error('registrant', t('%registrant is already registered for this event.', array('%registrant' => $registrant->name)));
+        $registrant_id = array_shift(entity_extract_ids($registrant_type, $registrant));
+        if (!$allow_multiple && registration_is_registered($registration, NULL, $registrant_id)) {
+          form_set_error('registrant', t('%registrant is already registered for this event.', array('%registrant' => $registrant_name)));
         }
       }
       else {

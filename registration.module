@@ -640,7 +640,7 @@ function registration_registrations_page($entity_type, $entity) {
       $author = $wrapper->author->value();
       $registrant = $wrapper->registrant->value();
       $state = $wrapper->state->value();
-      $type = $wrapper->type->value();
+      $type = $wrapper->getBundle();
       $type_wrapper = entity_metadata_wrapper('registration_type', $type);
       $email_property = $type_wrapper->registrant_email_property->value();
       $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
@@ -1739,7 +1739,7 @@ function registration_property_email_set(Registration $registration, $name, $val
  */
 function registration_get_properties($entity, array $options, $name, $type) {
   $wrapper = entity_metadata_wrapper('registration', $entity);
-  $type = $wrapper->type->value();
+  $type = $wrapper->getBundle();
   $type_wrapper = entity_metadata_wrapper('registration_type', $type);
   $email_property = $type_wrapper->registrant_email_property->value();
   $email_property = 'mail'; // TODO: Temporary until property fields are fixed.

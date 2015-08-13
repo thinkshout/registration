@@ -1045,7 +1045,7 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     $success_count = 0;
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
-      $type = $wrapper->type->value();
+      $type = $wrapper->getBundle();
       $type_wrapper = entity_metadata_wrapper('registration_type', $type);
       $email_property = $type_wrapper->registrant_email_property->value();
       $email_property = 'mail'; // TODO: Temporary until property fields are fixed.

@@ -22,14 +22,13 @@ function registration_form($form, &$form_state, Registration $registration) {
   $type_wrapper = entity_metadata_wrapper('registration_type', $type);
   $registrant_type = $type_wrapper->registrant_entity_type->value();
   $email_property = $type_wrapper->registrant_email_property->value();
-  $name_property = 'name'; // TODO: Replace with property from settings form.
   $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
 
   // Save configuration to the form to use with validation and submission.
   $form_state['registration'] = $registration;
   $form_state['registration_type'] = $type;
   $form_state['registrant_type'] = $registrant_type;
-  $form_state['registrant_name'] = $type_wrapper->$name_property->value();
+  $form_state['registrant_email'] = $type_wrapper->$email_property->value();
 
 
   $who_options = registration_access_people($registration);
@@ -183,8 +182,7 @@ function registration_form($form, &$form_state, Registration $registration) {
 function registration_form_validate($form, &$form_state) {
   $registration = $form_state['registration'];
   $registrant_type =  $form_state['registrant_type'];
-  $registrant_name =  $form_state['registrant_name'];
-  $registrant_type = 'user';
+  $registrant_email =  $form_state['registrant_email'];
 
   $count = $form_state['values']['count'];
 
@@ -239,7 +237,7 @@ function registration_form_validate($form, &$form_state) {
       if ($registrant) {
         $registrant_id = array_shift(entity_extract_ids($registrant_type, $registrant));
         if (!$allow_multiple && registration_is_registered($registration, NULL, $registrant_id)) {
-          form_set_error('registrant', t('%registrant is already registered for this event.', array('%registrant' => $registrant_name)));
+          form_set_error('registrant', t('%registrant is already registered for this event.', array('%registrant' => $registrant_email)));
         }
       }
       else {

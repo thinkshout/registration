@@ -132,6 +132,7 @@ class Registration extends Entity {
         '#attributes' => '',
       );
     }
+    // TODO: Refactor theme function
     if ($registrant) {
       $build['registrant'] = array(
         '#theme' => 'registration_property_field',

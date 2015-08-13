@@ -34,6 +34,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $who_options = registration_access_people($registration);
 
   // Default value for who is registering.
+  // TODO: Replace or remove this
   $who_default = NULL;
   if (isset($registration->registration_id)) {
     $who_default = $registration->registrant_type($GLOBALS['user']);
@@ -258,6 +259,7 @@ function registration_form_submit($form, &$form_state) {
   $registrant_type =  $form_state['registrant_type'];
 
   // Set the registration's author uid:
+  // TODO: Should the author be set to the custom entity ID instead of current user?
   if (!isset($registration->registration_id)) {
     $registration->author_uid = $GLOBALS['user']->uid;
   }

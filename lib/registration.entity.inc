@@ -52,7 +52,7 @@ class Registration extends Entity {
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
     $registrant = $wrapper->registrant->value();
-    $type = $wrapper->type->value();
+    $type = $wrapper->getBundle();
     $type_wrapper = entity_metadata_wrapper('registration_type', $type);
     $email_property = $type_wrapper->registrant_email_property->value();
     $email_property = 'mail'; // TODO: Temporary until property fields are fixed.

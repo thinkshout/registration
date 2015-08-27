@@ -614,7 +614,7 @@ function registration_update_7107() {
 }
 
 /**
- * Add registrant_type field to the registration_type table
+ * Add registrant entity fields to the registration_type table
  */
 function registration_update_7108(&$sandbox) {
   if (!db_field_exists('registration_type', 'registrant_entity_type')) {
@@ -624,7 +624,7 @@ function registration_update_7108(&$sandbox) {
         'length' => 128,
         'not null' => TRUE,
         'default' => 'user',
-        'description' => 'The machine name of the registrant\'s entity type.',
+        'description' => 'The machine name of the registrant entity\'s type.',
       )
     );
   }
@@ -636,7 +636,7 @@ function registration_update_7108(&$sandbox) {
         'length' => 128,
         'not null' => TRUE,
         'default' => 'user',
-        'description' => 'The machine name of the registrant\'s bundle.',
+        'description' => 'The machine name of the registrant entity\'s bundle.',
       )
     );
   }
@@ -647,8 +647,20 @@ function registration_update_7108(&$sandbox) {
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE,
-        'default' => 'email',
-        'description' => 'The machine name of the registrant\'s entity email property.',
+        'default' => 'mail',
+        'description' => 'The machine name of the registrant entity\'s email property.',
+      )
+    );
+  }
+
+  if (!db_field_exists('registration_type', 'registrant_uid_property')) {
+    db_add_field('registration_type', 'registrant_uid_property',
+      array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'uid',
+        'description' => 'The machine name of the registrant entity\'s user id property.',
       )
     );
   }

@@ -663,5 +663,4 @@ function registration_update_7108(&$sandbox) {
         'description' => 'The machine name of the registrant entity\'s user id property.',
       )
     );
-  }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * API Registration module.
+ * API documentation for Relation module.
  */
 
 /**
@@ -15,7 +15,7 @@
  */
 function hook_registration_access($op, $registration, $account = NULL) {
   // TODO: How should permissions work
-  if ($registration->registrant_id == $account->uid) {
+  if ($registration->user_uid == $account->uid) {
 
     return TRUE;
   }
@@ -83,7 +83,7 @@ function hook_registration_send_broadcast_alter(&$registrations, $context) {
   foreach ($registrations as $reg_id => $registration) {
     // Only send broadcast email for registrations where
     // user registered themself; not other user or anonymous.
-    if (!($registration->registrant_id == $registration->author_uid) ||
+    if (!($registration->user_uid == $registration->author_uid) ||
       !empty($registration->anon_mail)) {
       unset($registrations[$reg_id]);
     }
@@ -112,7 +112,7 @@ function hook_registration_send_broadcast_ENTITY_TYPE_alter(&$registrations, $co
   foreach ($registrations as $reg_id => $registration) {
     // Only send broadcast email for registrations where
     // user registered themself; not other user or anonymous.
-    if (!($registration->registrant_id == $registration->author_uid) ||
+    if (!($registration->user_uid == $registration->author_uid) ||
       !empty($registration->anon_mail)) {
       unset($registrations[$reg_id]);
     }
@@ -141,7 +141,7 @@ function hook_registration_send_broadcast_ENTITY_TYPE_ID_alter(&$registrations, 
   foreach ($registrations as $reg_id => $registration) {
     // Only send broadcast email for registrations where
     // user registered themself; not other user or anonymous.
-    if (!($registration->registrant_id == $registration->author_uid) ||
+    if (!($registration->user_uid == $registration->author_uid) ||
       !empty($registration->anon_mail)) {
       unset($registrations[$reg_id]);
     }

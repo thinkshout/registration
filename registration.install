@@ -50,8 +50,8 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'registrant_id' => array(
-        'description' => 'The id of the entity associated with this registration.',
+      'user_uid' => array(
+        'description' => 'The uid of the user associated with this registration.',
         'type' => 'int',
         'not null' => FALSE,
         'default' => 0,
@@ -607,15 +607,10 @@ function registration_update_7106(&$sandbox) {
 }
 
 /**
- * Set default configuration for "register tab" display.
+ * Rebuild class registry for RegistrationTypeController.
  */
 function registration_update_7107() {
-  foreach (registration_get_registration_instances() as $instance) {
-    if (!isset($instance['settings']['register_tab'])) {
-      $instance['settings']['register_tab'] = 1;
-      field_update_instance($instance);
-    }
-  }
+  registry_rebuild();
 }
 
 /**
@@ -657,12 +652,4 @@ function registration_update_7108(&$sandbox) {
       )
     );
   }
-}
-// TODO: Test this
-/**
- * Rename user id to registrant id because we are registering more than just users.
- */
-function registration_update_7109(&$sandbox) {
-  $schema = registration_schema();
-  db_change_field('registration', 'user_uid', 'registrant_id', $schema['registration']['fields']['user_uid']);
 }

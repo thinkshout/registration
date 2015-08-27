@@ -15,26 +15,24 @@
 function registration_form($form, &$form_state, Registration $registration) {
   $wrapper = entity_metadata_wrapper('registration', $registration);
   // TODO: replace user with entity
-  $registrant = $wrapper->registrant->value();
+  $user = $wrapper->user->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
-  $type = $wrapper->getBundle();
-  $type_wrapper = entity_metadata_wrapper('registration_type', $type);
-  $registrant_type = $type_wrapper->registrant_entity_type->value();
-  $email_property = $type_wrapper->registrant_email_property->value();
-  $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
+  $type = $wrapper->type->value();
 
-  // Save configuration to the form to use with validation and submission.
   $form_state['registration'] = $registration;
-  $form_state['registration_type'] = $type;
-  $form_state['registrant_type'] = $registrant_type;
-  $form_state['registrant_email'] = $type_wrapper->$email_property->value();
 
+  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+
+  if (!registration_has_room($registration->entity_type, $registration->entity_id)) {
+    if ($settings['settings']['registration_waitlist_enable'] == 1 && $settings['settings']['registration_waitlist_message_enable'] == 1) {
+      drupal_set_message(t($settings['settings']['registration_waitlist_message']), 'warning');
+    }
+  }
 
   $who_options = registration_access_people($registration);
 
   // Default value for who is registering.
-  // TODO: Replace or remove this
   $who_default = NULL;
   if (isset($registration->registration_id)) {
     $who_default = $registration->registrant_type($GLOBALS['user']);
@@ -63,17 +61,20 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#access' => (count($who_options) > 1),
   );
   // TODO: replace with form registrant
-  $form['registrant'] = array(
+  $form['user'] = array(
     '#type' => 'textfield',
-    '#title' => t('Registrant'),
-    '#default_value' => ($registrant ? $registrant->$name_property->value() : ''),
+    '#title' => t('User'),
+    '#default_value' => ($user ? $user->name : ''),
     '#maxlength' => 60,
     '#size' => 30,
-    '#description' => t('Select a registrant by typing their name to get a list of matches.'),
+    '#description' => t('Select a user by typing their username to get a list of matches.'),
     '#autocomplete_path' => 'user/autocomplete',
     '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_USER]),
     '#states' => array(
       'visible' => array(
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
+      ),
+      'required' => array(
         ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
       ),
     ),
@@ -84,12 +85,14 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#title' => t('Email'),
     '#description' => t('The email to associate with this registration.'),
     '#default_value' => isset($registration->anon_mail) ? $registration->anon_mail : '',
-    '#required' => TRUE,
     '#size' => 40,
     '#maxlength' => 255,
     '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_ANON]),
     '#states' => array(
       'visible' => array(
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_ANON),
+      ),
+      'required' => array(
         ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_ANON),
       ),
     ),
@@ -182,8 +185,6 @@ function registration_form($form, &$form_state, Registration $registration) {
  */
 function registration_form_validate($form, &$form_state) {
   $registration = $form_state['registration'];
-  $registrant_type =  $form_state['registrant_type'];
-  $registrant_email =  $form_state['registrant_email'];
 
   $count = $form_state['values']['count'];
 
@@ -232,17 +233,29 @@ function registration_form_validate($form, &$form_state) {
         form_set_error('user', t('You are already registered for this event.'));
       }
       break;
-    // TODO: replace replace call to user name
+    // TODO: replace user_load_by_name
     case REGISTRATION_REGISTRANT_TYPE_USER:
-      $registrant = entity_load_multiple_by_name($registrant_type, $form_state['values']['registrant']);
-      if ($registrant) {
-        $registrant_id = array_shift(entity_extract_ids($registrant_type, $registrant));
-        if (!$allow_multiple && registration_is_registered($registration, NULL, $registrant_id)) {
-          form_set_error('registrant', t('%registrant is already registered for this event.', array('%registrant' => $registrant_email)));
+      if (empty($form_state['values']['user'])) {
+        form_set_error('user', t('User name is required.'));
+      }
+      $user = user_load_by_name($form_state['values']['user']);
+      if ($user) {
+        if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
+          if (user_access('access user profiles')) {
+            form_set_error('user', t('%user is already registered for this event.', array('%user' => $user->name)));
+          }
+          else {
+            form_set_error('user', t('Registration Failed.'));
+          }
         }
       }
       else {
-        form_set_error('registrant', t('%registrant is not a valid registrant.', array('%registrant' => $form_state['values']['registrant'])));
+        if (user_access('access user profiles')) {
+          form_set_error('user', t('%user is not a valid user.', array('%user' => $form_state['values']['user'])));
+        }
+        else {
+          form_set_error('user', t('Registration Failed.'));
+        }
       }
       break;
   }
@@ -256,10 +269,8 @@ function registration_form_validate($form, &$form_state) {
  */
 function registration_form_submit($form, &$form_state) {
   $registration = $form_state['registration'];
-  $registrant_type =  $form_state['registrant_type'];
 
   // Set the registration's author uid:
-  // TODO: Should the author be set to the custom entity ID instead of current user?
   if (!isset($registration->registration_id)) {
     $registration->author_uid = $GLOBALS['user']->uid;
   }
@@ -276,12 +287,12 @@ function registration_form_submit($form, &$form_state) {
     // TODO: Replace register type me
     case REGISTRATION_REGISTRANT_TYPE_ME:
       global $user;
-      $registration->registrant_id = $user->uid;
+      $registration->user_uid = $user->uid;
       break;
-    // TODO: Replace uid to use custom entities
+    // TODO: Expand to use custom entities
     case REGISTRATION_REGISTRANT_TYPE_USER:
-      if ($registrant = entity_load_multiple_by_name($registrant_type, $form_state['values']['registrant'])) {
-        $registration->registrant_id = $registrant->uid;
+      if ($reg_user = user_load_by_name($form_state['values']['user'])) {
+        $registration->user_uid = $reg_user->uid;
       }
       break;
   }

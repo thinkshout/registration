@@ -70,7 +70,7 @@ function registration_entity_info() {
       'label' => t('Registration type'),
       'entity class' => 'RegistrationType',
       'metadata controller class' => 'RegistrationTypeMetadataController',
-      'controller class' => 'EntityAPIControllerExportable',
+      'controller class' => 'RegistrationTypeController',
       'base table' => 'registration_type',
       'fieldable' => FALSE,
       'bundle of' => 'registration',
@@ -134,16 +134,20 @@ function registration_entity_info_alter(&$entity_info) {
   if (drupal_get_schema('registration')) {
     // We are adding the info about the registration types via a hook to avoid a
     // recursion issue as loading the model types requires the entity info as well.
-    foreach (registration_get_types() as $type => $info) {
-      $entity_info['registration']['bundles'][$type] = array(
-        'label' => $info->label,
-        'admin' => array(
-          'path' => 'admin/structure/registration/registration_types/manage/%registration_type',
-          'real path' => 'admin/structure/registration/registration_types/manage/' . $type,
-          'bundle argument' => 5,
-          'access arguments' => array('administer registration types'),
-        ),
-      );
+    // Need to do a class_exists check for updates from earlier versions
+    // of registration module.
+    if (class_exists('RegistrationTypeController')) {
+      foreach (registration_get_types() as $type => $info) {
+        $entity_info['registration']['bundles'][$type] = array(
+          'label' => $info->label,
+          'admin' => array(
+            'path' => 'admin/structure/registration/registration_types/manage/%registration_type',
+            'real path' => 'admin/structure/registration/registration_types/manage/' . $type,
+            'bundle argument' => 5,
+            'access arguments' => array('administer registration types'),
+          ),
+        );
+      }
     }
   }
 }
@@ -196,21 +200,20 @@ function registration_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // entity local tasks
+  // Entity local tasks.
   foreach (registration_get_registration_instances() as $instance) {
     $type = $instance['entity_type'];
     if (!in_array($type, array('registration', 'registration_type'))) {
-      if (!empty($instance['settings']['register_tab'])) {
-        $items[$type . '/%entity_object/register'] = array(
-          'load arguments' => array($type),
-          'title' => 'Register',
-          'page callback' => 'registration_register_page',
-          'page arguments' => array(0, 1),
-          'access callback' => 'registration_register_page_access',
-          'access arguments' => array(0, 1),
-          'type' => MENU_LOCAL_TASK,
-        );
-      }
+      $hide_register_tab = isset($instance['settings']['hide_register_tab']) && $instance['settings']['hide_register_tab'];
+      $items[$type . '/%entity_object/register'] = array(
+        'load arguments' => array($type),
+        'title' => 'Register',
+        'page callback' => 'registration_register_page',
+        'page arguments' => array(0, 1),
+        'access callback' => 'registration_register_page_access',
+        'access arguments' => array(0, 1),
+        'type' => $hide_register_tab ? MENU_CALLBACK : MENU_LOCAL_TASK,
+      );
       $items[$type . '/%entity_object/registrations'] = array(
         'load arguments' => array($type),
         'title' => 'Manage Registrations',
@@ -367,8 +370,12 @@ function registration_permission_list($info) {
     "delete any $type registration" => array(
       'title' => t('%type_name: Delete any registrations', array('%type_name' => $label)),
     ),
+    "create $type registration self" => array(
+      'title' => t('%type_name: Register self', array('%type_name' => $label)),
+    ),
     "create $type registration other users" => array(
       'title' => t('%type_name: Register other accounts', array('%type_name' => $label)),
+      'description' => t("Register other users by username. Note that giving this permission to Anonymous is not recommended, as it can expose a user's registration status to a site visitor who knows their username."),
     ),
     "create $type registration other anonymous" => array(
       'title' => t('%type_name: Register other people', array('%type_name' => $label)),
@@ -396,9 +403,9 @@ function registration_user_cancel($edit, $account, $method) {
 
       db_update('registration')
         ->fields(array(
-        'registrant_id' => NULL,
+        'user_uid' => NULL,
       ))
-        ->condition('registrant_id', $account->uid)
+        ->condition('user_uid', $account->uid)
         ->execute();
     }
   }
@@ -424,9 +431,9 @@ function registration_user_delete($account) {
     // registration. Simply disassociate the user with the registration.
     db_update('registration')
       ->fields(array(
-        'registrant_id' => NULL,
+        'user_uid' => NULL,
       ))
-      ->condition('registrant_id', $account->uid)
+      ->condition('user_uid', $account->uid)
       ->execute();
     // Delete entries in the cache as well.
     cache_clear_all('*', 'cache_entity_registration', TRUE);
@@ -579,41 +586,41 @@ function registration_registrations_page($entity_type, $entity) {
       'data' => t('id'),
       'field' => 'registration_id',
       'type' => 'property',
-      'specifier' => 'registration_id'
+      'specifier' => 'registration_id',
     ),
     array(
       'data' => t('Email'),
     ),
     array(
-      'data' => t('Registrant'),
-      'field' => 'registrant_id',
+      'data' => t('User'),
+      'field' => 'user_uid',
       'type' => 'property',
-      'specifier' => 'registrant_id'
+      'specifier' => 'user_uid',
     ),
     array(
       'data' => t('Created By'),
       'field' => 'author_uid',
       'type' => 'property',
-      'specifier' => 'author_uid'
+      'specifier' => 'author_uid',
     ),
     array(
       'data' => t('Count'),
       'field' => 'count',
       'type' => 'property',
-      'specifier' => 'count'
+      'specifier' => 'count',
     ),
     array(
       'data' => t('Created'),
       'field' => 'created',
       'sort' => 'desc',
       'type' => 'property',
-      'specifier' => 'created'
+      'specifier' => 'created',
     ),
     array(
       'data' => t('State'),
       'field' => 'state',
       'type' => 'property',
-      'specifier' => 'state'
+      'specifier' => 'state',
     ),
     array('data' => t('Actions')),
   );
@@ -621,7 +628,7 @@ function registration_registrations_page($entity_type, $entity) {
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   $label = entity_label($entity_type, $entity);
 
-  $query = new EntityFieldQuery;
+  $query = new EntityFieldQuery();
   $result = $query
     ->entityCondition('entity_type', 'registration')
     ->propertyCondition('entity_id', $entity_id)
@@ -638,12 +645,8 @@ function registration_registrations_page($entity_type, $entity) {
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
       $author = $wrapper->author->value();
-      $registrant = $wrapper->registrant->value();
+      $user = $wrapper->user->value();
       $state = $wrapper->state->value();
-      $type = $wrapper->getBundle();
-      $type_wrapper = entity_metadata_wrapper('registration_type', $type);
-      $email_property = $type_wrapper->registrant_email_property->value();
-      $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
 
       $author_col = '';
       if ($registration->author_uid) {
@@ -651,8 +654,8 @@ function registration_registrations_page($entity_type, $entity) {
       }
 
       $user_col = '';
-      if ($registration->registrant_id) {
-        $user_col = theme('username', array('account' => $registrant));
+      if ($registration->user_uid) {
+        $user_col = theme('username', array('account' => $user));
       }
 
       $actions = array();
@@ -668,7 +671,7 @@ function registration_registrations_page($entity_type, $entity) {
 
       $rows[] = array(
         l($registration->registration_id, 'registration/' . $registration->registration_id),
-        l($wrapper->$email_property->value(), 'mailto:' . $wrapper->$email_property->value()),
+        l($wrapper->mail->value(), 'mailto:' . $wrapper->mail->value()),
         $user_col,
         $author_col,
         $registration->count,
@@ -1045,12 +1048,8 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     $success_count = 0;
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
-      $type = $wrapper->getBundle();
-      $type_wrapper = entity_metadata_wrapper('registration_type', $type);
-      $email_property = $type_wrapper->registrant_email_property->value();
-      $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
 
-      $recipients[] = $wrapper->$email_property->value();
+      $recipients[] = $wrapper->mail->value();
 
       $entity = entity_load_single($entity_type, $entity_id);
       if (module_exists('token')) {
@@ -1062,14 +1061,14 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
       $params['message'] = $message;
 
       $result = drupal_mail('registration', 'broadcast',
-        $wrapper->$email_property->value(), $language, $params, $from
+        $wrapper->mail->value(), $language, $params, $from
       );
       if ($result['result']) {
         $success_count++;
       }
       else {
         watchdog('registration', 'Failed to send registration broadcast email to %email.',
-          array('%email' => $wrapper->$email_property->value()), WATCHDOG_ERROR
+          array('%email' => $wrapper->mail->value()), WATCHDOG_ERROR
         );
       }
     }
@@ -1359,13 +1358,13 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
         $options
       );
     }
-    // TODO: Replace user token with entity tokens
+    // TODO: Replae user token with entity tokens
     if ($entity_tokens = token_find_with_prefix($tokens, 'user')) {
-      $registrant = $wrapper->registrant->value();
+      $entity = $wrapper->user->value();
       $replacements += token_generate(
         'user',
         $entity_tokens,
-        array('user' => $registrant),
+        array('user' => $entity),
         $options
       );
     }
@@ -1419,14 +1418,14 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
     // There's a user with this email, check to make sure they're not registered.
     if ($user = user_load_by_mail($anon_mail)) {
       $query->condition(db_or()->condition('anon_mail', $anon_mail)
-        ->condition('registrant_id', $user->uid));
+        ->condition('user_uid', $user->uid));
     }
     else {
       $query->condition('anon_mail', $anon_mail);
     }
   }
   elseif ($uid) {
-    $query->condition('registrant_id', $uid);
+    $query->condition('user_uid', $uid);
   }
 
   // Exclude existing registration.
@@ -1456,22 +1455,28 @@ function registration_access_people(Registration $registration, $account = NULL)
   $account = isset($account) ? $account : $GLOBALS['user'];
   $people = array();
 
-  // Me
+  // Me:
   // TODO: Remove Me myself registration, unless registering users?
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
-  if ($account->uid && ($account->uid === $registration->registrant_id || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
+  if ($account->uid && (user_access("create $registration->type registration self", $account)) && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }
 
-  // Other users
+  // Other users:
   if (user_access("create $registration->type registration other users", $account)) {
     $people[REGISTRATION_REGISTRANT_TYPE_USER] = t('Other account');
   }
 
-  // Anonymous people
-  if (user_access("create $registration->type registration other anonymous", $account)) {
-    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = (empty($account->uid) && $account->uid != 0) ? t('Myself') : t('Other person');
+  $user_is_anonymous = (empty($account->uid) || $account->uid == 0);
+  // Other anonymous people:
+  if (user_access("create $registration->type registration other anonymous", $account) && !$user_is_anonymous) {
+    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = t('Other person');
+  }
+
+  // Anonymous self-registration:
+  if ($user_is_anonymous && user_access("create $registration->type registration")) {
+    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = t('Myself');
   }
 
   return $people;
@@ -1691,24 +1696,24 @@ function registration_property_author_get(Registration $registration, array $opt
 
 /**
  * Callback to get $registration->user.
- * // TODO: test this
+ * // TODO: replace user with entity
  *
  * @see registration_entity_property_info().
  */
-function registration_property_registrant_get(Registration $registration, array $options, $property_name, $entity_type) {
-  if (is_numeric($registration->registrant_id)) {
-    $entity = entity_load_single('user', $registration->registrant_id);
+function registration_property_user_get(Registration $registration, array $options, $property_name, $entity_type) {
+  if (is_numeric($registration->user_uid)) {
+    $entity = entity_load_single('user', $registration->user_uid);
     return entity_metadata_wrapper('user', $entity);
   }
 }
 
 /**
- * Callback to set $registration->registrant that supports null value.
- * // TODO: test this
+ * Callback to set $registration->user that supports null value.
+ * // TODO: Replace user with entity
  */
-function registration_property_registrant_set(Registration $registration, $name, $value, $lang, $type, $info) {
-  if (is_object($value) && $entity = $value->value()) {
-    $registration->{$info['schema field']} = $entity->identifier();
+function registration_property_user_set(Registration $registration, $name, $value, $lang, $type, $info) {
+  if (is_object($value) && $account = $value->value()) {
+    $registration->{$info['schema field']} = $account->uid;
   }
   else {
     $registration->{$info['schema field']} = NULL;
@@ -1738,11 +1743,6 @@ function registration_property_email_set(Registration $registration, $name, $val
  * @return EntityMetadataWrapper
  */
 function registration_get_properties($entity, array $options, $name, $type) {
-  $wrapper = entity_metadata_wrapper('registration', $entity);
-  $type = $wrapper->getBundle();
-  $type_wrapper = entity_metadata_wrapper('registration_type', $type);
-  $email_property = $type_wrapper->registrant_email_property->value();
-  $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
   switch ($name) {
     case 'anon_mail':
       return $entity->anon_mail;
@@ -1751,10 +1751,10 @@ function registration_get_properties($entity, array $options, $name, $type) {
       return entity_metadata_wrapper($entity->entity_type, $entity->entity);
       break;
     case 'mail':
-
-      // If the entity has an email
-      $registrant =  entity_metadata_wrapper('registration', $entity)->registrant;
-      return ($registrant->value()) ? $registrant->$email_property->value() : $entity->anon_mail;
+      // If a user is set, use their email
+      // TODO: replace with entity.
+      $user =  entity_metadata_wrapper('registration', $entity)->user;
+      return ($user->value()) ? $user->mail->value() : $entity->anon_mail;
       break;
   }
 }
@@ -1804,15 +1804,6 @@ function registration_load_multiple($registration_ids = array(), $conditions = a
  *   TRUE on success, FALSE otherwise.
  */
 function registration_delete_multiple($registration_ids) {
-
-  if (!empty($registration_ids)) {
-    $registrations = registration_load_multiple($registration_ids, array());
-
-    foreach ($registrations as $rid => $registration) {
-      module_invoke_all('entity_delete', $registration);
-    }
-  }
-
   return entity_get_controller('registration')->delete($registration_ids);
 }
 

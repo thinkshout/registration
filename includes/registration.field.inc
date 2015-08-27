@@ -52,14 +52,6 @@ function registration_field_instance_settings_form($field, $instance) {
   $form = $form_state = array();
   $default_settings = isset($instance['settings']['default_registration_settings']) ? $instance['settings']['default_registration_settings'] : array();
 
-  $form['register_tab'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable Register Tab'),
-    '#default_value' => isset($default_settings['register_tab']) ? $default_settings['register_tab'] : TRUE,
-    '#required' => FALSE,
-    '#description' => t('Enable a tab on the content displaying the registration form.'),
-  );
-
   // Flatten scheduling and reminder settings since this form is in tree mode.
   foreach ($default_settings as $key => $val) {
     if ($key != 'settings' and is_array($val)) {
@@ -83,12 +75,20 @@ function registration_field_instance_settings_form($field, $instance) {
     '#type' => 'fieldset',
     '#title' => t('Default Registration settings'),
     '#collapsible' => TRUE,
-    '#description' => t('These settings will be applied when an entity with this field is saved and does not yet have it\'s own settings applied.')
+    '#description' => t("These settings will be applied when an entity with this field is saved and does not yet have it's own settings applied."),
   );
 
   // Unset the save button just in case.
   unset($settings_form['save']);
   $form['default_registration_settings'] += $settings_form;
+
+  $form['hide_register_tab'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide Register Tab'),
+    '#default_value' => isset($instance['settings']['hide_register_tab']) ? $instance['settings']['hide_register_tab'] : 0,
+    '#required' => FALSE,
+    '#description' => t('Hide the tab on the content displaying the registration form. The form can still be embedded or linked to by changing the field display settings.'),
+  );
 
   // @todo: validation
   return $form;
@@ -165,6 +165,10 @@ function registration_field_formatter_info() {
     ),
     'registration_form' => array(
       'label' => t('Registration Form'),
+      'field types' => array('registration'),
+    ),
+    'registration_type' => array(
+      'label' => t('Registration Type'),
       'field types' => array('registration'),
     ),
   );
@@ -257,11 +261,12 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
     $reg_type = registration_type_load($items[0]['registration_type']);
     $settings = $display['settings'];
     $label = !empty($settings['label']) ? _registration_translate($settings['i18n_string_key'] . ':label', $settings['label']) : $reg_type->label;
+    list($entity_id) = entity_extract_ids($entity_type, $entity);
 
     switch ($display['type']) {
       case 'registration_link':
         // Enable registration link if accessible.
-        if (registration_register_page_access($entity_type, $entity)) {
+        if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
           $uri = entity_uri($entity_type, $entity);
           $element[0] = array(
             '#markup' => theme('registration_link',
@@ -272,13 +277,13 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
                 'entity_type' => $entity_type,
                 'entity' => $entity,
               )
-            )
+            ),
           );
         }
         break;
+
       case 'registration_form':
-        // Enable registration link if accessible.
-        list($entity_id) = entity_extract_ids($entity_type, $entity);
+        // Enable registration form if accessible.
         if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
           $registration = entity_get_controller('registration')->create(array(
             'entity_type' => $entity_type,
@@ -287,6 +292,12 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
           ));
           $element[0] = drupal_get_form('registration_form', $registration);
         }
+        break;
+
+      case 'registration_type':
+        $element[0] = array(
+          '#markup' => $label,
+        );
         break;
     }
   }
@@ -410,6 +421,19 @@ function registration_field_delete_instance($instance) {
   _registration_menu_rebuild($instance);
 
   // @TODO: should we delete all registrations at this point?
+}
+
+/**
+ * Implements hook_field_update_instance().
+ *
+ * Rebuild the menu if the registration tab setting has changed.
+ */
+function registration_field_update_instance($instance, $prior_instance) {
+  $prev = isset($prior_instance['settings']['hide_register_tab']) ? $prior_instance['settings']['hide_register_tab'] : NULL;
+  $cur = isset($instance['settings']['hide_register_tab']) ? $instance['settings']['hide_register_tab'] : NULL;
+  if ($prev != $cur) {
+    _registration_menu_rebuild($instance);
+  }
 }
 
 /**

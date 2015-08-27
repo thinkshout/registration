@@ -2,6 +2,7 @@ name = Registration
 description = Entity based registration system.
 package = Registration
 core = 7.x
+configure = admin/structure/registration
 
 dependencies[] = entity
 
@@ -12,6 +13,7 @@ files[] = lib/registration_type.metadata.inc
 files[] = lib/registration_state.controller.inc
 files[] = lib/registration_state.entity.inc
 files[] = lib/registration_state.ui_controller.inc
+files[] = lib/registration_type.controller.inc
 files[] = lib/registration_type.entity.inc
 files[] = lib/registration_type.ui_controller.inc
 

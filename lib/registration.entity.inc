@@ -16,7 +16,8 @@ class Registration extends Entity {
     $entity_id,
     $entity_type,
     $anon_mail = NULL,
-    $registrant_id = NULL,
+    // TODO: Registrant ID
+    $user_uid = NULL,
     $count,
     $author_uid,
     $state,
@@ -47,18 +48,17 @@ class Registration extends Entity {
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     $build = parent::buildContent($view_mode, $langcode);
     $wrapper = entity_metadata_wrapper('registration', $this);
+
     $host_entity_type_info = entity_get_info($this->entity_type);
     $host_entity = $wrapper->entity->value();
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
-    $registrant = $wrapper->registrant->value();
-    $type = $wrapper->getBundle();
-    $type_wrapper = entity_metadata_wrapper('registration_type', $type);
-    $email_property = $type_wrapper->registrant_email_property->value();
-    $email_property = 'mail'; // TODO: Temporary until property fields are fixed.
-
+    // TODO: Replace user wrapper with entity
+    $user = $wrapper->user->value();
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
+
     $host_label = entity_label($this->entity_type, $host_entity);
+
     $host_uri = $host_entity ? entity_uri($this->entity_type, $host_entity) : NULL;
 
     $build['mail'] = array(
@@ -66,7 +66,7 @@ class Registration extends Entity {
       '#label' => t('Email Address'),
       '#items' => array(
         array(
-          '#markup' => $wrapper->$email_property->value(),
+          '#markup' => $wrapper->mail->value(),
         ),
       ),
       '#classes' => 'field field-label-inline clearfix',
@@ -132,14 +132,14 @@ class Registration extends Entity {
         '#attributes' => '',
       );
     }
-    // TODO: Refactor theme function
-    if ($registrant) {
-      $build['registrant'] = array(
+    // TODO: if registrant
+    if ($user) {
+      $build['user'] = array(
         '#theme' => 'registration_property_field',
-        '#label' => t('Registrant'),
+        '#label' => t('User'),
         '#items' => array(
           array(
-            '#markup' => theme('username', array('account' => $registrant)),
+            '#markup' => theme('username', array('account' => $user)),
           ),
         ),
         '#classes' => 'field field-label-inline clearfix',
@@ -204,10 +204,10 @@ class Registration extends Entity {
   public function registrant_type($account) {
     $reg_type = NULL;
     if (!empty($account)) {
-      if ($account->uid && $account->uid === $this->registrant_id) {
+      if ($account->uid && $account->uid === $this->user_uid) {
         $reg_type = REGISTRATION_REGISTRANT_TYPE_ME;
       }
-      elseif ($this->registrant_id) {
+      elseif ($this->user_uid) {
         $reg_type = REGISTRATION_REGISTRANT_TYPE_USER;
       }
     }
@@ -216,5 +216,6 @@ class Registration extends Entity {
     }
     return $reg_type;
   }
+
 }
 

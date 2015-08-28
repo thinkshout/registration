@@ -50,8 +50,8 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'user_uid' => array(
-        'description' => 'The uid of the user associated with this registration.',
+      'registrant_id' => array(
+        'description' => 'The entity id of the registrant associated with this registration.',
         'type' => 'int',
         'not null' => FALSE,
         'default' => 0,
@@ -92,10 +92,6 @@ function registration_schema() {
       'registration_author' => array(
         'table' => 'users',
         'columns' => array('author_uid' => 'uid'),
-      ),
-      'registration_user' => array(
-        'table' => 'users',
-        'columns' => array('user_uid' => 'uid'),
       ),
       'registration_state' => array(
         'table' => 'registration_state',
@@ -692,4 +688,16 @@ function registration_update_7108(&$sandbox) {
       )
     );
   }
+}
+
+/**
+ * Rename user id to registrant id because we are registering more than just users.
+ */
+function registration_update_7109(&$sandbox) {
+  db_change_field('registration', 'user_uid', 'registrant_id', array(
+    'description' => 'The entity id of the registrant associated with this registration.',
+    'type' => 'int',
+    'not null' => FALSE,
+    'default' => 0,
+  ));
 }

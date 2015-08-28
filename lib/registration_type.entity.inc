@@ -13,6 +13,7 @@ class RegistrationType extends Entity {
   public $data;
   public $registrant_entity_type;
   public $registrant_bundle;
+  public $registrant_uid_property;
   public $registrant_email_property;
 
   public function __construct($values = array()) {

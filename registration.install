@@ -247,6 +247,34 @@ function registration_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
+      'registrant_entity_type' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'user',
+        'description' => 'The machine name of the registrant entity\'s type.',
+      ),
+      'registrant_bundle' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'user',
+        'description' => 'The machine name of the registrant entity\'s bundle.',
+      ),
+      'registrant_uid_property' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'uid',
+        'description' => 'The machine name of the registrant entity\'s user id property.',
+      ),
+      'registrant_email_property' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'mail',
+        'description' => 'The machine name of the registrant entity\'s email property.',
+      ),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
@@ -641,18 +669,6 @@ function registration_update_7108(&$sandbox) {
     );
   }
 
-  if (!db_field_exists('registration_type', 'registrant_email_property')) {
-    db_add_field('registration_type', 'registrant_email_property',
-      array(
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => 'mail',
-        'description' => 'The machine name of the registrant entity\'s email property.',
-      )
-    );
-  }
-
   if (!db_field_exists('registration_type', 'registrant_uid_property')) {
     db_add_field('registration_type', 'registrant_uid_property',
       array(
@@ -661,6 +677,18 @@ function registration_update_7108(&$sandbox) {
         'not null' => TRUE,
         'default' => 'uid',
         'description' => 'The machine name of the registrant entity\'s user id property.',
+      )
+    );
+  }
+
+  if (!db_field_exists('registration_type', 'registrant_email_property')) {
+    db_add_field('registration_type', 'registrant_email_property',
+      array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => 'mail',
+        'description' => 'The machine name of the registrant entity\'s email property.',
       )
     );
   }

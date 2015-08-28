@@ -60,7 +60,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     '#options' => $entity_types,
     '#default_value' => isset($registration_type->registrant_entity_type) ? $registration_type->registrant_entity_type : '',
     '#required' => TRUE,
-    '#description' => t('Select an entity type to enable registration on.'),
+    '#description' => t('Select a registrant entity type (default: User).'),
     '#ajax' => array(
       'callback' => 'registration_mapping_form_callback',
       'wrapper' => 'registration-drupal-entity',
@@ -81,7 +81,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       '#title' => t('Entity bundle'),
       '#type' => 'select',
       '#required' => TRUE,
-      '#description' => t('Select a Drupal entity bundle with an email address.'),
+      '#description' => t('Select a registrant entity bundle with a Drupal user id and email address.'),
       '#options' => $bundles,
       '#default_value' => isset($registration_type->registrant_bundle) ? $registration_type->registrant_bundle : '',
       '#ajax' => array(
@@ -95,11 +95,22 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
 
       // Prep the field & properties list before creating the form item:
       $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);
-      $form['drupal_entity']['registrant_email_property'] = array(
-        '#title' => t('Email Property'),
+
+      $form['drupal_entity']['registrant_uid_property'] = array(
+        '#title' => t('User id Property'),
         '#type' => 'select',
         '#required' => TRUE,
-        '#description' => t('Select the field which contains the email address'),
+        '#description' => t('Select the field which contains the Drupal user id.'),
+        '#options' => $fields,
+        '#default_value' => isset($registration_type->registrant_uid_property) ? $registration_type->registrant_uid_property : '',
+        '#maxlength' => 127,
+      );
+
+      $form['drupal_entity']['registrant_email_property'] = array(
+        '#title' => t('Email property'),
+        '#type' => 'select',
+        '#required' => TRUE,
+        '#description' => t('Select the field which contains the email address.'),
         '#options' => $fields,
         '#default_value' => isset($registration_type->registrant_email_property) ? $registration_type->registrant_email_property : '',
         '#maxlength' => 127,

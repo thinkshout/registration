@@ -57,7 +57,12 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
   }
   asort($entity_types);
 
-  if (!isset($form_entity_type) && $entity_types[$registration_type->registrant_entity_type]) {
+  if (isset($form_entity_type)) {
+    if (!$entity_types[$form_entity_type]) {
+      $form_entity_type = NULL;
+    }
+  }
+  elseif ($entity_types[$registration_type->registrant_entity_type]) {
     $form_entity_type = $registration_type->registrant_entity_type;
   }
 
@@ -85,7 +90,12 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     }
     asort($bundles);
 
-    if (!isset($form_bundle) && $bundles[$registration_type->registrant_bundle]) {
+    if (isset($form_bundle)) {
+      if (!$bundles[$form_bundle]) {
+        $form_bundle = NULL;
+      }
+    }
+    elseif ($bundles[$registration_type->registrant_bundle]) {
       $form_bundle = $registration_type->registrant_bundle;
     }
 
@@ -109,10 +119,21 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       // Prep the field & properties list before creating the form item:
       $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);
 
-      if (!isset($form_uid_property) && $fields[$registration_type->registrant_uid_property]) {
+      if (isset($form_uid_property)) {
+        if (!$fields[$form_uid_property]) {
+          $form_uid_property = NULL;
+        }
+      }
+      elseif ($fields[$registration_type->registrant_uid_property]) {
         $form_uid_property = $registration_type->registrant_uid_property;
       }
-      if (!isset($form_email_property) && $fields[$registration_type->registrant_email_property]) {
+
+      if (isset($form_email_property)) {
+        if (!$fields[$form_email_property]) {
+          $form_email_property = NULL;
+        }
+      }
+      elseif ($fields[$registration_type->registrant_email_property]) {
         $form_email_property = $registration_type->registrant_email_property;
       }
 
@@ -242,18 +263,13 @@ function registration_email_fieldmap_options($entity_type, $entity_bundle = NULL
   }
 
   foreach ($properties as $key => $property) {
-    $type = isset($property['type']) ? entity_property_extract_innermost_type($property['type']) : 'text';
-    $is_entity = ($type == 'entity') || (bool) entity_get_info($type);
-    // Leave entities out of this.
-    if (!$is_entity) {
-      if (isset($property['field']) && $property['field'] && !empty($property['property info'])) {
-        foreach ($property['property info'] as $sub_key => $sub_prop) {
-          $options[$property['label']][$key . ':' . $sub_key] = $sub_prop['label'];
-        }
+    if (isset($property['field']) && $property['field'] && !empty($property['property info'])) {
+      foreach ($property['property info'] as $sub_key => $sub_prop) {
+        $options[$property['label']][$key . ':' . $sub_key] = $sub_prop['label'];
       }
-      else {
-        $options[$key] = $property['label'];
-      }
+    }
+    else {
+      $options[$key] = $property['label'];
     }
   }
 

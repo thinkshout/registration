@@ -35,14 +35,16 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     '#description' => t('A unique machine-readable name for this registration type. It must only contain lowercase letters, numbers, and underscores.'),
   );
 
-  // Greg
-  $form['drupal_entity'] = array(
-    '#title' => t('Drupal entity'),
+  // Registrant Entity form fields:
+  $form['registrant_entity'] = array(
+    '#title' => t('Registrant entity'),
     '#type' => 'fieldset',
     '#attributes' => array(
-      'id' => array('registration-drupal-entity'),
+      'id' => array('registration-registrant-entity'),
     ),
   );
+
+  $form_entity_type = & $form_state['values']['registrant_entity_type'];
 
   // Prep the entity type list before creating the form item:
   $entity_types = array('' => t('-- Select --'));
@@ -54,21 +56,26 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     }
   }
   asort($entity_types);
-  $form['drupal_entity']['registrant_entity_type'] = array(
+
+  if (!isset($form_entity_type) && $entity_types[$registration_type->registrant_entity_type]) {
+    $form_entity_type = $registration_type->registrant_entity_type;
+  }
+
+  $form['registrant_entity']['registrant_entity_type'] = array(
     '#title' => t('Entity type'),
     '#type' => 'select',
     '#options' => $entity_types,
-    '#default_value' => isset($registration_type->registrant_entity_type) ? $registration_type->registrant_entity_type : '',
+    '#default_value' => $form_entity_type,
     '#required' => TRUE,
     '#description' => t('Select a registrant entity type (default: User).'),
     '#ajax' => array(
       'callback' => 'registration_mapping_form_callback',
-      'wrapper' => 'registration-drupal-entity',
+      'wrapper' => 'registration-registrant-entity',
     ),
   );
 
-  $form_entity_type = & $form_state['values']['registrant_entity_type'];
   if ($form_entity_type) {
+    $form_bundle = & $form_state['values']['registrant_bundle'];
 
     // Prep the bundle list before creating the form item:
     $bundles = array('' => t('-- Select --'));
@@ -77,42 +84,55 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       $bundles[$key] = $bundle['label'];
     }
     asort($bundles);
-    $form['drupal_entity']['registrant_bundle'] = array(
+
+    if (!isset($form_bundle) && $bundles[$registration_type->registrant_bundle]) {
+      $form_bundle = $registration_type->registrant_bundle;
+    }
+
+    $form['registrant_entity']['registrant_bundle'] = array(
       '#title' => t('Entity bundle'),
       '#type' => 'select',
       '#required' => TRUE,
       '#description' => t('Select a registrant entity bundle with a Drupal user id and email address.'),
       '#options' => $bundles,
-      '#default_value' => isset($registration_type->registrant_bundle) ? $registration_type->registrant_bundle : '',
+      '#default_value' => $form_bundle,
       '#ajax' => array(
         'callback' => 'registration_mapping_form_callback',
-        'wrapper' => 'registration-drupal-entity',
+        'wrapper' => 'registration-registrant-entity',
       ),
     );
 
-    $form_bundle = & $form_state['values']['registrant_bundle'];
     if ($form_bundle) {
+      $form_uid_property = & $form_state['values']['registrant_uid_property'];
+      $form_email_property = & $form_state['values']['registrant_email_property'];
 
       // Prep the field & properties list before creating the form item:
       $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);
 
-      $form['drupal_entity']['registrant_uid_property'] = array(
+      if (!isset($form_uid_property) && $fields[$registration_type->registrant_uid_property]) {
+        $form_uid_property = $registration_type->registrant_uid_property;
+      }
+      if (!isset($form_email_property) && $fields[$registration_type->registrant_email_property]) {
+        $form_email_property = $registration_type->registrant_email_property;
+      }
+
+      $form['registrant_entity']['registrant_uid_property'] = array(
         '#title' => t('User id Property'),
         '#type' => 'select',
         '#required' => TRUE,
         '#description' => t('Select the field which contains the Drupal user id.'),
         '#options' => $fields,
-        '#default_value' => isset($registration_type->registrant_uid_property) ? $registration_type->registrant_uid_property : '',
+        '#default_value' => $form_uid_property,
         '#maxlength' => 127,
       );
 
-      $form['drupal_entity']['registrant_email_property'] = array(
+      $form['registrant_entity']['registrant_email_property'] = array(
         '#title' => t('Email property'),
         '#type' => 'select',
         '#required' => TRUE,
         '#description' => t('Select the field which contains the email address.'),
         '#options' => $fields,
-        '#default_value' => isset($registration_type->registrant_email_property) ? $registration_type->registrant_email_property : '',
+        '#default_value' => $form_email_property,
         '#maxlength' => 127,
       );
     }
@@ -173,7 +193,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
  * Ajax callback for registration_mapping_form().
  */
 function registration_mapping_form_callback($form, &$form_state) {
-  return $form['drupal_entity'];
+  return $form['registrant_entity'];
 }
 
 /**

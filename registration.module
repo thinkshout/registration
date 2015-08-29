@@ -1563,14 +1563,17 @@ function registration_field_extra_fields() {
  *  Registrant entity object.
  */
 function registration_get_registrant($registration) {
+  $registrant = NULL;
+
   if (is_numeric($registration->registrant_id)) {
-    //TODO: Change this to generically load the actual registrant entity, instead of always loading a user.
-    $entity = entity_load_single('user', $registration->registrant_id);
+    $type = registration_get_types($registration->type);
+    $entity = entity_load_single($type->registrant_entity_type, $registration->registrant_id);
     if ($entity) {
-      return entity_metadata_wrapper('user', $entity);
+      $registrant = entity_metadata_wrapper($type->registrant_entity_type, $entity);
     }
   }
-  return NULL;
+
+  return $registrant;
 }
 
 /**
@@ -1729,19 +1732,21 @@ function registration_property_registrant_set(Registration $registration, $name,
 /**
  * Callback to get $registration->registrant->user.
  */
-function registration_property_registrant_user_get($entity, array $options, $name, $type) {
-  // TODO: replace this user-specific code with generic code that pulls the value out of the user property.
-  $registrant = registration_get_registrant($entity);
-  return $registrant;
+function registration_property_registrant_user_get($registration, array $options, $name, $type) {
+  $registrant = registration_get_registrant($registration);
+  $type = registration_get_types($registration->type);
+  $property = $type->registrant_uid_property;
+  return isset($registrant->$property) ? $registrant->$property->value() : NULL;
 }
 
 /**
  * Callback to get $registration->registrant->mail.
  */
-function registration_property_registrant_mail_get($entity, array $options, $name, $type) {
-  // TODO: replace this user-specific code with generic code that pulls the value out of the email property.
-  $registrant = registration_get_registrant($entity);
-  return is_object($registrant) ? $registrant->mail->value() : $entity->anon_mail;
+function registration_property_registrant_mail_get($registration, array $options, $name, $type) {
+  $registrant = registration_get_registrant($registration);
+  $type = registration_get_types($registration->type);
+  $property = $type->registrant_email_property;
+  return isset($registrant->$property) ? $registrant->$property->value() : $registration->anon_mail;
 }
 
 /**

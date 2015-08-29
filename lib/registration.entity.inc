@@ -53,7 +53,7 @@ class Registration extends Entity {
     $host_entity = $wrapper->entity->value();
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
-    // TODO: Replace user wrapper with entity
+    $registrant_type = $wrapper->registrant->type();
     $registrant = $wrapper->registrant->value();
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
 
@@ -139,8 +139,8 @@ class Registration extends Entity {
         '#label' => t('Registrant'),
         '#items' => array(
           array(
-            // TODO: Use a more generic theme function? Guessing this one won't work for other entities:
-            '#markup' => theme('username', array('account' => $registrant)),
+            // TODO: Should we render the entity? Or create a theme function to run the registrant through?
+            '#markup' => entity_label($registrant_type, $registrant),
           ),
         ),
         '#classes' => 'field field-label-inline clearfix',

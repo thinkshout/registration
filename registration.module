@@ -644,6 +644,7 @@ function registration_registrations_page($entity_type, $entity) {
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
       $author = $wrapper->author->value();
+      $registrant_type = $wrapper->registrant->type();
       $registrant = $wrapper->registrant->value();
       $state = $wrapper->state->value();
 
@@ -654,8 +655,8 @@ function registration_registrations_page($entity_type, $entity) {
 
       $registrant_col = '';
       if ($registrant) {
-        // TODO: Load associated user? Render the registrant entity?
-        $registrant_col = theme('username', array('account' => $registrant));
+        // TODO: Should we render the entity? Or create a theme function to run the registrant through?
+        $registrant_col = entity_label($registrant_type, $registrant);
       }
 
       $actions = array();

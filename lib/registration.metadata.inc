@@ -75,17 +75,24 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'type' => 'text',
       'schema field' => 'anon_mail',
       'description' => t('An e-mail address associated with the registration of an anonymous user.'),
-      'getter callback' => 'registration_get_properties',
-      'setter callback' => 'registration_property_email_set',
+      'setter callback' => 'entity_property_verbatim_set',
     );
 
-    // Provides a single calculated property that contains either the associated user's email address or the
-    // anonymous email used if no user is associated with the registration
-    $properties['mail'] = array(
+    // Provides a single calculated property that contains the associated registrant's user object.
+    $properties['registrant_user'] = array(
+      'label' => t('Registrant user'),
+      'type' => 'text',
+      'description' => t('The Drupal user associated with the registrant.'),
+      'getter callback' => 'registration_property_registrant_user_get',
+      'computed' => TRUE,
+    );
+
+    // Provides a single calculated property that contains the associated registrant's email address.
+    $properties['registrant_mail'] = array(
       'label' => t('Registrant e-mail'),
       'type' => 'text',
-      'description' => t('Either the user email address, if registration is for a user, or the anonymous user email property.'),
-      'getter callback' => 'registration_get_properties',
+      'description' => t('The registrant\'s email address.'),
+      'getter callback' => 'registration_property_registrant_mail_get',
       'computed' => TRUE,
     );
 
@@ -108,13 +115,13 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'setter callback' => 'entity_property_verbatim_set',
     );
 
-    $properties['user'] = array(
-      'label' => t("User entity"),
+    $properties['registrant'] = array(
+      'label' => t("Registrant entity"),
       'type' => 'entity',
-      'schema field' => 'user_uid',
+      'schema field' => 'registrant_id',
       'description' => t("The entity for which the registration belongs to. Usually a user."),
-      'getter callback' => 'registration_property_user_get',
-      'setter callback' => 'registration_property_user_set',
+      'getter callback' => 'registration_property_registrant_get',
+      'setter callback' => 'registration_property_registrant_set',
     );
 
     $properties['state'] = array(

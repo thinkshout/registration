@@ -13,9 +13,11 @@
  *   object with a node defined.
  */
 function registration_form($form, &$form_state, Registration $registration) {
+  global $user;
+
   $wrapper = entity_metadata_wrapper('registration', $registration);
   // TODO: replace user with entity
-  $user = $wrapper->user->value();
+  $registrant = $wrapper->registrant->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
   $type = $wrapper->type->value();
@@ -35,7 +37,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   // Default value for who is registering.
   $who_default = NULL;
   if (isset($registration->registration_id)) {
-    $who_default = $registration->registrant_type($GLOBALS['user']);
+    $who_default = $registration->registrant_type($user);
   }
   elseif (count($who_options) == 1) {
     $keys = array_keys($who_options);
@@ -61,14 +63,13 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#access' => (count($who_options) > 1),
   );
   // TODO: replace with form registrant
-  $form['user'] = array(
+  $form['registrant_id'] = array(
     '#type' => 'textfield',
-    '#title' => t('User'),
-    '#default_value' => ($user ? $user->name : ''),
+    '#title' => t('Registrant'),
+    '#default_value' => $wrapper->registrant->getIdentifier(),
     '#maxlength' => 60,
     '#size' => 30,
-    '#description' => t('Select a user by typing their username to get a list of matches.'),
-    '#autocomplete_path' => 'user/autocomplete',
+    '#description' => t('Select a registrant by typing an entity id. Well this is awkward.'),
     '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_USER]),
     '#states' => array(
       'visible' => array(
@@ -184,6 +185,8 @@ function registration_form($form, &$form_state, Registration $registration) {
  * Validation callback for registration_form().
  */
 function registration_form_validate($form, &$form_state) {
+  global $user;
+
   $registration = $form_state['registration'];
 
   $count = $form_state['values']['count'];
@@ -228,34 +231,17 @@ function registration_form_validate($form, &$form_state) {
       break;
     // TODO: Replace this or remove it?
     case REGISTRATION_REGISTRANT_TYPE_ME:
-      global $user;
       if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
-        form_set_error('user', t('You are already registered for this event.'));
+        form_set_error('registrant_id', t('You are already registered for this event.'));
       }
       break;
     // TODO: replace user_load_by_name
     case REGISTRATION_REGISTRANT_TYPE_USER:
-      if (empty($form_state['values']['user'])) {
-        form_set_error('user', t('User name is required.'));
+      if (empty($form_state['values']['registrant_id'])) {
+        form_set_error('registrant_id', t('Registrant is required.'));
       }
-      $user = user_load_by_name($form_state['values']['user']);
-      if ($user) {
-        if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
-          if (user_access('access user profiles')) {
-            form_set_error('user', t('%user is already registered for this event.', array('%user' => $user->name)));
-          }
-          else {
-            form_set_error('user', t('Registration Failed.'));
-          }
-        }
-      }
-      else {
-        if (user_access('access user profiles')) {
-          form_set_error('user', t('%user is not a valid user.', array('%user' => $form_state['values']['user'])));
-        }
-        else {
-          form_set_error('user', t('Registration Failed.'));
-        }
+      if (!$allow_multiple && registration_is_registered($registration, NULL, $form_state['values']['registrant_id'])) {
+        form_set_error('user', t('User is already registered for this event.'));
       }
       break;
   }
@@ -268,11 +254,12 @@ function registration_form_validate($form, &$form_state) {
  * Submit callback for registration_form().
  */
 function registration_form_submit($form, &$form_state) {
+  global $user;
   $registration = $form_state['registration'];
 
   // Set the registration's author uid:
   if (!isset($registration->registration_id)) {
-    $registration->author_uid = $GLOBALS['user']->uid;
+    $registration->author_uid = $user->uid;
   }
   $registration->count = $form_state['values']['count'];
 
@@ -284,16 +271,12 @@ function registration_form_submit($form, &$form_state) {
     case REGISTRATION_REGISTRANT_TYPE_ANON:
       $registration->anon_mail = trim($form_state['values']['anon_mail']);
       break;
-    // TODO: Replace register type me
+    // TODO: Replace or refactor register type: me
     case REGISTRATION_REGISTRANT_TYPE_ME:
-      global $user;
-      $registration->user_uid = $user->uid;
+      $registration->registrant_id = $user->uid;
       break;
-    // TODO: Expand to use custom entities
     case REGISTRATION_REGISTRANT_TYPE_USER:
-      if ($reg_user = user_load_by_name($form_state['values']['user'])) {
-        $registration->user_uid = $reg_user->uid;
-      }
+      $registration->registrant_id = $form_state['values']['registrant_id'];
       break;
   }
 

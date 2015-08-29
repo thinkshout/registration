@@ -17,7 +17,7 @@ class Registration extends Entity {
     $entity_type,
     $anon_mail = NULL,
     // TODO: Registrant ID
-    $user_uid = NULL,
+    $registrant_id = NULL,
     $count,
     $author_uid,
     $state,
@@ -54,7 +54,7 @@ class Registration extends Entity {
     $state = $wrapper->state->value();
     $author = $wrapper->author->value();
     // TODO: Replace user wrapper with entity
-    $user = $wrapper->user->value();
+    $registrant = $wrapper->registrant->value();
     list(, , $host_entity_bundle) = entity_extract_ids($this->entity_type, $host_entity);
 
     $host_label = entity_label($this->entity_type, $host_entity);
@@ -66,7 +66,7 @@ class Registration extends Entity {
       '#label' => t('Email Address'),
       '#items' => array(
         array(
-          '#markup' => $wrapper->mail->value(),
+          '#markup' => $wrapper->registrant_mail->value(),
         ),
       ),
       '#classes' => 'field field-label-inline clearfix',
@@ -132,14 +132,15 @@ class Registration extends Entity {
         '#attributes' => '',
       );
     }
-    // TODO: if registrant
-    if ($user) {
-      $build['user'] = array(
+
+    if ($registrant) {
+      $build['registrant'] = array(
         '#theme' => 'registration_property_field',
-        '#label' => t('User'),
+        '#label' => t('Registrant'),
         '#items' => array(
           array(
-            '#markup' => theme('username', array('account' => $user)),
+            // TODO: Use a more generic theme function? Guessing this one won't work for other entities:
+            '#markup' => theme('username', array('account' => $registrant)),
           ),
         ),
         '#classes' => 'field field-label-inline clearfix',
@@ -194,7 +195,7 @@ class Registration extends Entity {
 
   /**
    * Determine registrant type relative to a given account.
-   * // TODO: Refactor this
+   *
    * @object $account
    *   A Drupal user
    *
@@ -202,12 +203,13 @@ class Registration extends Entity {
    *   Can be me, user, anon or NULL if account is empty and no anon email set.
    */
   public function registrant_type($account) {
+    // TODO: Refactor this.
     $reg_type = NULL;
     if (!empty($account)) {
-      if ($account->uid && $account->uid === $this->user_uid) {
+      if ($account->uid && $account->uid === $this->registrant_id) {
         $reg_type = REGISTRATION_REGISTRANT_TYPE_ME;
       }
-      elseif ($this->user_uid) {
+      elseif ($this->registrant_id) {
         $reg_type = REGISTRATION_REGISTRANT_TYPE_USER;
       }
     }

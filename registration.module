@@ -1735,8 +1735,19 @@ function registration_property_registrant_set(Registration $registration, $name,
 function registration_property_registrant_user_get($registration, array $options, $name, $type) {
   $registrant = registration_get_registrant($registration);
   $type = registration_get_types($registration->type);
-  $property = $type->registrant_uid_property;
-  return isset($registrant->$property) ? $registrant->$property->value() : NULL;
+  list($property, $field) = explode(':', $type->registrant_uid_property);
+
+  $user = NULL;
+  if (isset($registrant->$property)) {
+    $value = $registrant->$property->value();
+    if ($field && isset($value[0][$field])) {
+      $user = $value[0][$field];
+    }
+    else {
+      $user = $value;
+    }
+  }
+  return $user;
 }
 
 /**
@@ -1745,8 +1756,19 @@ function registration_property_registrant_user_get($registration, array $options
 function registration_property_registrant_mail_get($registration, array $options, $name, $type) {
   $registrant = registration_get_registrant($registration);
   $type = registration_get_types($registration->type);
-  $property = $type->registrant_email_property;
-  return isset($registrant->$property) ? $registrant->$property->value() : $registration->anon_mail;
+  list($property, $field) = explode(':', $type->registrant_email_property);
+
+  $mail = NULL;
+  if (isset($registrant->$property)) {
+    $value = $registrant->$property->value();
+    if ($field && isset($value[0][$field])) {
+      $mail = $value[0][$field];
+    }
+    else {
+      $mail = $value;
+    }
+  }
+  return $mail ? $mail : $registration->anon_mail;
 }
 
 /**

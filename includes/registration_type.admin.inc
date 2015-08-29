@@ -62,7 +62,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       $form_entity_type = NULL;
     }
   }
-  elseif ($entity_types[$registration_type->registrant_entity_type]) {
+  elseif (isset($entity_types[$registration_type->registrant_entity_type])) {
     $form_entity_type = $registration_type->registrant_entity_type;
   }
 
@@ -95,7 +95,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
         $form_bundle = NULL;
       }
     }
-    elseif ($bundles[$registration_type->registrant_bundle]) {
+    elseif (isset($bundles[$registration_type->registrant_bundle])) {
       $form_bundle = $registration_type->registrant_bundle;
     }
 
@@ -119,21 +119,34 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       // Prep the field & properties list before creating the form item:
       $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);
 
+      // Flatten fields array by one level.
+      $flattened_fields = array();
+      foreach ($fields as $key => $value) {
+        if (is_array($value)) {
+          foreach ($value as $sub_key => $sub_value) {
+            $flattened_fields[$sub_key] = $sub_value;
+          }
+        }
+        else {
+          $flattened_fields[$key] = $value;
+        }
+      }
+
       if (isset($form_uid_property)) {
-        if (!$fields[$form_uid_property]) {
+        if (!$flattened_fields[$form_uid_property]) {
           $form_uid_property = NULL;
         }
       }
-      elseif ($fields[$registration_type->registrant_uid_property]) {
+      elseif (isset($flattened_fields[$registration_type->registrant_uid_property])) {
         $form_uid_property = $registration_type->registrant_uid_property;
       }
 
       if (isset($form_email_property)) {
-        if (!$fields[$form_email_property]) {
+        if (!$flattened_fields[$form_email_property]) {
           $form_email_property = NULL;
         }
       }
-      elseif ($fields[$registration_type->registrant_email_property]) {
+      elseif (isset($flattened_fields[$registration_type->registrant_email_property])) {
         $form_email_property = $registration_type->registrant_email_property;
       }
 

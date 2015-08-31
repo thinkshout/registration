@@ -16,11 +16,9 @@ function registration_form($form, &$form_state, Registration $registration) {
   global $user;
 
   $wrapper = entity_metadata_wrapper('registration', $registration);
-  // TODO: replace user with entity
-  $registrant = $wrapper->registrant->value();
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
-  $type = $wrapper->type->value();
+  $type = $wrapper->type();
 
   $form_state['registration'] = $registration;
 

@@ -1329,7 +1329,11 @@ function registration_token_info() {
     'name' => t("Registration Host Entity"),
     'description' => t("The host entity for the registration."),
   );
-  // TODO: Change this and/or add tokens for registrant?
+  $registration['registrant'] = array(
+    'name' => t("Registrant Entity"),
+    'description' => t("The entity the registration is for."),
+  );
+  // TODO: Should we remove this?
   $registration['user'] = array(
     'name' => t("Registration User"),
     'description' => t("The user the registration is for."),
@@ -1360,7 +1364,19 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
         $options
       );
     }
-    // TODO: Change this and/or add tokens for registrant?
+
+    if ($entity_tokens = token_find_with_prefix($tokens, 'registrant')) {
+      $registration_type = registration_get_types($wrapper->type());
+      $entity = $wrapper->registrant->value();
+      $replacements += token_generate(
+        $registration_type->registrant_entity_type,
+        $entity_tokens,
+        array($registration_type->registrant_entity_type => $entity),
+        $options
+      );
+    }
+
+    // TODO: Should we remove this?
     if ($entity_tokens = token_find_with_prefix($tokens, 'user')) {
       $entity = $wrapper->registrant_user->value();
       $replacements += token_generate(
@@ -1736,13 +1752,16 @@ function registration_property_registrant_set(Registration $registration, $name,
 function registration_property_registrant_user_get($registration, array $options, $name, $type) {
   $registrant = registration_get_registrant($registration);
   $type = registration_get_types($registration->type);
-  list($property, $field) = explode(':', $type->registrant_uid_property);
+
+  $property_parts = explode(':', $type->registrant_uid_property);
+  $property = $property_parts[0];
+  $field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
 
   $user = NULL;
   if (isset($registrant->$property)) {
     $value = $registrant->$property->value();
-    if ($field && isset($value[0][$field])) {
-      $user = $value[0][$field];
+    if ($field_col && isset($value[0][$field_col])) {
+      $user = $value[0][$field_col];
     }
     else {
       $user = $value;
@@ -1757,13 +1776,16 @@ function registration_property_registrant_user_get($registration, array $options
 function registration_property_registrant_mail_get($registration, array $options, $name, $type) {
   $registrant = registration_get_registrant($registration);
   $type = registration_get_types($registration->type);
-  list($property, $field) = explode(':', $type->registrant_email_property);
+
+  $property_parts = explode(':', $type->registrant_email_property);
+  $property = $property_parts[0];
+  $field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
 
   $mail = NULL;
   if (isset($registrant->$property)) {
     $value = $registrant->$property->value();
-    if ($field && isset($value[0][$field])) {
-      $mail = $value[0][$field];
+    if ($field_col && isset($value[0][$field_col])) {
+      $mail = $value[0][$field_col];
     }
     else {
       $mail = $value;

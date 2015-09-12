@@ -398,7 +398,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalGet($this->host_entity_path . '/register');
     $this->assertResponse(200, t('Register page loaded.'), 'Registration');
     $registration_form = array(
-      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_ME,
+      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_SELF,
     );
     $this->drupalPost($this->host_entity_path . '/register', $registration_form, t('Save Registration'));
     $this->assertText(t('Registration has been saved'), t('Registration saved.'), 'Registration');
@@ -415,7 +415,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
 //    $this->drupalGet('registration/' . $registration_c->registration_id . '/edit');
 //    $this->assertResponse(200, t('User can access registration edit page.'), 'Registration');
 //    $edit = array(
-//      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_USER,
+//      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_OTHER,
 //      'user' => $user_no_permission->name,
 //    );
 //    $this->drupalPost('registration/' . $registration_c->registration_id . '/edit', $edit, t('Save Registration'));
@@ -465,7 +465,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     ));
 
     $access_people = registration_access_people($registration_b, $user_no_permission);
-    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_ME]) && count($access_people) == 1), t('Check valid people types for unsaved registration.'));
+    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_SELF]) && count($access_people) == 1), t('Check valid people types for unsaved registration.'));
 
     $this->drupalGet('registration/' . $registration_b->registration_id);
     $this->assertResponse(200, t('User with permission can view registration'), 'Registration');

@@ -12,25 +12,18 @@ define('REGISTRATION_STATE_ONE', 1);
 define('REGISTRATION_INSUFFICIENT_SPACES_MESSAGE', 'Insufficient spaces remaining.');
 
 /**
- * If user has access to create registrations for his account.
+ * If user has access to create registrations for only their own email address.
  *
  * @see registration_access_people()
  */
-define('REGISTRATION_REGISTRANT_TYPE_ME', 'registration_registrant_type_me');
+define('REGISTRATION_REGISTRANT_TYPE_SELF', 'registration_registrant_type_self');
 
 /**
- * If user has access to create registrations for other users.
+ * If user has access to create registrations for any email address.
  *
  * @see registration_access_people()
  */
-define('REGISTRATION_REGISTRANT_TYPE_USER', 'registration_registrant_type_user');
-
-/**
- * If user has access to create registrations for people identified by email.
- *
- * @see registration_access_people()
- */
-define('REGISTRATION_REGISTRANT_TYPE_ANON', 'registration_registrant_type_anon');
+define('REGISTRATION_REGISTRANT_TYPE_OTHER', 'registration_registrant_type_other');
 
 /**
  * Implements hook_entity_info().
@@ -372,13 +365,6 @@ function registration_permission_list($info) {
     ),
     "create $type registration self" => array(
       'title' => t('%type_name: Register self', array('%type_name' => $label)),
-    ),
-    "create $type registration other users" => array(
-      'title' => t('%type_name: Register other accounts', array('%type_name' => $label)),
-      'description' => t("Register other users by username. Note that giving this permission to Anonymous is not recommended, as it can expose a user's registration status to a site visitor who knows their username."),
-    ),
-    "create $type registration other anonymous" => array(
-      'title' => t('%type_name: Register other people', array('%type_name' => $label)),
     ),
     "edit $type registration state" => array(
       'title' => t('%type_name: Edit registration state', array('%type_name' => $label)),
@@ -1392,58 +1378,43 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
 }
 
 /**
- * Determine is a person has an active registration for a host entity.
+ * Determine if a person has an active registration for a host entity.
  *
- * A person may be Drupal user account, identified by user uid ($uid).
- * Or a non-user, identified by an email address ($anon_mail).
- *
- * One of $anon_mail or $uid is required.
- *
- * @param object $registration
+ * @param Registration $registration
  *   A fully loaded registration object.
- * @param string $anon_mail
+ * @param string $mail
  *   (optional) An email address.
- * @param int $uid
- *   (optional) A user account uid.
- * @param array $states
- *   (optional) An array of states to test against. Defaults to active states.
  *
  * @return bool
  */
-function registration_is_registered(Registration $registration, $anon_mail = NULL, $uid = NULL, $states = array()) {
-  // must provide an UID or anon_mail
-  // @todo: better course of action here?
-  if (!$anon_mail && !$uid) {
+function registration_is_registered(Registration $registration, $mail) {
+  // Must provide an email.
+  if (!$mail) {
     return FALSE;
   }
 
-  if (empty($states)) {
-    $states = registration_get_active_states();
-  }
+  $states = registration_get_active_states();
 
   // Ensure we have active states before querying against them.
   if (empty($states)) {
     return FALSE;
   }
 
+  $registration_type = registration_get_types($registration->type);
+
   $query = db_select('registration', 'r')
     ->condition('entity_id', $registration->entity_id)
     ->condition('entity_type', $registration->entity_type)
     ->condition('state', $states, 'IN');
 
-  if ($anon_mail) {
-    // TODO: Replace with email check for custom entity
-    // There's a user with this email, check to make sure they're not registered.
-    if ($user = user_load_by_mail($anon_mail)) {
-      $query->condition(db_or()->condition('anon_mail', $anon_mail)
-        ->condition('registrant_id', $user->uid));
-    }
-    else {
-      $query->condition('anon_mail', $anon_mail);
-    }
+  // There's a registrant with this email, check to see if they are registered.
+  $registrant = registration_registrant_load_by_mail($registration_type, $mail);
+  if ($registrant) {
+    $query->condition(db_or()->condition('anon_mail', $mail)
+      ->condition('registrant_id', $registrant->getIdentifer()));
   }
-  elseif ($uid) {
-    $query->condition('registrant_id', $uid);
+  else {
+    $query->condition('anon_mail', $mail);
   }
 
   // Exclude existing registration.
@@ -1456,12 +1427,9 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
 }
 
 /**
- * Determine people types user may register for an entity.
+ * Determine registrant types user may register for an entity.
  *
- * This will take into account if a user already has a registration for a host
- * entity.
- *
- * @param object $registration
+ * @param Registration $registration
  *   A fully loaded registration object.
  * @param object $account
  *   (optional) An user object, or omit for logged in user.
@@ -1472,31 +1440,15 @@ function registration_is_registered(Registration $registration, $anon_mail = NUL
 function registration_access_people(Registration $registration, $account = NULL) {
   global $user;
   $account = isset($account) ? $account : $user;
+
   $people = array();
 
-  // Me:
-  // TODO: Remove Me myself registration, unless registering users?
-  // TODO: Fix permission check below, comparing uid === registrant_id
-  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
-  $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
-  if ($account->uid && (user_access("create $registration->type registration self", $account)) && ($account->uid === $registration->registrant_id || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
-    $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
+  if (!empty($account->mail) && (user_access("create $registration->type registration self", $account))) {
+    $people[REGISTRATION_REGISTRANT_TYPE_SELF] = t('Myself');
   }
 
-  // Other users:
-  if (user_access("create $registration->type registration other users", $account)) {
-    $people[REGISTRATION_REGISTRANT_TYPE_USER] = t('Other account');
-  }
-
-  $user_is_anonymous = (empty($account->uid) || $account->uid == 0);
-  // Other anonymous people:
-  if (user_access("create $registration->type registration other anonymous", $account) && !$user_is_anonymous) {
-    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = t('Other person');
-  }
-
-  // Anonymous self-registration:
-  if ($user_is_anonymous && user_access("create $registration->type registration")) {
-    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = t('Myself');
+  if (user_access("create $registration->type registration")) {
+    $people[REGISTRATION_REGISTRANT_TYPE_OTHER] = t('Other person');
   }
 
   return $people;
@@ -1591,6 +1543,43 @@ function registration_get_registrant($registration) {
   }
 
   return $registrant;
+}
+
+/**
+ * Fetch a registrant entity for a given email address, or NULL if no entity found.
+ *
+ * @param object $registration_type
+ *  Registration type object.
+ * @param string $mail
+ *  Email address.
+ *
+ * @return object
+ *  Entity object.
+ */
+function registration_registrant_load_by_mail($registration_type, $mail) {
+  $registrant_entity_type = $registration_type->registrant_entity_type;
+  $property_parts = explode(':', $registration_type->registrant_email_property);
+  $email_property = $property_parts[0];
+  $email_field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $registrant_entity_type);
+  if ($email_field_col) {
+    $query->fieldCondition($email_property, $email_field_col, $mail, '=');
+  }
+  else {
+    $query->propertyCondition($email_property, $mail, '=');
+  }
+  $result = $query->execute();
+
+  if (!empty($result[$registrant_entity_type])) {
+    $ids = array_keys($result[$registrant_entity_type]);
+    $registrant = entity_load_single($registrant_entity_type, reset($ids));
+    if ($registrant) {
+      return entity_metadata_wrapper($registrant_entity_type, $registrant);
+    }
+  }
+  return NULL;
 }
 
 /**
@@ -1894,7 +1883,7 @@ function registration_access($op, Registration $registration = NULL, $account = 
     case 'update':
       $people = registration_access_people($registration);
       $registrant_type = $registration->registrant_type($account);
-      if (!isset($registrant_type) && !isset($people[$registrant_type])) {
+      if (!$registrant_type || empty($people[$registrant_type])) {
         return FALSE;
       }
       break;
@@ -1914,7 +1903,7 @@ function registration_access($op, Registration $registration = NULL, $account = 
   elseif (in_array(TRUE, $access_results, TRUE)) {
     return TRUE;
   }
-  // TODO: Figure out permissions when custom entities are used.
+
   $wrapper = entity_metadata_wrapper('registration', $registration);
   $author = $wrapper->author->value();
   $account_own = ($author && ($author->uid == $account->uid));

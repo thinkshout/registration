@@ -19,6 +19,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
   $type = $wrapper->type();
+  $registrant_mail = $wrapper->registrant_mail->value();
 
   $form_state['registration'] = $registration;
 
@@ -42,16 +43,6 @@ function registration_form($form, &$form_state, Registration $registration) {
     $who_default = reset($keys);
   }
 
-  // Show a message if there's only one option as we're going to hide the form.
-  // TODO: review to make sure this is the way to go once there's a single option.
-  if (count($who_options) == 1 && !user_is_anonymous()) {
-    $form['who_message'] = array(
-      '#markup' => '<div class="registration-who-msg">' .
-      t('You are registering: %who', array('%who' => current($who_options))) .
-      '</div>',
-    );
-  }
-  // TODO: Expand who to support custom entities
   $form['who_is_registering'] = array(
     '#type' => 'select',
     '#title' => t('This registration is for:'),
@@ -60,39 +51,37 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#required' => TRUE,
     '#access' => (count($who_options) > 1),
   );
-  // TODO: replace with form registrant
-  $form['registrant_id'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Registrant'),
-    '#default_value' => $wrapper->registrant->getIdentifier(),
-    '#maxlength' => 60,
-    '#size' => 30,
-    '#description' => t('Select a registrant by typing an entity id. Well this is awkward.'),
-    '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_USER]),
+
+  // Show a message for registering yourself.
+  $form['registrant_self'] = array(
+    '#type' => 'container',
+    '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_SELF]),
     '#states' => array(
       'visible' => array(
-        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
-      ),
-      'required' => array(
-        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_USER),
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_SELF),
       ),
     ),
   );
+  $form['registrant_self']['content'] = array(
+    '#markup' => '<div class="registration-registrant-self">' .
+      t('You are registering: %mail', array('%mail' => $user->mail)) .
+      '</div>',
+  );
 
-  $form['anon_mail'] = array(
+  $form['registrant_mail'] = array(
     '#type' => 'textfield',
     '#title' => t('Email'),
     '#description' => t('The email to associate with this registration.'),
-    '#default_value' => isset($registration->anon_mail) ? $registration->anon_mail : '',
+    '#default_value' => $registrant_mail,
     '#size' => 40,
     '#maxlength' => 255,
-    '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_ANON]),
+    '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_OTHER]),
     '#states' => array(
       'visible' => array(
-        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_ANON),
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_OTHER),
       ),
       'required' => array(
-        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_ANON),
+        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_OTHER),
       ),
     ),
   );
@@ -217,29 +206,20 @@ function registration_form_validate($form, &$form_state) {
 
   // Validate according to who's registering.
   switch ($form_state['values']['who_is_registering']) {
-    case REGISTRATION_REGISTRANT_TYPE_ANON:
-      $form_state['values']['anon_mail'] = trim($form_state['values']['anon_mail']);
-      if (!valid_email_address($form_state['values']['anon_mail'])) {
-        form_set_error('anon_mail', t('The email address is invalid.'));
-      }
-      if (!$allow_multiple && registration_is_registered($registration, $form_state['values']['anon_mail'])) {
-        form_set_error('anon_mail', t('%mail is already registered for this event.',
-          array('%mail' => $form_state['values']['anon_mail'])));
+    case REGISTRATION_REGISTRANT_TYPE_SELF:
+      if (!$allow_multiple && registration_is_registered($registration, $user->mail)) {
+        form_set_error('registrant_self', t('You are already registered for this event.'));
       }
       break;
-    // TODO: Replace this or remove it?
-    case REGISTRATION_REGISTRANT_TYPE_ME:
-      if (!$allow_multiple && registration_is_registered($registration, NULL, $user->uid)) {
-        form_set_error('registrant_id', t('You are already registered for this event.'));
+
+    case REGISTRATION_REGISTRANT_TYPE_OTHER:
+      $form_state['values']['registrant_mail'] = trim($form_state['values']['registrant_mail']);
+      if (!valid_email_address($form_state['values']['registrant_mail'])) {
+        form_set_error('registrant_mail', t('The email address is invalid.'));
       }
-      break;
-    // TODO: replace user_load_by_name
-    case REGISTRATION_REGISTRANT_TYPE_USER:
-      if (empty($form_state['values']['registrant_id'])) {
-        form_set_error('registrant_id', t('Registrant is required.'));
-      }
-      if (!$allow_multiple && registration_is_registered($registration, NULL, $form_state['values']['registrant_id'])) {
-        form_set_error('user', t('User is already registered for this event.'));
+      if (!$allow_multiple && registration_is_registered($registration, $form_state['values']['registrant_mail'])) {
+        form_set_error('registrant_mail', t('%mail is already registered for this event.',
+          array('%mail' => $form_state['values']['registrant_mail'])));
       }
       break;
   }
@@ -254,6 +234,7 @@ function registration_form_validate($form, &$form_state) {
 function registration_form_submit($form, &$form_state) {
   global $user;
   $registration = $form_state['registration'];
+  $registration_type = registration_get_types($registration->type);
 
   // Set the registration's author uid:
   if (!isset($registration->registration_id)) {
@@ -265,17 +246,25 @@ function registration_form_submit($form, &$form_state) {
     $registration->state = $form_state['values']['state'];
   }
 
+  $registrant_mail = NULL;
+
   switch ($form_state['values']['who_is_registering']) {
-    case REGISTRATION_REGISTRANT_TYPE_ANON:
-      $registration->anon_mail = trim($form_state['values']['anon_mail']);
+    case REGISTRATION_REGISTRANT_TYPE_SELF:
+      $registrant_mail = $user->mail;
       break;
-    // TODO: Replace or refactor register type: me
-    case REGISTRATION_REGISTRANT_TYPE_ME:
-      $registration->registrant_id = $user->uid;
+
+    case REGISTRATION_REGISTRANT_TYPE_OTHER:
+      $registrant_mail = $form_state['values']['registrant_mail'];
       break;
-    case REGISTRATION_REGISTRANT_TYPE_USER:
-      $registration->registrant_id = $form_state['values']['registrant_id'];
-      break;
+  }
+
+  // Look up entity by $registrant_mail and set registrant_id if possible. Otherwise, store just the email
+  $registrant = registration_registrant_load_by_mail($registration_type, $registrant_mail);
+  if ($registrant) {
+    $registration->registrant_id = $registrant->getIdentifier();
+  }
+  else {
+    $registration->anon_mail = $registrant_mail;
   }
 
   // Notify field widgets.

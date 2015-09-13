@@ -15,9 +15,8 @@ class Registration extends Entity {
     $type,
     $entity_id,
     $entity_type,
-    $anon_mail = NULL,
-    // TODO: Registrant ID
-    $registrant_id = NULL,
+    $anon_mail,
+    $registrant_id,
     $count,
     $author_uid,
     $state,
@@ -133,20 +132,20 @@ class Registration extends Entity {
       );
     }
 
-    if ($registrant) {
-      $build['registrant'] = array(
-        '#theme' => 'registration_property_field',
-        '#label' => t('Registrant'),
-        '#items' => array(
-          array(
-            // TODO: Should we render the entity? Or create a theme function to run the registrant through?
-            '#markup' => entity_label($registrant_type, $registrant),
-          ),
+    $build['registrant'] = array(
+      '#theme' => 'registration_property_field',
+      '#label' => t('Registrant'),
+      '#items' => array(
+        array(
+          '#markup' => theme('registration_registrant_link', array(
+            'registrant_type' => $registrant_type,
+            'registrant' => $registrant,
+          )),
         ),
-        '#classes' => 'field field-label-inline clearfix',
-        '#attributes' => '',
-      );
-    }
+      ),
+      '#classes' => 'field field-label-inline clearfix',
+      '#attributes' => '',
+    );
 
     $build['state'] = array(
       '#theme' => 'registration_property_field',

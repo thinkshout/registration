@@ -26,8 +26,6 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
 
   /**
    * Check internal status modifiers for the wait list.
-   *
-   * TODO: This test will break.
    */
   function testHostRegistrationWaitlistStatus() {
     global $user;

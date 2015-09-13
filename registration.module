@@ -634,16 +634,12 @@ function registration_registrations_page($entity_type, $entity) {
       $registrant = $wrapper->registrant->value();
       $state = $wrapper->state->value();
 
-      $author_col = '';
-      if ($registration->author_uid) {
-        $author_col = theme('username', array('account' => $author));
-      }
+      $author_col = $registration->author_uid ? theme('username', array('account' => $author)) : '';
 
-      $registrant_col = '';
-      if ($registrant) {
-        // TODO: Should we render the entity? Or create a theme function to run the registrant through?
-        $registrant_col = entity_label($registrant_type, $registrant);
-      }
+      $registrant_col = theme('registration_registrant_link', array(
+        'registrant_type' => $registrant_type,
+        'registrant' => $registrant,
+      ));
 
       $actions = array();
       if (entity_access('view', 'registration', $registration)) {
@@ -910,6 +906,9 @@ function registration_theme() {
     'registration_link' => array(
       'variables' => array('label' => NULL, 'path' => NULL),
     ),
+    'registration_registrant_link' => array(
+      'variables' => array('registrant' => NULL),
+    ),
     'registration_state_overview_form' => array(
       'file' => 'includes/registration.forms.inc',
       'render element' => 'form',
@@ -953,6 +952,28 @@ function theme_registration_link($variables) {
   $output .= l($registration_label, $registration_path);
 
   return $output;
+}
+
+/**
+ * Theme handler for registrant links.
+ *
+ * @param array $variables
+ *   Contains the registrant type and entity.
+ *
+ * @return string
+ */
+function theme_registration_registrant_link($variables) {
+  $registrant_type = $variables['registrant_type'];
+  $registrant = $variables['registrant'];
+
+  if ($registrant_type && $registrant) {
+    $registrant_label = entity_label($registrant_type, $registrant);
+    $registrant_uri = entity_uri($registrant_type, $registrant);
+
+    return l($registrant_label, $registrant_uri['path']);
+  }
+
+  return t('Anonymous');
 }
 
 /**
@@ -1411,7 +1432,7 @@ function registration_is_registered(Registration $registration, $mail) {
   $registrant = registration_registrant_load_by_mail($registration_type, $mail);
   if ($registrant) {
     $query->condition(db_or()->condition('anon_mail', $mail)
-      ->condition('registrant_id', $registrant->getIdentifer()));
+      ->condition('registrant_id', $registrant->getIdentifier()));
   }
   else {
     $query->condition('anon_mail', $mail);

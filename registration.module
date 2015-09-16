@@ -374,8 +374,6 @@ function registration_permission_list($info) {
 
 /**
  * Implements hook_user_cancel().
- *
- * // TODO: Implement hook on entity delete
  */
 function registration_user_cancel($edit, $account, $method) {
   if (isset($account->uid)) {
@@ -386,43 +384,53 @@ function registration_user_cancel($edit, $account, $method) {
       ))
         ->condition('author_uid', $account->uid)
         ->execute();
-
-      db_update('registration')
-        ->fields(array(
-        'registrant_id' => NULL,
-      ))
-        ->condition('registrant_id', $account->uid)
-        ->execute();
     }
   }
 }
 
 /**
- * Implements hook_user_delete().
- *
- * TODO: handle entity delete the same?
+ * Implements hook_entity_delete().
  */
-function registration_user_delete($account) {
-  if (isset($account->uid)) {
-    $query = new EntityFieldQuery();
-    $result = $query
-      ->entityCondition('entity_type', 'registration')
-      ->propertyCondition('author_uid', $account->uid)
-      ->execute();
+function registration_entity_delete($entity, $type) {
+  $wrapper = entity_metadata_wrapper($type, $entity);
 
-    if ($result) {
-      registration_delete_multiple(array_keys($result['registration']));
+  if ($wrapper->getIdentifier()) {
+    if ($type == 'user') {
+      $query = new EntityFieldQuery();
+      $result = $query
+        ->entityCondition('entity_type', 'registration')
+        ->propertyCondition('author_uid', $wrapper->getIdentifier())
+        ->execute();
+
+      if ($result) {
+        registration_delete_multiple(array_keys($result['registration']));
+
+        // Delete entries in the cache as well.
+        cache_clear_all('*', 'cache_entity_registration', TRUE);
+      }
     }
-    // Users associated with {registration}.registrant_id do not own the
-    // registration. Simply disassociate the user with the registration.
-    db_update('registration')
-      ->fields(array(
-        'registrant_id' => NULL,
-      ))
-      ->condition('registrant_id', $account->uid)
-      ->execute();
-    // Delete entries in the cache as well.
-    cache_clear_all('*', 'cache_entity_registration', TRUE);
+
+    $relevant_types = array();
+    foreach (registration_get_types() as $registration_type) {
+      if ($registration_type->registrant_entity_type == $type) {
+        $relevant_types[] = $registration_type->name;
+      }
+    }
+
+    if (count($relevant_types)) {
+      // Users associated with {registration}.registrant_id do not own the
+      // registration. Simply disassociate the registrant.
+      db_update('registration')
+        ->fields(array(
+          'registrant_id' => NULL,
+        ))
+        ->condition('type', $relevant_types)
+        ->condition('registrant_id', $wrapper->getIdentifier())
+        ->execute();
+
+      // Delete entries in the cache as well.
+      cache_clear_all('*', 'cache_entity_registration', TRUE);
+    }
   }
 }
 

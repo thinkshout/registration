@@ -117,7 +117,7 @@ function registration_schema() {
         'default' => '',
       ),
       'capacity' => array(
-        'description' => 'Maximum number of users who can signup for this event.',
+        'description' => 'Maximum number of registrants who can sign up for this event.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,

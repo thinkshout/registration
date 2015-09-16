@@ -1061,8 +1061,13 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
     $success_count = 0;
     foreach ($registrations as $registration) {
       $wrapper = entity_metadata_wrapper('registration', $registration);
+      $registrant_mail = $wrapper->registrant_mail->value();
 
-      $recipients[] = $wrapper->registrant_mail->value();
+      if (!$registrant_mail) {
+        continue;
+      }
+
+      $recipients[] = $registrant_mail;
 
       $entity = entity_load_single($entity_type, $entity_id);
       if (module_exists('token')) {
@@ -1074,14 +1079,14 @@ function registration_send_broadcast($entity_type, $entity_id, $subject, $messag
       $params['message'] = $message;
 
       $result = drupal_mail('registration', 'broadcast',
-        $wrapper->registrant_mail->value(), $language, $params, $from
+        $registrant_mail, $language, $params, $from
       );
       if ($result['result']) {
         $success_count++;
       }
       else {
         watchdog('registration', 'Failed to send registration broadcast email to %email.',
-          array('%email' => $wrapper->registrant_mail->value()), WATCHDOG_ERROR
+          array('%email' => $registrant_mail), WATCHDOG_ERROR
         );
       }
     }

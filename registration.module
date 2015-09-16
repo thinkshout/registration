@@ -392,44 +392,77 @@ function registration_user_cancel($edit, $account, $method) {
  * Implements hook_entity_delete().
  */
 function registration_entity_delete($entity, $type) {
-  $wrapper = entity_metadata_wrapper($type, $entity);
+  list($entity_id) = entity_extract_ids($type, $entity);
+  if (!$entity_id) {
+    return;
+  }
 
-  if ($wrapper->getIdentifier()) {
-    if ($type == 'user') {
-      $query = new EntityFieldQuery();
-      $result = $query
-        ->entityCondition('entity_type', 'registration')
-        ->propertyCondition('author_uid', $wrapper->getIdentifier())
-        ->execute();
+  if ($type == 'user') {
+    // Delete all registrations owned by the user.
+    $query = new EntityFieldQuery();
+    $result = $query
+      ->entityCondition('entity_type', 'registration')
+      ->propertyCondition('author_uid', $entity_id)
+      ->execute();
 
-      if ($result) {
-        registration_delete_multiple(array_keys($result['registration']));
-
-        // Delete entries in the cache as well.
-        cache_clear_all('*', 'cache_entity_registration', TRUE);
-      }
-    }
-
-    $relevant_types = array();
-    foreach (registration_get_types() as $registration_type) {
-      if ($registration_type->registrant_entity_type == $type) {
-        $relevant_types[] = $registration_type->name;
-      }
-    }
-
-    if (count($relevant_types)) {
-      // Users associated with {registration}.registrant_id do not own the
-      // registration. Simply disassociate the registrant.
-      db_update('registration')
-        ->fields(array(
-          'registrant_id' => NULL,
-        ))
-        ->condition('type', $relevant_types)
-        ->condition('registrant_id', $wrapper->getIdentifier())
-        ->execute();
+    if ($result) {
+      registration_delete_multiple(array_keys($result['registration']));
 
       // Delete entries in the cache as well.
       cache_clear_all('*', 'cache_entity_registration', TRUE);
+    }
+  }
+
+  // Look for registration type values related to the entity being deleted.
+  $relevant_types = array();
+  foreach (registration_get_types() as $registration_type) {
+    if ($registration_type->registrant_entity_type == $type) {
+      $relevant_types[] = $registration_type->name;
+    }
+  }
+
+  if (count($relevant_types)) {
+    // Users associated with {registration}.registrant_id do not own the
+    // registration. Simply disassociate the registrant.
+    db_update('registration')
+      ->fields(array(
+        'registrant_id' => NULL,
+      ))
+      ->condition('type', $relevant_types)
+      ->condition('registrant_id', $entity_id)
+      ->execute();
+
+    // Delete entries in the cache as well.
+    cache_clear_all('*', 'cache_entity_registration', TRUE);
+  }
+
+  // Delete registrations and settings for this host entity .
+  db_delete('registration')
+    ->condition('entity_id', $entity_id)
+    ->condition('entity_type', $type)
+    ->execute();
+  db_delete('registration_entity')
+    ->condition('entity_id', $entity_id)
+    ->condition('entity_type', $type)
+    ->execute();
+
+  // Remove references to a registration_type on host entities
+  if ($type == 'registration_type') {
+    $registration_fields = field_read_fields(array('type' => 'registration'));
+    if (!empty($registration_fields)) {
+      foreach (array_keys($registration_fields) as $field_name) {
+        $query = new EntityFieldQuery;
+        $result = $query
+          ->fieldCondition($field_name, 'registration_type', $entity->name)
+          ->execute();
+        foreach ($result as $host_entity_type => $entities) {
+          $entities = entity_load($host_entity_type, array_keys($entities));
+          foreach ($entities as $host_entity) {
+            $host_entity->{$field_name}[LANGUAGE_NONE][0] = NULL;
+            entity_save($host_entity_type, $host_entity);
+          }
+        }
+      }
     }
   }
 }
@@ -836,42 +869,6 @@ function registration_entity_set_default_settings($entity_type, $entity) {
     if (isset($instance['settings']['default_registration_settings'])) {
       $settings = registration_convert_form_settings($instance['settings']['default_registration_settings']);
       registration_update_entity_settings($entity_type, $entity_id, $settings);
-    }
-  }
-}
-
-/**
- * Implements hook_entity_delete().
- */
-function registration_entity_delete($entity, $entity_type) {
-  // Delete registrations and settings for this host entity .
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
-  db_delete('registration')
-    ->condition('entity_id', $entity_id)
-    ->condition('entity_type', $entity_type)
-    ->execute();
-  db_delete('registration_entity')
-    ->condition('entity_id', $entity_id)
-    ->condition('entity_type', $entity_type)
-    ->execute();
-
-  // Remove references to a registration_type on host entities
-  if ($entity_type == 'registration_type') {
-    $registration_fields = field_read_fields(array('type' => 'registration'));
-    if (!empty($registration_fields)) {
-      foreach (array_keys($registration_fields) as $field_name) {
-        $query = new EntityFieldQuery;
-        $result = $query
-          ->fieldCondition($field_name, 'registration_type', $entity->name)
-          ->execute();
-        foreach ($result as $host_entity_type => $entities) {
-          $entities = entity_load($host_entity_type, array_keys($entities));
-          foreach ($entities as $entity_id => $host_entity) {
-            $host_entity->{$field_name}[LANGUAGE_NONE][0] = NULL;
-            entity_save($host_entity_type, $host_entity);
-          }
-        }
-      }
     }
   }
 }

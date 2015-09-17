@@ -1,0 +1,26 @@
+Entity Registration 2.x
+
+- Registration has been reworked to allow configuration for any type of entity to register - not
+just users.
+- Registration "user" has been renamed "registrant" across the module.
+- Registration is now done primarily by email address, for both users and anonymous registrants.
+
+Backwards-incompatible/breaking changes:
+
+- Registration by user id and explicit "anonymous registration" have both been removed/changed. In
+2.x, registrant entities are always registered by email address. An lookup is performed for an
+entity matching the email address, and if not found, the registration is automatically considered
+"anonymous".
+
+- Registration permissions have been simplified. Permissions "Register other accounts" and
+"Register other people" have been removed.
+
+- Registration objects no longer have a "user_uid" field. This field has been renamed
+"registrant_id" and references an entity with a type configured by the registration type (default
+is user). Any implementations of registration hooks or other code that uses registration objects
+should be updated to use the new property.
+
+- Registration token named 'user' has been changed to 'registrant' to support registration for
+arbitrary registrant entity types. For existing registration types with user registration (default
+for all registration types created in 1.x), simply replace all occurrences of registration token
+'user' with 'registrant'.

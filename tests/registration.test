@@ -13,6 +13,9 @@ class RegistrationTestCase extends DrupalWebTestCase {
     $this->registration_type = entity_create('registration_type', array(
       'name' => $this->registration_type_name,
       'label' => $label,
+      'registrant_entity_type' => 'user',
+      'registrant_bundle' => 'user',
+      'registrant_email_property' => 'mail',
     ));
     entity_save('registration_type', $this->registration_type);
 
@@ -352,8 +355,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     // With permissions
     $permissions = array(
       'create ' . $this->registration_type_name . ' registration',
-      'create ' . $this->registration_type_name . ' registration other users',
-      'create ' . $this->registration_type_name . ' registration other anonymous'
+      'create ' . $this->registration_type_name . ' registration self',
     );
     $this->checkPermissions($permissions, TRUE); // Reset permission cache
     $user = $this->drupalCreateUser($permissions);
@@ -376,8 +378,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       'view own ' . $this->registration_type_name . ' registration',
       'update own ' . $this->registration_type_name . ' registration',
       'delete own ' . $this->registration_type_name . ' registration',
-      'create ' . $this->registration_type_name . ' registration other users',
-      'create ' . $this->registration_type_name . ' registration other anonymous'
+      'create ' . $this->registration_type_name . ' registration self',
     );
 
     $this->checkPermissions($permissions, TRUE);

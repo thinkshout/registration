@@ -1350,12 +1350,6 @@ function registration_token_info() {
     'name' => t("Registrant Entity"),
     'description' => t("The entity the registration is for."),
   );
-  // TODO: Should we remove this?
-  $registration['user'] = array(
-    'name' => t("Registration User"),
-    'description' => t("The user the registration is for."),
-    'type' => 'user',
-  );
 
   return array(
     'types' => array('registration' => $type),
@@ -1384,22 +1378,11 @@ function registration_tokens($type, $tokens, array $data = array(), array $optio
 
     if ($entity_tokens = token_find_with_prefix($tokens, 'registrant')) {
       $registration_type = registration_get_types($wrapper->type());
-      $entity = $wrapper->registrant->value();
+      $registrant = $wrapper->registrant->value();
       $replacements += token_generate(
         $registration_type->registrant_entity_type,
         $entity_tokens,
-        array($registration_type->registrant_entity_type => $entity),
-        $options
-      );
-    }
-
-    // TODO: Should we remove this?
-    if ($entity_tokens = token_find_with_prefix($tokens, 'user')) {
-      $entity = $wrapper->registrant_user->value();
-      $replacements += token_generate(
-        'user',
-        $entity_tokens,
-        array('user' => $entity),
+        array($registration_type->registrant_entity_type => $registrant),
         $options
       );
     }
@@ -1764,30 +1747,6 @@ function registration_property_registrant_get(Registration $registration, array 
  */
 function registration_property_registrant_set(Registration $registration, $name, $value, $lang, $type, $info) {
   $registration->{$info['schema field']} = is_object($value) ? $value->getIdentifier() : NULL;
-}
-
-/**
- * Callback to get $registration->registrant->user.
- */
-function registration_property_registrant_user_get($registration, array $options, $name, $type) {
-  $registrant = registration_get_registrant($registration);
-  $type = registration_get_types($registration->type);
-
-  $property_parts = explode(':', $type->registrant_uid_property);
-  $property = $property_parts[0];
-  $field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
-
-  $user = NULL;
-  if (isset($registrant->$property)) {
-    $value = $registrant->$property->value();
-    if ($field_col && isset($value[0][$field_col])) {
-      $user = $value[0][$field_col];
-    }
-    else {
-      $user = $value;
-    }
-  }
-  return $user;
 }
 
 /**

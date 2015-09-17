@@ -113,7 +113,6 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     );
 
     if ($form_bundle) {
-      $form_uid_property = & $form_state['values']['registrant_uid_property'];
       $form_email_property = & $form_state['values']['registrant_email_property'];
 
       // Prep the field & properties list before creating the form item:
@@ -132,16 +131,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
         }
       }
 
-      if (isset($form_uid_property)) {
-        if (!$flattened_fields[$form_uid_property]) {
-          $form_uid_property = NULL;
-        }
-      }
-      elseif (isset($flattened_fields[$registration_type->registrant_uid_property])) {
-        $form_uid_property = $registration_type->registrant_uid_property;
-      }
-
-      if (isset($form_email_property)) {
+     if (isset($form_email_property)) {
         if (!$flattened_fields[$form_email_property]) {
           $form_email_property = NULL;
         }
@@ -149,16 +139,6 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
       elseif (isset($flattened_fields[$registration_type->registrant_email_property])) {
         $form_email_property = $registration_type->registrant_email_property;
       }
-
-      $form['registrant_entity']['registrant_uid_property'] = array(
-        '#title' => t('User id Property'),
-        '#type' => 'select',
-        '#required' => TRUE,
-        '#description' => t('Select the field which contains the Drupal user id.'),
-        '#options' => $fields,
-        '#default_value' => $form_uid_property,
-        '#maxlength' => 127,
-      );
 
       $form['registrant_entity']['registrant_email_property'] = array(
         '#title' => t('Email property'),

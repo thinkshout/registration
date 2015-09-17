@@ -78,15 +78,6 @@ class RegistrationMetadataController extends EntityDefaultMetadataController {
       'setter callback' => 'entity_property_verbatim_set',
     );
 
-    // Provides a single calculated property that contains the associated registrant's user object.
-    $properties['registrant_user'] = array(
-      'label' => t('Registrant user'),
-      'type' => 'text',
-      'description' => t('The Drupal user associated with the registrant.'),
-      'getter callback' => 'registration_property_registrant_user_get',
-      'computed' => TRUE,
-    );
-
     // Provides a single calculated property that contains the associated registrant's email address.
     $properties['registrant_mail'] = array(
       'label' => t('Registrant e-mail'),

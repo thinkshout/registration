@@ -14,6 +14,13 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
     $registration_type->name = '';
   }
 
+  if (!isset($registration_type->id)) {
+    // Default values for new registration types.
+    $registration_type->registrant_entity_type = 'user';
+    $registration_type->registrant_bundle = 'user';
+    $registration_type->registrant_email_property = 'mail';
+  }
+
   $form['label'] = array(
     '#title' => t('Label'),
     '#type' => 'textfield',

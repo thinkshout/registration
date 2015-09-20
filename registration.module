@@ -1407,37 +1407,14 @@ function registration_is_registered(Registration $registration, $mail) {
     return FALSE;
   }
 
-  $states = registration_get_active_states();
-
-  // Ensure we have active states before querying against them.
-  if (empty($states)) {
-    return FALSE;
-  }
-
-  $registration_type = registration_get_types($registration->type);
-
-  $query = db_select('registration', 'r')
-    ->condition('entity_id', $registration->entity_id)
-    ->condition('entity_type', $registration->entity_type)
-    ->condition('state', $states, 'IN');
-
-  // There's a registrant with this email, check to see if they are registered.
-  $registrant = registration_registrant_load_by_mail($registration_type, $mail);
-  if ($registrant) {
-    $query->condition(db_or()->condition('anon_mail', $mail)
-      ->condition('registrant_id', $registrant->getIdentifier()));
-  }
-  else {
-    $query->condition('anon_mail', $mail);
-  }
+  $registrations = registration_get_registrations($registration->entity_type, $registration->entity_id, $mail);
 
   // Exclude existing registration.
   if (isset($registration->registration_id)) {
-    $query->condition('registration_id', $registration->registration_id, '<>');
+    unset($registrations[$registration->registration_id]);
   }
 
-  $count = $query->countQuery()->execute()->fetchField();
-  return $count > 0;
+  return count($registrations) > 0;
 }
 
 /**
@@ -1534,6 +1511,52 @@ function registration_field_extra_fields() {
   }
 
   return $extra;
+}
+
+/**
+ * Load registrations for a host entity, optionally filtered to a particular registrant email.
+ *
+ * @param string $entity_type
+ *  Host entity type.
+ * @param object $entity_id
+ *  Host entity id.
+ * @param string $registrant_mail
+ *  Registrant mail - optional.
+ *
+ * @return array
+ *  List of registrations.
+ */
+function registration_get_registrations($entity_type, $entity_id, $registrant_mail = NULL) {
+  $entity = entity_load_single($entity_type, $entity_id);
+  $registration_type = registration_get_types(registration_get_entity_registration_type($entity_type, $entity));
+  $states = registration_get_active_states();
+
+  // Ensure we have the required data we need before continuing.
+  if (!$entity || !$registration_type || !$states) {
+    return FALSE;
+  }
+
+  $query = db_select('registration', 'r')
+    ->fields('r', array('registration_id'))
+    ->condition('entity_type', $entity_type)
+    ->condition('entity_id', $entity_id)
+    ->condition('state', $states, 'IN');
+
+  // There's a registrant with this email, check to see if they are registered.
+  $registrant = registration_registrant_load_by_mail($registration_type, $registrant_mail);
+  if ($registrant) {
+    $query->condition(db_or()->condition('anon_mail', $registrant_mail)
+      ->condition('registrant_id', $registrant->getIdentifier()));
+  }
+  else {
+    $query->condition('anon_mail', $registrant_mail);
+  }
+
+  $result = $query->execute()->fetchCol();
+  if ($result) {
+    return entity_load('registration', $result);
+  }
+  return array();
 }
 
 /**

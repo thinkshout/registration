@@ -52,21 +52,23 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#access' => (count($who_options) > 1),
   );
 
-  // Show a message for registering yourself.
-  $form['registrant_self'] = array(
-    '#type' => 'container',
-    '#access' => isset($who_options[REGISTRATION_REGISTRANT_TYPE_SELF]),
-    '#states' => array(
-      'visible' => array(
-        ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_SELF),
+  if (isset($who_options[REGISTRATION_REGISTRANT_TYPE_SELF])) {
+    // Show a message for registering yourself.
+    $form['registrant_self'] = array(
+      '#type' => 'container',
+      '#states' => array(
+        'visible' => array(
+          ':input[name="who_is_registering"]' => array('value' => REGISTRATION_REGISTRANT_TYPE_SELF),
+        ),
       ),
-    ),
-  );
-  $form['registrant_self']['content'] = array(
-    '#markup' => '<div class="registration-registrant-self">' .
-      t('You are registering: %mail', array('%mail' => $user->mail)) .
-      '</div>',
-  );
+    );
+
+    $form['registrant_self']['content'] = array(
+      '#markup' => '<div class="registration-registrant-self">' .
+        t('You are registering: %mail', array('%mail' => $user->mail)) .
+        '</div>',
+    );
+  }
 
   $form['registrant_mail'] = array(
     '#type' => 'textfield',

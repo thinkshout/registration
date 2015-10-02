@@ -1620,6 +1620,38 @@ function registration_registrant_load_by_mail($registration_type, $mail) {
 }
 
 /**
+ * Create a new registrant object for a given registration type. Optionally set registrant email.
+ *
+ * @param RegistrationType $registration_type
+ * @param string $mail
+ * @return object
+ */
+function registration_registrant_create($registration_type, $mail = NULL) {
+  $registrant_entity_type = $registration_type->registrant_entity_type;
+  $property_parts = explode(':', $registration_type->registrant_email_property);
+  $email_property = $property_parts[0];
+  $email_field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
+
+  $values = array();
+  $info = entity_get_info($registrant_entity_type);
+  if (isset($info['entity keys']['bundle'])) {
+    $values[$info['entity keys']['bundle']] = $registration_type->registrant_bundle;
+  }
+  $registrant = entity_create($registrant_entity_type, $values);
+
+  if ($mail) {
+    if ($email_field_col) {
+      $registrant->$email_property = array(LANGUAGE_NONE => array(array($email_field_col => $mail)));
+    }
+    else {
+      $registrant->$email_property = $mail;
+    }
+  }
+
+  return entity_metadata_wrapper($registrant_entity_type, $registrant);
+}
+
+/**
  * Return all registration state entities.
  *
  * @param bool $active

@@ -64,7 +64,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     );
 
     $form['registrant_self']['content'] = array(
-      '#markup' => '<div class="registration-registrant-self">' .
+      '#markup' => '<div class="form-item registration-registrant-self">' .
         t('You are registering: %mail', array('%mail' => $user->mail)) .
         '</div>',
     );
@@ -88,7 +88,15 @@ function registration_form($form, &$form_state, Registration $registration) {
     ),
   );
 
-  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+  // Add a container to hold registrant form fields.
+  $form['registrant_fields'] = array(
+    '#type' => 'container',
+    '#access' => !empty($settings['settings']['upsert_registrants']),
+    '#attributes' => array(
+      'class' => array('registrant-fields'),
+    ),
+  );
+
   $capacity = $settings['capacity'];
   $limit = isset($settings['settings']['maximum_spaces']) ? $settings['settings']['maximum_spaces'] : 1;
   // Just in case it was unset:
@@ -237,6 +245,10 @@ function registration_form_submit($form, &$form_state) {
   global $user;
   $registration = $form_state['registration'];
   $registration_type = registration_get_types($registration->type);
+  $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+  $registrant_entity_type = $registration_type->registrant_entity_type;
+  $registrant_bundle = $registration_type->registrant_bundle;
+  $registrant_entity_info = entity_get_info($registrant_entity_type);
 
   // Set the registration's author uid:
   if (!isset($registration->registration_id)) {
@@ -260,10 +272,35 @@ function registration_form_submit($form, &$form_state) {
       break;
   }
 
-  // Look up entity by $registrant_mail and set registrant_id if possible. Otherwise, store just the email
-  $registrant = registration_registrant_load_by_mail($registration_type, $registrant_mail);
-  if ($registrant) {
-    $registration->registrant_id = $registrant->getIdentifier();
+  // Look up entity by $registrant_mail.
+  $registrant_wrapper = registration_registrant_load_by_mail($registration_type, $registrant_mail);
+
+  if (!empty($settings['settings']['upsert_registrants'])) {
+    if (!$registrant_wrapper) {
+      $registrant_wrapper = registration_registrant_create($registration_type, $registrant_mail);
+    }
+    $registrant = $registrant_wrapper->value();
+
+    $values_excluding_fields = $form_state['values'];
+    if ($registrant_entity_info['fieldable']) {
+      $values_excluding_fields = array_diff_key($form_state['values'], field_info_instances($registrant_entity_type, $registrant_bundle));
+    }
+    $values_in_sub_form = array_intersect_key($values_excluding_fields, $form['registrant_fields']);
+    foreach ($values_in_sub_form as $key => $value) {
+      $registrant->$key = $value;
+    }
+
+    if ($registrant_entity_info['fieldable']) {
+      field_attach_submit($registrant_entity_type, $registrant, $form['registrant_fields'], $form_state);
+    }
+
+    $registrant_wrapper = entity_metadata_wrapper($registrant_entity_type, $registrant);
+    $registrant_wrapper->save();
+  }
+
+  // Set registrant_id if possible. Otherwise, store just the email.
+  if ($registrant_wrapper) {
+    $registration->registrant_id = $registrant_wrapper->getIdentifier();
   }
   else {
     $registration->anon_mail = $registrant_mail;
@@ -615,6 +652,20 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#tree' => TRUE,
   );
 
+  $form['settings']['upsert_registrants'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Automatically create and update registrant entities'),
+    '#description' => t('If selected, anonymous registrants will have a registrant entity automatically created and attached when the registration is saved. Additionally, if a module exposes registrant form fields on the registration form, those values will be set on the registrant entity.'),
+    '#default_value' => isset($settings['settings']['upsert_registrants']) ? $settings['settings']['upsert_registrants'] : NULL,
+  );
+
+  $form['settings']['multiple_registrations'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow multiple registrations'),
+    '#description' => t('If selected, each person can create multiple registrations for this event.'),
+    '#default_value' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : -1,
+  );
+
   $form['settings']['maximum_spaces'] = array(
     '#type' => 'textfield',
     '#title' => t('Spaces allowed'),
@@ -623,13 +674,6 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#required' => TRUE,
     '#description' => t('The maximum number of spaces allowed for each registrations. For no limit, use 0. (Default is 1)'),
     '#default_value' => isset($settings['settings']['maximum_spaces']) ? $settings['settings']['maximum_spaces'] : 1,
-  );
-
-  $form['settings']['multiple_registrations'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow multiple registrations'),
-    '#description' => t('If selected, each person can create multiple registrations for this event.'),
-    '#default_value' => isset($settings['settings']['multiple_registrations']) ? $settings['settings']['multiple_registrations'] : -1,
   );
 
   $form['settings']['from_address'] = array(

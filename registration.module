@@ -1960,7 +1960,7 @@ function registration_access($op, Registration $registration = NULL, $account = 
     case 'update':
       return ($account_own && user_access("update own $type registration", $account)) || user_access("update any $type registration", $account);
     case 'create':
-      return (user_access("create $type registration", $account));
+      return (user_access("create $type registration", $account) || user_access("create $type registration self", $account));
     case 'delete':
       return ($account_own && user_access("delete own $type registration", $account)) || user_access("delete any $type registration", $account);
   }

@@ -1545,8 +1545,8 @@ function registration_field_extra_fields() {
 /**
  * Return all registration state entities.
  *
- * @param bool $active
- * @param bool $show_on_form
+ * @param array $conditions - key => value array of properties and conditions
+ *   that restrict what registration_state entities will be returned
  *
  * @return array
  *   An array of registration state entities.

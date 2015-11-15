@@ -1595,18 +1595,11 @@ function registration_get_registrant($registration) {
  */
 function registration_registrant_load_by_mail($registration_type, $mail) {
   $registrant_entity_type = $registration_type->registrant_entity_type;
-  $property_parts = explode(':', $registration_type->registrant_email_property);
-  $email_property = $property_parts[0];
-  $email_field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
+  $email_property = $registration_type->registrant_email_property;
 
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', $registrant_entity_type);
-  if ($email_field_col) {
-    $query->fieldCondition($email_property, $email_field_col, $mail, '=');
-  }
-  else {
-    $query->propertyCondition($email_property, $mail, '=');
-  }
+  $query->propertyCondition($email_property, $mail, '=');
   $result = $query->execute();
 
   if (!empty($result[$registrant_entity_type])) {
@@ -1628,9 +1621,7 @@ function registration_registrant_load_by_mail($registration_type, $mail) {
  */
 function registration_registrant_create($registration_type, $mail = NULL) {
   $registrant_entity_type = $registration_type->registrant_entity_type;
-  $property_parts = explode(':', $registration_type->registrant_email_property);
-  $email_property = $property_parts[0];
-  $email_field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
+  $email_property = $registration_type->registrant_email_property;
 
   $values = array();
   $info = entity_get_info($registrant_entity_type);
@@ -1639,16 +1630,13 @@ function registration_registrant_create($registration_type, $mail = NULL) {
   }
   $registrant = entity_create($registrant_entity_type, $values);
 
+  $registrant_wrapper = entity_metadata_wrapper($registrant_entity_type, $registrant);
+
   if ($mail) {
-    if ($email_field_col) {
-      $registrant->$email_property = array(LANGUAGE_NONE => array(array($email_field_col => $mail)));
-    }
-    else {
-      $registrant->$email_property = $mail;
-    }
+    $registrant_wrapper->$email_property = $mail;
   }
 
-  return entity_metadata_wrapper($registrant_entity_type, $registrant);
+  return $registrant_wrapper;
 }
 
 /**
@@ -1811,20 +1799,9 @@ function registration_property_registrant_mail_get($registration, array $options
   $registrant = registration_get_registrant($registration);
   $type = registration_get_types($registration->type);
 
-  $property_parts = explode(':', $type->registrant_email_property);
-  $property = $property_parts[0];
-  $field_col = isset($property_parts[1]) ? $property_parts[1] : NULL;
+  $email_property = $type->registrant_email_property;
+  $mail = isset($registrant->$email_property) ? $registrant->$email_property->value() : NULL;
 
-  $mail = NULL;
-  if (isset($registrant->$property)) {
-    $value = $registrant->$property->value();
-    if ($field_col && isset($value[0][$field_col])) {
-      $mail = $value[0][$field_col];
-    }
-    else {
-      $mail = $value;
-    }
-  }
   return $mail ? $mail : $registration->anon_mail;
 }
 

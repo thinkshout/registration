@@ -279,7 +279,6 @@ function registration_form_submit($form, &$form_state) {
     if (!$registrant_wrapper) {
       $registrant_wrapper = registration_registrant_create($registration_type, $registrant_mail);
     }
-    $registrant = $registrant_wrapper->value();
 
     $values_excluding_fields = $form_state['values'];
     if ($registrant_entity_info['fieldable']) {
@@ -287,8 +286,10 @@ function registration_form_submit($form, &$form_state) {
     }
     $values_in_sub_form = array_intersect_key($values_excluding_fields, $form['registrant_fields']);
     foreach ($values_in_sub_form as $key => $value) {
-      $registrant->$key = $value;
+      $registrant_wrapper->$key = $value;
     }
+
+    $registrant = $registrant_wrapper->value();
 
     if ($registrant_entity_info['fieldable']) {
       field_attach_submit($registrant_entity_type, $registrant, $form['registrant_fields'], $form_state);

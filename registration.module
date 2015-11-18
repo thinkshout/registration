@@ -445,26 +445,6 @@ function registration_entity_delete($entity, $type) {
     ->condition('entity_id', $entity_id)
     ->condition('entity_type', $type)
     ->execute();
-
-  // Remove references to a registration_type on host entities
-  if ($type == 'registration_type') {
-    $registration_fields = field_read_fields(array('type' => 'registration'));
-    if (!empty($registration_fields)) {
-      foreach (array_keys($registration_fields) as $field_name) {
-        $query = new EntityFieldQuery;
-        $result = $query
-          ->fieldCondition($field_name, 'registration_type', $entity->name)
-          ->execute();
-        foreach ($result as $host_entity_type => $entities) {
-          $entities = entity_load($host_entity_type, array_keys($entities));
-          foreach ($entities as $host_entity) {
-            $host_entity->{$field_name}[LANGUAGE_NONE][0] = NULL;
-            entity_save($host_entity_type, $host_entity);
-          }
-        }
-      }
-    }
-  }
 }
 
 /**

@@ -1950,8 +1950,14 @@ function registration_access($op, Registration $registration = NULL, $account = 
  *   If set, the type with the given name is returned.
  */
 function registration_get_types($name = NULL) {
-  $types = entity_load_multiple_by_name('registration_type', isset($name) ? array($name) : FALSE);
-  return isset($name) ? reset($types) : $types;
+  if (isset($name)) {
+    if ($name) {
+      $types = entity_load_multiple_by_name('registration_type', array($name));
+      return $types ? reset($types) : NULL;
+    }
+    return NULL;
+  }
+  return entity_load_multiple_by_name('registration_type');
 }
 
 /**

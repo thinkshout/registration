@@ -633,7 +633,7 @@ function registration_update_7107() {
 /**
  * Add registrant entity fields to the registration_type table
  */
-function registration_update_7108(&$sandbox) {
+function registration_update_7200(&$sandbox) {
   if (!db_field_exists('registration_type', 'registrant_entity_type')) {
     db_add_field('registration_type', 'registrant_entity_type',
       array(
@@ -674,7 +674,7 @@ function registration_update_7108(&$sandbox) {
 /**
  * Rename user id to registrant id because we are registering more than just users.
  */
-function registration_update_7109(&$sandbox) {
+function registration_update_7201(&$sandbox) {
   db_change_field('registration', 'user_uid', 'registrant_id', array(
     'description' => 'The entity id of the registrant associated with this registration.',
     'type' => 'int',

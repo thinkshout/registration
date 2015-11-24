@@ -291,7 +291,7 @@ function registration_form_submit($form, &$form_state) {
     }
 
     if ($registrant_entity_info['fieldable']) {
-      field_attach_submit($registrant_entity_type, $registrant, $form['registrant_fields'], $form_state);
+      field_attach_submit($registrant_entity_type, $registrant, $form, $form_state);
     }
 
     $registrant_wrapper = entity_metadata_wrapper($registrant_entity_type, $registrant);

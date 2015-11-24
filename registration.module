@@ -1738,7 +1738,7 @@ function registration_get_states_options($conditions = array()) {
   $states = registration_states($conditions);
 
   foreach ($states as $state) {
-    $options[$state->identifier()] = t('@state', array('@state' => entity_label('registration_state', $state)));
+    $options[$state->identifier()] = entity_label('registration_state', $state);
   }
 
   return $options;

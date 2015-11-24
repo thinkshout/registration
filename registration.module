@@ -1158,10 +1158,10 @@ function registration_cron() {
 
       // Determine whether hold expire minimum time time has elapsed.
       // Setting for how long the hold lasts is stored on the registration type entity.
-      $registration_type = entity_load_single('registration_type', $registration_wrapper->entity_id->value());
+      $registration_type = registration_type_load($registration_wrapper->type->value());
       // Change registration state if hold has expired.
       // Expiration time is in hours - hence the multiplication.
-      if ((time() - ($registration_type->held_expire * 60 * 60)) > $result->updated) {
+      if ($registration_type->held_expire !== '0' && (time() - ($registration_type->held_expire * 60 * 60)) > $registration->updated) {
         // Set registration state to what is configured for its registration type.
         $registration_wrapper->state->set($registration_type->held_expire_state);
         $registration_wrapper->save();

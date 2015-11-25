@@ -1907,6 +1907,10 @@ function registration_access($op, Registration $registration = NULL, $account = 
   switch ($op) {
     case 'update':
       $people = registration_access_people($registration);
+      if (isset($people[REGISTRATION_REGISTRANT_TYPE_OTHER])) {
+        // If you can edit "other people" registrations, you can edit yours:
+        $people[REGISTRATION_REGISTRANT_TYPE_SELF] = $people[REGISTRATION_REGISTRANT_TYPE_OTHER];
+      }
       $registrant_type = $registration->registrant_type($account);
       if (!$registrant_type || empty($people[$registrant_type])) {
         return FALSE;

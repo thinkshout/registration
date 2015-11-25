@@ -355,7 +355,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     // With permissions
     $permissions = array(
       'create ' . $this->registration_type_name . ' registration',
-      'create ' . $this->registration_type_name . ' registration self',
+      'create own ' . $this->registration_type_name . ' registration',
     );
     $this->checkPermissions($permissions, TRUE); // Reset permission cache
     $user = $this->drupalCreateUser($permissions);
@@ -378,7 +378,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       'view own ' . $this->registration_type_name . ' registration',
       'update own ' . $this->registration_type_name . ' registration',
       'delete own ' . $this->registration_type_name . ' registration',
-      'create ' . $this->registration_type_name . ' registration self',
+      'create own ' . $this->registration_type_name . ' registration',
     );
 
     $this->checkPermissions($permissions, TRUE);
@@ -464,9 +464,6 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       'registrant_id' => $user_no_permission->uid,
       'count' => 1,
     ));
-
-    $access_people = registration_access_people($registration_b, $user_no_permission);
-    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_SELF]) && count($access_people) == 1), t('Check valid people types for unsaved registration.'));
 
     $this->drupalGet('registration/' . $registration_b->registration_id);
     $this->assertResponse(200, t('User with permission can view registration'), 'Registration');

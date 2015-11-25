@@ -31,12 +31,27 @@ function registration_form($form, &$form_state, Registration $registration) {
     }
   }
 
-  $who_options = registration_access_people($registration);
+  // Options for who is registering.
+  $who_options = array();
+
+  if (!empty($user->mail) && user_access("create own $type registration")) {
+    $who_options[REGISTRATION_REGISTRANT_TYPE_SELF] = t('Myself');
+  }
+
+  if (user_access("create $type registration")) {
+    $who_options[REGISTRATION_REGISTRANT_TYPE_OTHER] = t('Other person');
+  }
 
   // Default value for who is registering.
   $who_default = NULL;
-  if (isset($registration->registration_id)) {
-    $who_default = $registration->registrant_type($user);
+
+  if (isset($registration->registration_id) && $registrant_mail) {
+    if (!empty($user->mail) && $user->mail === $registrant_mail) {
+      $who_default = REGISTRATION_REGISTRANT_TYPE_SELF;
+    }
+    else {
+      $who_default = REGISTRATION_REGISTRANT_TYPE_OTHER;
+    }
   }
   elseif (count($who_options) == 1) {
     $keys = array_keys($who_options);

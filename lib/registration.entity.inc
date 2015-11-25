@@ -192,28 +192,5 @@ class Registration extends Entity {
     return array('path' => 'registration/' . $this->internalIdentifier());
   }
 
-  /**
-   * Determine registrant type relative to a given account.
-   *
-   * @object $account
-   *   A Drupal user
-   *
-   * @return string|NULL
-   *   A registrant type or NULL.
-   */
-  public function registrant_type($account) {
-    $wrapper = entity_metadata_wrapper('registration', $this);
-    $registrant_mail = $wrapper->registrant_mail->value();
-    $anon_mail = $this->anon_mail;
-
-    if (!empty($account->mail) && ($account->mail === $registrant_mail || $account->mail === $anon_mail)) {
-      return REGISTRATION_REGISTRANT_TYPE_SELF;
-    }
-    elseif ($this->registrant_id || $anon_mail) {
-      return REGISTRATION_REGISTRANT_TYPE_OTHER;
-    }
-    return NULL;
-  }
-
 }
 

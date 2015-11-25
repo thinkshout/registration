@@ -13,15 +13,11 @@ define('REGISTRATION_INSUFFICIENT_SPACES_MESSAGE', 'Insufficient spaces remainin
 
 /**
  * If user has access to create registrations for only their own email address.
- *
- * @see registration_access_people()
  */
 define('REGISTRATION_REGISTRANT_TYPE_SELF', 'registration_registrant_type_self');
 
 /**
  * If user has access to create registrations for any email address.
- *
- * @see registration_access_people()
  */
 define('REGISTRATION_REGISTRANT_TYPE_OTHER', 'registration_registrant_type_other');
 
@@ -349,22 +345,22 @@ function registration_permission_list($info) {
       'title' => t('%type_name: View own registrations', array('%type_name' => $label)),
     ),
     "create $type registration" => array(
-      'title' => t('%type_name: Create new registration', array('%type_name' => $label)),
+      'title' => t('%type_name: Create new registration for anybody', array('%type_name' => $label)),
     ),
-    "update own $type registration" => array(
-      'title' => t('%type_name: Edit own registrations', array('%type_name' => $label)),
+    "create own $type registration" => array(
+      'title' => t('%type_name: Create new registration for yourself', array('%type_name' => $label)),
     ),
     "update any $type registration" => array(
       'title' => t('%type_name: Edit any registrations', array('%type_name' => $label)),
     ),
-    "delete own $type registration" => array(
-      'title' => t('%type_name: Delete own registrations', array('%type_name' => $label)),
+    "update own $type registration" => array(
+      'title' => t('%type_name: Edit own registrations', array('%type_name' => $label)),
     ),
     "delete any $type registration" => array(
       'title' => t('%type_name: Delete any registrations', array('%type_name' => $label)),
     ),
-    "create $type registration self" => array(
-      'title' => t('%type_name: Register self', array('%type_name' => $label)),
+    "delete own $type registration" => array(
+      'title' => t('%type_name: Delete own registrations', array('%type_name' => $label)),
     ),
     "edit $type registration state" => array(
       'title' => t('%type_name: Edit registration state', array('%type_name' => $label)),
@@ -1398,34 +1394,6 @@ function registration_is_registered(Registration $registration, $mail) {
 }
 
 /**
- * Determine registrant types user may register for an entity.
- *
- * @param Registration $registration
- *   A fully loaded registration object.
- * @param object $account
- *   (optional) An user object, or omit for logged in user.
- *
- * @return array
- *   Array keyed with people types, with descriptions.
- */
-function registration_access_people(Registration $registration, $account = NULL) {
-  global $user;
-  $account = isset($account) ? $account : $user;
-
-  $people = array();
-
-  if (!empty($account->mail) && (user_access("create $registration->type registration self", $account))) {
-    $people[REGISTRATION_REGISTRANT_TYPE_SELF] = t('Myself');
-  }
-
-  if (user_access("create $registration->type registration")) {
-    $people[REGISTRATION_REGISTRANT_TYPE_OTHER] = t('Other person');
-  }
-
-  return $people;
-}
-
-/**
  * Implements hook_field_extra_fields().
  */
 function registration_field_extra_fields() {
@@ -1903,26 +1871,6 @@ function registration_access($op, Registration $registration = NULL, $account = 
     return TRUE;
   }
 
-  // Check environment for Registration.
-  switch ($op) {
-    case 'update':
-      $people = registration_access_people($registration);
-      if (isset($people[REGISTRATION_REGISTRANT_TYPE_OTHER])) {
-        // If you can edit "other people" registrations, you can edit yours:
-        $people[REGISTRATION_REGISTRANT_TYPE_SELF] = $people[REGISTRATION_REGISTRANT_TYPE_OTHER];
-      }
-      $registrant_type = $registration->registrant_type($account);
-      if (!$registrant_type || empty($people[$registrant_type])) {
-        return FALSE;
-      }
-      break;
-    case 'create':
-      if (!count(registration_access_people($registration))) {
-        return FALSE;
-      }
-      break;
-  }
-
   // First grant access to the entity for the specified operation if no other
   // module denies it and at least one other module says to grant access.
   $access_results = module_invoke_all('registration_access', $op, $registration, $account);
@@ -1944,7 +1892,7 @@ function registration_access($op, Registration $registration = NULL, $account = 
     case 'update':
       return ($account_own && user_access("update own $type registration", $account)) || user_access("update any $type registration", $account);
     case 'create':
-      return (user_access("create $type registration", $account) || user_access("create $type registration self", $account));
+      return (user_access("create $type registration", $account) || user_access("create own $type registration", $account));
     case 'delete':
       return ($account_own && user_access("delete own $type registration", $account)) || user_access("delete any $type registration", $account);
   }

@@ -36,6 +36,7 @@ function registration_field_info() {
           ),
         ),
       ),
+      'property_type' => 'text',
       'default_widget' => 'registration_select',
       'default_formatter' => 'registration_default',
       'no_ui' => FALSE,

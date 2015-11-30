@@ -1470,18 +1470,17 @@ function registration_field_extra_fields() {
  *  Host entity id.
  * @param string $registrant_mail
  *  Registrant mail - optional.
+ * @param array $states
+ *  List of names of States to look for.
  *
  * @return array
  *  List of registrations.
  */
-function registration_get_registrations($entity_type, $entity_id, $registrant_mail = NULL) {
+function registration_get_registrations($entity_type, $entity_id, $registrant_mail = NULL, $states = NULL) {
   $entity = entity_load_single($entity_type, $entity_id);
   $registration_type = registration_get_types(registration_get_entity_registration_type($entity_type, $entity));
-  $states = registration_get_active_states();
-
-  // Ensure we have the required data we need before continuing.
-  if (!$entity || !$registration_type || !$states) {
-    return FALSE;
+  if (!$states) {
+    $states = registration_get_active_states();
   }
 
   $query = db_select('registration', 'r')

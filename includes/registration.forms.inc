@@ -991,6 +991,13 @@ function registration_state_overview_form($form, &$form_state) {
         '#tree' => FALSE,
         '#default_value' => ($state->default_state) ? $sid : FALSE,
       );
+      $form['state'][$sid]['attended'] = array(
+        '#type' => 'radio',
+        '#name' => 'attended',
+        '#return_value' => $sid,
+        '#tree' => FALSE,
+        '#default_value' => ($state->attended) ? $sid : FALSE,
+      );
       $form['state'][$sid]['weight'] = array(
         '#title' => t('Weight'),
         '#type' => 'weight',
@@ -1089,6 +1096,7 @@ function theme_registration_state_overview_form($variables) {
     array('data' => t('Label !required', array('!required' => '<span class="form-required" title="' . t('This field is required.') . '">*</span>'))),
     array('data' => t('Description')),
     array('data' => t('Default')),
+    array('data' => t('Attended')),
     array('data' => t('Active')),
     array('data' => t('Held')),
     array('data' => t('Show on form')),
@@ -1102,6 +1110,7 @@ function theme_registration_state_overview_form($variables) {
                'label',
                'description',
                'default_state',
+               'attended',
                'active',
                'held',
                'show_on_form',

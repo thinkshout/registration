@@ -16,7 +16,7 @@ function registration_checkin_install() {
   $attended_state->description = t('Registrant has attended.');
   $attended_state->active = TRUE;
   $attended_state->show_on_form = TRUE;
-  
+
   if (drupal_write_record('registration_state', $attended_state)) {
     drupal_set_message('Created the "Attended" registration state.');
   }

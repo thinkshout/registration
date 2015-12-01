@@ -5,9 +5,32 @@
  */
 
 /**
+ * Implements hook_schema_alter().
+ */
+function registration_checkin_schema_alter(&$schema) {
+  $schema['registration_state']['fields']['attended'] = array(
+    'description' => 'A boolean indicating whether or not the registrant attended.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+  );
+}
+
+/**
  * Implements hook_install().
  */
 function registration_checkin_install() {
+  // Add the "attended" column to registration_state table.
+  $col = array(
+    'description' => 'A boolean indicating whether or not the registrant attended.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+  );
+  db_add_field('registration_state', 'attended', $col);
+
   // Create the "attended" registration state entity.
   $attended_state = entity_create('registration_state', array(
     'name' => 'attended',

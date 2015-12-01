@@ -305,13 +305,6 @@ function registration_schema() {
         'default' => 0,
         'size' => 'tiny',
       ),
-      'attended' => array(
-        'description' => 'A boolean indicating whether or not the registrant attended.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'size' => 'tiny',
-      ),
       'active' => array(
         'type' => 'int',
         'not null' => TRUE,
@@ -688,18 +681,4 @@ function registration_update_7201(&$sandbox) {
     'not null' => FALSE,
     'default' => 0,
   ));
-}
-
-/**
- * Add support for registration checkins.
- */
-function registration_update_7202(&$sandbox) {
-  $col = array(
-    'description' => 'A boolean indicating whether or not the registrant attended.',
-    'type' => 'int',
-    'not null' => TRUE,
-    'default' => 0,
-    'size' => 'tiny',
-  );
-  db_add_field('registration_state', 'attended', $col);
 }

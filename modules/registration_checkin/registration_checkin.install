@@ -1,0 +1,23 @@
+<?php
+/**
+ * @file
+ * Install/update hooks for registration checkin.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function registration_checkin_install() {
+  // Create the "attended" registration state entity manually.
+  $attended_state = new stdClass();
+  $attended_state->is_new = TRUE;
+  $attended_state->name = 'attended';
+  $attended_state->label = t('Attended');
+  $attended_state->description = t('Registrant has attended.');
+  $attended_state->active = TRUE;
+  $attended_state->show_on_form = TRUE;
+  
+  if (drupal_write_record('registration_state', $attended_state)) {
+    drupal_set_message('Created the "Attended" registration state.');
+  }
+}

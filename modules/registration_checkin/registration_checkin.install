@@ -14,6 +14,7 @@ function registration_checkin_install() {
     'label' => t('Attended'),
     'description' => t('Registrant has attended.'),
     'active' => TRUE,
+    'attended' => TRUE,
     'show_on_form' => TRUE,
   ));
   $attended_state->save();

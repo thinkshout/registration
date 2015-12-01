@@ -18,7 +18,7 @@ function registration_form($form, &$form_state, Registration $registration) {
   $wrapper = entity_metadata_wrapper('registration', $registration);
   $host = $wrapper->entity->value();
   $state = $wrapper->state->value();
-  $type = $wrapper->type();
+  $type = $wrapper->type->value();
   $registrant_mail = $wrapper->registrant_mail->value();
 
   $form_state['registration'] = $registration;

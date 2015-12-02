@@ -10,6 +10,7 @@
 function registration_checkin_menu() {
   $items = array();
 
+  // UI for checking in registrants.
   foreach (registration_get_registration_instances() as $instance) {
     $type = $instance['entity_type'];
     if (!in_array($type, array('registration', 'registration_type'))) {
@@ -28,4 +29,67 @@ function registration_checkin_menu() {
   }
 
   return $items;
+}
+
+/**
+ * Form builder for the checkin state AJAX form.
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param Registration $registration
+ *   The specific registratoin for which we are providing a select
+ *   box for. Should be a fully-loaded Registration entity.
+ *
+ * @return array
+ *   A complete form array.
+ */
+function registration_checkin_state_form($form, &$form_state, Registration $registration) {
+  $form = array();
+
+  // Build the state options, keeping track of the current state for default value.
+  $state_options = array();
+  $default_state_option_value = '';
+  foreach (registration_states() as $state_info) {
+    $state_options[$state_info->name] = $state_info->label;
+    if ($state_info->name == $registration->state) {
+      $default_state_option_value = $state_info->name;
+    }
+  }
+  $form['registration_state'] = array(
+    '#type' => 'select',
+    '#title' => 'Select state',
+    '#title_display' => 'invisible',
+    '#options' => $state_options,
+    '#default_value' => $default_state_option_value,
+    '#ajax' => array(
+      'callback' => 'registration_checkin_state_update_callback',
+    ),
+  );
+  $form['registration_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $registration->registration_id,
+  );
+
+  return $form;
+}
+
+/**
+ * AJAX submit handler for the state update selection form.
+ *
+ * @param Registration $registration
+ *   The registration entity for which to update the registration for.
+ */
+function registration_checkin_state_update_callback($form, &$form_state) {
+  $registration = registration_load($form_state['values']['registration_id']);
+  if ($registration) {
+    $registration->state = $form_state['values']['registration_state'];
+    $registration->save();
+  }
+  else {
+    watchdog('registration_checkin', 'Could not load registration (id: @id) to update state.',
+      array(
+        '@id' => $form['registration_id'],
+      )
+    );
+  }
 }

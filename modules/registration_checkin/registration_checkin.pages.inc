@@ -43,27 +43,29 @@ function registration_checkin_list_page($entity_type, $entity) {
   // Build rows if we have registrations for the event.
   if (!empty($result['registration'])) {
     $registrations = registration_load_multiple(array_keys($result['registration']));
-    $rows = array();
 
     // Build registrant rows.
+    $rows = array();
     foreach ($registrations as $registration) {
       // Result basics.
       $wrapper = entity_metadata_wrapper('registration', $registration);
       $registrant_type = $wrapper->registrant->type();
       $registrant = $wrapper->registrant->value();
-      $state = $wrapper->state->value();
 
-      // Theme fancy table data.
+      // Link the registrant name.
       $registrant_entry = theme('registration_registrant_link', array(
         'registrant_type' => $registrant_type,
         'registrant' => $registrant,
       ));
 
+      // State drop-down.
+      $state_selection = drupal_get_form('registration_checkin_state_form', $registration);
+
       // Build the row.
       $rows[] = array(
         $registrant_entry,
         l($wrapper->registrant_mail->value(), 'mailto:' . $wrapper->registrant_mail->value()),
-        $state->label,
+        render($state_selection),
         t('Check-in Button'),
       );
     }

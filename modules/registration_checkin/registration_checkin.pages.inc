@@ -21,12 +21,9 @@ function registration_checkin_list_page($entity_type, $entity) {
     ),
     array(
       'data' => t('State'),
-      // 'field' => 'state',
-      // 'type' => 'property',
-      // 'specifier' => 'state',
     ),
     array(
-      'data' => t('Actions')
+      'data' => t('Actions'),
     ),
   );
 
@@ -55,7 +52,7 @@ function registration_checkin_list_page($entity_type, $entity) {
       $registrant_type = $wrapper->registrant->type();
       $registrant = $wrapper->registrant->value();
       $state = $wrapper->state->value();
-      
+
       // Theme fancy table data.
       $registrant_entry = theme('registration_registrant_link', array(
         'registrant_type' => $registrant_type,
@@ -74,7 +71,7 @@ function registration_checkin_list_page($entity_type, $entity) {
     // Generate markup for the registrant table.
     $table = array(
       'header' => $header,
-      'rows' => $rows
+      'rows' => $rows,
     );
     $markup = theme('table', $table) . theme('pager');
   }

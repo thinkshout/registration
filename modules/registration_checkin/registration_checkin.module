@@ -3,3 +3,30 @@
  * @file
  * Entity Registration registrant checkin workflow and UI for regisration.
  */
+
+/**
+ * Implements hook_menu().
+ */
+function registration_checkin_menu() {
+  $items = array();
+
+  foreach (registration_get_registration_instances() as $instance) {
+    $type = $instance['entity_type'];
+    dpm($type, 'type');
+    if (!in_array($type, array('registration', 'registration_type'))) {
+      $items[$type . '/%entity_object/registrations/checkin'] = array(
+        'load arguments' => array($type),
+        'title' => 'Check-in',
+        'page callback' => 'registration_checkin_list_page',
+        'page arguments' => array(0, 1),
+        'access callback' => 'registration_administer_registrations_access',
+        'access arguments' => array(0, 1),
+        'weight' => 15,
+        'type' => MENU_LOCAL_TASK,
+        'file' => 'registration_checkin.pages.inc'
+      );
+    }
+  }
+
+  return $items;
+}

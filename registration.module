@@ -545,6 +545,8 @@ function registration_administer_registrations_access($entity_type, $entity, $ac
  *   The host entity type.
  * @param object $entity
  *   The host entity.
+ * @param string $default_state
+ *   The default state to display in the state dropdown in the form.
  *
  * @return array
  *   A render array
@@ -552,7 +554,7 @@ function registration_administer_registrations_access($entity_type, $entity, $ac
  * @see registration_register_access()
  * @see registration_menu()
  */
-function registration_register_page($entity_type, $entity) {
+function registration_register_page($entity_type, $entity, $default_state = 'completed') {
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   if (registration_status($entity_type, $entity_id)) {
     $registration_type = registration_get_entity_registration_type($entity_type, $entity);
@@ -560,6 +562,7 @@ function registration_register_page($entity_type, $entity) {
       'entity_type' => $entity_type,
       'entity_id' => $entity_id,
       'type' => $registration_type,
+      'state' => $default_state,
     ));
     return drupal_get_form('registration_form', $registration);
   }

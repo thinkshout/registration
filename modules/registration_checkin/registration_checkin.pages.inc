@@ -36,8 +36,8 @@ function registration_checkin_list_page($entity_type, $entity) {
     ->entityCondition('entity_type', 'registration')
     ->propertyCondition('entity_id', $entity_id)
     ->propertyCondition('entity_type', $entity_type)
+    ->propertyOrderBy('created', 'DESC')
     ->pager(20)
-    ->tableSort($header)
     ->execute();
 
   // Build rows if we have registrations for the event.

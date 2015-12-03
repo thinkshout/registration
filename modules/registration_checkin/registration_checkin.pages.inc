@@ -12,9 +12,6 @@ function registration_checkin_list_page($entity_type, $entity) {
   $header = array(
     array(
       'data' => t('Registrant'),
-      'field' => 'registrant_id',
-      'type' => 'property',
-      'specifier' => 'registrant_id',
     ),
     array(
       'data' => t('Email'),

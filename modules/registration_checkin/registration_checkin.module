@@ -44,6 +44,7 @@ function registration_checkin_menu() {
  *   A complete form array.
  */
 function registration_checkin_state_form($form, &$form_state, Registration $registration) {
+  $rid = $registration->registration_id;
   $form = array();
 
   // Build the state options, keeping track of the current state for default value.
@@ -67,8 +68,9 @@ function registration_checkin_state_form($form, &$form_state, Registration $regi
   );
   $form['registration_id'] = array(
     '#type' => 'hidden',
-    '#value' => $registration->registration_id,
+    '#value' => $rid,
   );
+  $form['#attributes']['class'][] = 'registration-state--rid' . $rid;
 
   return $form;
 }
@@ -87,6 +89,63 @@ function registration_checkin_state_update_callback($form, &$form_state) {
   }
   else {
     watchdog('registration_checkin', 'Could not load registration (id: @id) to update state.',
+      array(
+        '@id' => $form['registration_id'],
+      )
+    );
+  }
+}
+
+/**
+ * Form builder for the checkin action form.
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param Registration $registration
+ *   The specific registratoin for which we are providing a select
+ *   box for. Should be a fully-loaded Registration entity.
+ *
+ * @return array
+ *   A complete form array.
+ */
+function registration_checkin_checkin_action_form($form, &$form_state, Registration $registration) {
+  $form = array();
+
+  $form['registration_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $registration->registration_id,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#ajax' => array(
+      'callback' => 'registration_checkin_checkin_action_callback',
+    ),
+    '#value' => t('Check-in'),
+  );
+
+  return $form;
+}
+
+/**
+ * AJAX callback for checking in a specific registrant.
+ */
+function registration_checkin_checkin_action_callback($form, &$form_state) {
+  $rid = $form_state['values']['registration_id'];
+  $registration = registration_load($rid);
+  if ($registration) {
+    $registration->state = 'attended';
+    $registration->save();
+
+    $updated_state_form = drupal_get_form('registration_checkin_state_form', $registration);
+    return array(
+      '#type' => 'ajax',
+      '#commands' => array(
+        ajax_command_replace('.registration-state--rid' . $rid, render($updated_state_form))
+      ),
+    );
+  }
+  else {
+    watchdog('registration_checkin', 'Could not load registration (id: @id) to checkin.',
       array(
         '@id' => $form['registration_id'],
       )

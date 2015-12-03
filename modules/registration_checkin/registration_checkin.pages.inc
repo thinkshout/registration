@@ -61,12 +61,17 @@ function registration_checkin_list_page($entity_type, $entity) {
       // State drop-down.
       $state_selection = drupal_get_form('registration_checkin_state_form', $registration);
 
+      // Check-in button.
+      $checkin_button = drupal_get_form(
+        'registration_checkin_checkin_action_form', $registration
+      );
+
       // Build the row.
       $rows[] = array(
         $registrant_entry,
         l($wrapper->registrant_mail->value(), 'mailto:' . $wrapper->registrant_mail->value()),
         render($state_selection),
-        t('Check-in Button'),
+        render($checkin_button),
       );
     }
 

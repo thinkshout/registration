@@ -14,6 +14,8 @@ function registration_checkin_menu() {
   foreach (registration_get_registration_instances() as $instance) {
     $type = $instance['entity_type'];
     if (!in_array($type, array('registration', 'registration_type'))) {
+
+      // The checkin listing.
       $items[$type . '/%entity_object/registrations/checkin'] = array(
         'load arguments' => array($type),
         'title' => 'Check-in',
@@ -25,10 +27,44 @@ function registration_checkin_menu() {
         'type' => MENU_LOCAL_TASK,
         'file' => 'registration_checkin.pages.inc',
       );
+
+      // Add a new registratrant with a default state for the registration.
+      $items[$type . '/%entity_object/register/%default_state'] = array(
+        'load arguments' => array($type),
+        'title' => 'Register',
+        'page callback' => 'registration_checkin_register_page',
+        'page arguments' => array(0, 1, 3),
+        'access callback' => 'registration_register_page_access',
+        'access arguments' => array(0, 1),
+        'type' => $hide_register_tab ? MENU_CALLBACK : MENU_LOCAL_TASK,
+      );
     }
   }
 
   return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function registration_checkin_form_registration_form_alter(&$form, &$form_state) {
+  // Add a submit handler so we can add a redirect.
+  $form['#submit'][] = 'registration_checkin_registration_form_submit';
+}
+
+/**
+ * Custom submit handler for the registration form.
+ */
+function registration_checkin_registration_form_submit($form, &$form_state) {
+  // If we are submitting a new registration with the state as "attended",
+  // we likely came from the new registrations buttuon on the checkin listing.
+  // Return there since it's the next logical place for the user to be.
+  if ($form_state['values']['state'] == 'attended') {
+    $entity_type = $form_state['complete form']['#registration_settings']['entity_type'];
+    $entity_id = $form_state['complete form']['#registration_settings']['entity_id'];
+    $form_state['redirect']
+      = $entity_type . '/' . $entity_id . '/registrations/checkin';
+  }
 }
 
 /**

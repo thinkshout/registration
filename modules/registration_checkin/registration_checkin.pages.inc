@@ -86,5 +86,13 @@ function registration_checkin_list_page($entity_type, $entity) {
     $markup = t('There are no registrants for %name', array('%name' => $label));
   }
 
-  return $markup;
+  // Create a button to checkin an unregistered attendee
+  // by registering them as immediately attending.
+  $new_checkin_button = l(
+    t('New Registrant Check-in'),
+    $entity_type . '/' . $entity_id . '/register/attended',
+    array('attributes' => array('class' => 'button'))
+  );
+
+  return $new_checkin_button . $markup;
 }

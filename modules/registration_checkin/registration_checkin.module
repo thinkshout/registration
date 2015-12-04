@@ -409,33 +409,41 @@ function registration_checkin_get_registration_table_rows($registrations) {
   $rows = array();
 
   foreach ($registrations as $registration) {
+    $row = array();
+
     // Result basics.
     $wrapper = entity_metadata_wrapper('registration', $registration);
     $registrant_type = $wrapper->registrant->type();
     $registrant = $wrapper->registrant->value();
 
     // Link the registrant name.
-    $registrant_entry = theme('registration_registrant_link', array(
+    $row['registrant_entry'] = theme('registration_registrant_link', array(
       'registrant_type' => $registrant_type,
       'registrant' => $registrant,
     ));
 
-    // State drop-down.
-    $state_selection = drupal_get_form('registration_checkin_state_form', $registration);
+    // Mailto link the registrant email.
+    $row['registrant_mail']
+      = l($wrapper->registrant_mail->value(), 'mailto:' . $wrapper->registrant_mail->value());
 
-    // Check-in button.
-    $checkin_button = drupal_get_form(
-      'registration_checkin_checkin_action_form', $registration
-    );
+    // Hide state management widgets with access control.
+    $row['state_selection'] = $row['checkin_button'] = ' ';
+    if (user_access("edit $registration->type registration state")) {
+      // State dropdown.
+      $form = drupal_get_form('registration_checkin_state_form', $registration);
+      $row['state_selection'] = render($form);
 
-    // Build the row.
-    $rows[] = array(
-      $registrant_entry,
-      l($wrapper->registrant_mail->value(), 'mailto:' . $wrapper->registrant_mail->value()),
-      render($state_selection),
-      render($checkin_button),
-    );
+      // Check-in button.
+      $form = drupal_get_form(
+        'registration_checkin_checkin_action_form', $registration
+      );
+      $row['checkin_button'] = render($form);
+    }
+
+    // Add the row.
+    $rows[] = $row;
   }
+
   return $rows;
 }
 

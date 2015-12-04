@@ -335,7 +335,15 @@ function registration_form_submit($form, &$form_state) {
 
     // Set redirect to configured value, if there is one.
     if (!empty($reg_config['settings']['confirmation_redirect']) && strlen($reg_config['settings']['confirmation_redirect'])) {
-      $form_state['redirect'] = $reg_config['settings']['confirmation_redirect'];
+      if (module_exists('token')) {
+        $form_state['redirect'] = token_replace($reg_config['settings']['confirmation_redirect'], array(
+          $host->type => $host,
+          'registration' => $registration,
+        ));
+      }
+      else {
+        $form_state['redirect'] = $reg_config['settings']['confirmation_redirect'];
+      }
     }
     else {
       // Redirect to registration:
@@ -718,6 +726,21 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#required' => FALSE,
     '#default_value' => isset($settings['settings']['confirmation_redirect']) ? $settings['settings']['confirmation_redirect'] : '',
   );
+  // Display the list of available placeholders if token module is installed.
+  if (module_exists('token')) {
+    $form['settings']['confirmation_redirect']['#description'] .= ' ' . t('Tokens may be used.');
+    $form['settings']['token_help'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Available Tokens'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#tree' => TRUE,
+      'token_help_details' => array(
+        '#theme' => 'token_tree',
+        '#token_types' => array($entity_type, 'registration'),
+      ),
+    );
+  }
 
   // Allow other modules to add their own custom settings:
   $form['settings'] += module_invoke_all('registration_entity_settings', $settings);

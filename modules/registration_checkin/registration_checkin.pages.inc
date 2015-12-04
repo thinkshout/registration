@@ -77,19 +77,54 @@ function registration_checkin_list_page($entity_type, $entity) {
       'header' => $header,
       'rows' => $rows,
     );
-    $markup = theme('table', $table) . theme('pager');
+    $registrant_markup = theme('table', $table) . theme('pager');
   }
   else {
-    $markup = t('There are no registrants for %name', array('%name' => $label));
+    $registrant_markup = t('There are no registrants for %name', array('%name' => $label));
   }
+
+  // Get the search form.
+  $search_form = drupal_get_form('registration_checkin_search_form', $entity_type, $entity_id);
+
+  // DEBUG
+  // $form_state = array(
+  //   'values' => array(
+  //     'search_keys' => 'al ri'
+  //   ),
+  // );
+  // _do_thing($search_form, $form_state);
+
+  // Wrap the table in with an ID'd div so we can update the results with AJAX.
+  $registrant_table_build = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'id' => array('registrant-table'),
+    ),
+    'markup' => array(
+      '#markup' => $registrant_markup,
+    )
+  ); 
 
   // Create a button to checkin an unregistered attendee
   // by registering them as immediately attending.
-  $new_checkin_button = l(
-    t('New Registrant Check-in'),
-    $entity_type . '/' . $entity_id . '/register/attended',
-    array('attributes' => array('class' => 'button'))
+  $new_checkin_button = array(
+    '#theme' => 'link',
+    '#text' => t('New Registrant Check-in'),
+    '#path' => $entity_type . '/' . $entity_id . '/register/attended',
+    '#options' => array(
+      'attributes' => array('class' => 'button'),
+      'html' => FALSE,
+    ),
+
   );
 
-  return $new_checkin_button . $markup;
+  // Build the page as a render array.
+  $page = array(
+    'content' => array(
+      'new_button' => $new_checkin_button,
+      'search_form' => $search_form,
+      'registrant_table' => $registrant_table_build,
+    )
+  );
+  return $page;
 }

@@ -326,6 +326,12 @@ function regisration_checkin_get_all_registrations($host_entity_id, $host_entity
   }
 }
 
+/**
+ * Helper function to build registrant checkin table headers.
+ *
+ * @return
+ *   A header array suitable for use with theme_table().
+ */
 function regisration_checkin_get_registration_table_headers() {
   $header = array(
     array(
@@ -344,6 +350,15 @@ function regisration_checkin_get_registration_table_headers() {
   return $header;
 }
 
+/**
+ * Helper function to build the registrant rows of the checkin table.
+ *
+ * @param array $registrations
+ *   An array of fully-loaded Registration entities.
+ *
+ * @return array
+ *   An array of table rows suitable for use with theme_table.
+ */
 function registration_checkin_get_registration_table_rows($registrations) {
   $rows = array();
 
@@ -376,4 +391,27 @@ function registration_checkin_get_registration_table_rows($registrations) {
     );
   }
   return $rows;
+}
+
+/**
+ * Helper function to prepare swappable render array of registrants.
+ *
+ * @param string $registrant_markup
+ *   Arbitrary html string that is the markup for the registrants list.
+ *
+ * @return array
+ *   A render array containing the registrant listing markup that works
+ *   with the AJAX search functionality in the search form.
+ */
+function registration_checkin_prepare_registrants_checkin_build($registrant_markup) {
+  $registrants_build = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'id' => array('registrant-list'),
+    ),
+    'markup' => array(
+      '#markup' => $registrant_markup,
+    )
+  );
+  return $registrants_build;
 }

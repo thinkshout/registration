@@ -203,12 +203,12 @@ function registration_checkin_search_form($form, &$form_state, $entity_type, $en
     ),
     '#ajax' => array(
       'callback' => 'registration_checkin_search_form_submit',
-      'wrapper' =>'registrant-list',
-      // Setting this to 'keyup' has the unfortunate loss-of-focus bug. This 
+      'wrapper' => 'registrant-list',
+      // Setting this to 'keyup' has the unfortunate loss-of-focus bug. This
       // means you have to tab back into the box to continue typing. Fixing
       // this would allow us to get the "as you type" update interaction.
       'event' => 'change',
-    )
+    ),
   );
   // Hidden fields for access in ajax callback.
   $form['entity_type'] = array(
@@ -224,7 +224,7 @@ function registration_checkin_search_form($form, &$form_state, $entity_type, $en
     '#value' => t('Search'),
     '#ajax' => array(
       'callback' => 'registration_checkin_search_form_submit',
-      'wrapper' =>'registrant-list',
+      'wrapper' => 'registrant-list',
     ),
   );
   $form['reset'] = array(
@@ -247,13 +247,13 @@ function registration_checkin_search_form_submit($form, &$form_state) {
   $entity_id = $form_state['values']['entity_id'];
 
   // Query again for all registrants.
-  // We need them all since we are want to search the entity label value. Not all
-  // entities will have a label, so a load-all basis is needed here.
+  // We need them all since we are want to search the entity label value.
+  // Not all entities will have a label, so a load-all basis is needed here.
   $registrations = regisration_checkin_get_all_registrations($entity_id, $entity_type);
 
   $search_keys = explode(' ', $form_state['values']['search_keys']);
   $registration_searhchable_fields = array('registrant_mail');
-  
+
   // Since we coldn't use field conditions before the query, we have to iterate.
   // This is going to slow down as we scale up. A few hundred should be ok.
   $matches = array();
@@ -281,7 +281,7 @@ function registration_checkin_search_form_submit($form, &$form_state) {
           $matches[$rid] = $registration;
           break 2;
         }
-      } 
+      }
     }
   }
   if (!empty($matches)) {
@@ -303,7 +303,7 @@ function registration_checkin_search_form_submit($form, &$form_state) {
     ),
     'markup' => array(
       '#markup' => $registrant_markup,
-    )
+    ),
   );
 
   return render($registrants_build);
@@ -348,7 +348,7 @@ function registration_checkin_search_form_reset($form, &$form_state) {
  *
  * @return array | bool
  *   An array of loaded Registration entities, or
- *   FALSE if there are no registrations for the host entity. 
+ *   FALSE if there are no registrations for the host entity.
  */
 function regisration_checkin_get_all_registrations($host_entity_id, $host_entity_type, $pager_size = FALSE) {
 
@@ -357,11 +357,11 @@ function regisration_checkin_get_all_registrations($host_entity_id, $host_entity
     ->propertyCondition('entity_id', $host_entity_id)
     ->propertyCondition('entity_type', $host_entity_type)
     ->propertyOrderBy('created', 'DESC');
-    
+
   if ($pager_size) {
-    $query->pager((int)$pager_size); 
+    $query->pager((int) $pager_size);
   }
-  
+
   $result = $query->execute();
 
   if (!empty($result['registration'])) {
@@ -375,7 +375,7 @@ function regisration_checkin_get_all_registrations($host_entity_id, $host_entity
 /**
  * Helper function to build registrant checkin table headers.
  *
- * @return
+ * @return array
  *   A header array suitable for use with theme_table().
  */
 function regisration_checkin_get_registration_table_headers() {
@@ -457,7 +457,7 @@ function registration_checkin_prepare_registrants_checkin_build($registrant_mark
     ),
     'markup' => array(
       '#markup' => $registrant_markup,
-    )
+    ),
   );
   return $registrants_build;
 }

@@ -11,7 +11,7 @@ function registration_checkin_list_page($entity_type, $entity) {
   // Get the host entity info.
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   $label = entity_label($entity_type, $entity);
-  
+
   // Build the registrant listing (or lack of one).
   $registrants = regisration_checkin_get_all_registrations($entity_id, $entity_type);
   if ($registrants) {
@@ -19,7 +19,7 @@ function registration_checkin_list_page($entity_type, $entity) {
       'header' => regisration_checkin_get_registration_table_headers(),
       'rows' => registration_checkin_get_registration_table_rows($registrants),
     );
-    $registrant_markup = theme('table', $table) . theme('pager');  
+    $registrant_markup = theme('table', $table) . theme('pager');
   }
   else {
     $registrant_markup = t('There are no registrants for %name', array('%name' => $label));
@@ -51,7 +51,7 @@ function registration_checkin_list_page($entity_type, $entity) {
       'new_button' => $new_checkin_button,
       'search_form' => $search_form,
       'registrant_table' => $registrants_build,
-    )
+    ),
   );
   return $page;
 }

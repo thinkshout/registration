@@ -221,7 +221,7 @@ function registration_checkin_search_form($form, &$form_state, $entity_type, $en
   );
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Seach'),
+    '#value' => t('Search'),
     '#ajax' => array(
       'callback' => 'registration_checkin_search_form_submit',
       'wrapper' =>'registrant-list',

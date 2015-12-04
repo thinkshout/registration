@@ -13,11 +13,14 @@ function registration_checkin_list_page($entity_type, $entity) {
   $label = entity_label($entity_type, $entity);
 
   // Build the registrant listing (or lack of one).
-  $registrants = regisration_checkin_get_all_registrations($entity_id, $entity_type);
-  if ($registrants) {
+  $pager_limit = 20;
+  $registrations
+    = regisration_checkin_get_all_registrations($entity_id, $entity_type, $pager_limit);
+
+  if ($registrations) {
     $table = array(
       'header' => regisration_checkin_get_registration_table_headers(),
-      'rows' => registration_checkin_get_registration_table_rows($registrants),
+      'rows' => registration_checkin_get_registration_table_rows($registrations),
     );
     $registrant_markup = theme('table', $table) . theme('pager');
   }

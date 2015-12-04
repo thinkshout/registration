@@ -318,7 +318,10 @@ function registration_checkin_search_form_reset($form, &$form_state) {
   $entity_type = $form_state['values']['entity_type'];
   $entity = menu_get_object();
   $label = entity_label($entity_type, $entity);
-  $registrants = regisration_checkin_get_all_registrations($entity_id, $entity_type);
+
+  $pager_limit = 20;
+  $registrants
+    = regisration_checkin_get_all_registrations($entity_id, $entity_type, $pager_limit);
 
   // Rebuild the original listing.
   if ($registrants) {

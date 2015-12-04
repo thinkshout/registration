@@ -203,7 +203,7 @@ function registration_checkin_search_form($form, &$form_state, $entity_type, $en
     ),
     '#ajax' => array(
       'callback' => 'registration_checkin_search_form_submit',
-      'wrapper' =>'registrant-table',
+      'wrapper' =>'registrant-list',
       // Setting this to 'keyup' has the unfortunate loss-of-focus bug. This 
       // means you have to tab back into the box to continue typing. Fixing
       // this would allow us to get the "as you type" update interaction.
@@ -224,8 +224,16 @@ function registration_checkin_search_form($form, &$form_state, $entity_type, $en
     '#value' => t('Seach'),
     '#ajax' => array(
       'callback' => 'registration_checkin_search_form_submit',
-      'wrapper' =>'registrant-table', 
-    )
+      'wrapper' =>'registrant-list',
+    ),
+  );
+  $form['reset'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset'),
+    '#ajax' => array(
+      'callback' => 'registration_checkin_search_form_reset',
+      'wrapper' => 'registrant-list',
+    ),
   );
   return $form;
 }

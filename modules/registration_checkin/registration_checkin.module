@@ -265,20 +265,21 @@ function registration_checkin_search_form_submit($form, &$form_state) {
     $registrant = $registration_wrapper->registrant->value();
     $registrant_label = entity_label($registrant_type, $registrant);
     foreach ($search_keys as $key) {
-      if (strpos($registrant_label, $key)) {
+      if (strpos($registrant_label, $key) !== FALSE) {
         $matches[$rid] = $registration;
+        break;
       }
     }
 
-    // Iterate the the fields we defined as searchable
+    // Iterate the the fields we defined as searchable.
     foreach ($registration_searhchable_fields as $field) {
       $haystack = $registration_wrapper->$field->value();
       foreach ($search_keys as $needle) {
-        if (strpos($haystack, $needle)) {
+        if (strpos($haystack, $needle) !== FALSE) {
           // A match was found.
           // Save it in the matches bucket and stop examining this registration.
           $matches[$rid] = $registration;
-          break;
+          break 2;
         }
       } 
     }

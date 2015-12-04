@@ -296,7 +296,44 @@ function registration_checkin_search_form_submit($form, &$form_state) {
     $registrant_markup = t('No results.');
   }
 
-  return $registrant_markup;
+  $registrants_build = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'id' => array('registrant-list'),
+    ),
+    'markup' => array(
+      '#markup' => $registrant_markup,
+    )
+  );
+
+  return render($registrants_build);
+}
+
+/**
+ * AJAX callback to reset the checkin table back to an unfiltered state.
+ */
+function registration_checkin_search_form_reset($form, &$form_state) {
+  // Get the host entity info.
+  $entity_id = $form_state['values']['entity_id'];
+  $entity_type = $form_state['values']['entity_type'];
+  $entity = menu_get_object();
+  $label = entity_label($entity_type, $entity);
+  $registrants = regisration_checkin_get_all_registrations($entity_id, $entity_type);
+
+  // Rebuild the original listing.
+  if ($registrants) {
+    $table = array(
+      'header' => regisration_checkin_get_registration_table_headers(),
+      'rows' => registration_checkin_get_registration_table_rows($registrants),
+    );
+    $registrant_markup = theme('table', $table) . theme('pager');
+  }
+  else {
+    $registrant_markup = t('There are no registrants for %name', array('%name' => $label));
+  }
+  $build = registration_checkin_prepare_registrants_checkin_build($registrant_markup);
+
+  return render($build);
 }
 
 /**

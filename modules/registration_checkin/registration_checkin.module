@@ -70,22 +70,20 @@ function registration_checkin_state_form($form, &$form_state, Registration $regi
   $rid = $registration->registration_id;
   $form = array();
 
-  // Build the state options,
-  // keeping track of the current state for default value.
-  $state_options = array();
-  $default_state_option_value = '';
-  foreach (registration_states() as $state_info) {
-    $state_options[$state_info->name] = $state_info->label;
-    if ($state_info->name == $registration->state) {
-      $default_state_option_value = $state_info->name;
-    }
+  $default_state = registration_get_default_state($registration->type);
+  $states = registration_get_states_options(array('show_on_form' => TRUE));
+
+  // Ensure default state is in options or it won't be set.
+  if (!in_array($default_state->label, $states)) {
+    $states[$default_state->name] = $default_state->label;
   }
+
   $form['registration_state'] = array(
     '#type' => 'select',
     '#title' => 'Select state',
     '#title_display' => 'invisible',
-    '#options' => $state_options,
-    '#default_value' => $default_state_option_value,
+    '#options' => $states,
+    '#default_value' => $registration->state,
     '#ajax' => array(
       'callback' => 'registration_checkin_state_update_callback',
     ),
@@ -419,7 +417,6 @@ function registration_checkin_get_registration_table_rows($registrations) {
       = l($wrapper->registrant_mail->value(), 'mailto:' . $wrapper->registrant_mail->value());
 
     // Hide state management widgets with access control.
-    $row['state_selection'] = $row['checkin_button'] = ' ';
     if (user_access("edit $registration->type registration state")) {
       // State dropdown.
       $form = drupal_get_form('registration_checkin_state_form', $registration);
@@ -430,6 +427,11 @@ function registration_checkin_get_registration_table_rows($registrations) {
         'registration_checkin_checkin_action_form', $registration
       );
       $row['checkin_button'] = render($form);
+    }
+    else {
+      $row['state_selection'] = ' ';
+
+      $row['checkin_button'] = ' ';
     }
 
     // Add the row.

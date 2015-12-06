@@ -32,14 +32,18 @@ function registration_checkin_install() {
   db_add_field('registration_state', 'attended', $col);
 
   // Create the "attended" registration state entity.
-  $attended_state = entity_create('registration_state', array(
-    'name' => 'attended',
-    'label' => t('Attended'),
-    'description' => t('Registrant has attended.'),
-    'active' => TRUE,
-    'attended' => TRUE,
-    'show_on_form' => TRUE,
-  ));
+  $attended_state = registration_get_states('attended');
+  if (!$attended_state) {
+    $attended_state = entity_create('registration_state', array(
+      'name' => 'attended',
+      'label' => t('Attended'),
+      'description' => t('Registrant has attended.'),
+    ));
+  }
+  $attended_state->active = TRUE;
+  $attended_state->attended = TRUE;
+  $attended_state->show_on_form = TRUE;
   $attended_state->save();
+
   drupal_set_message('Created the "Attended" registration state.');
 }

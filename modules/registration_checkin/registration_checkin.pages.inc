@@ -27,7 +27,6 @@ function registration_checkin_list_page($entity_type, $entity) {
   else {
     $registrant_markup = t('There are no registrants for %name', array('%name' => $label));
   }
-  $build = registration_checkin_prepare_registrants_checkin_build($registrant_markup);
 
   // Get the search form.
   $search_form = drupal_get_form('registration_checkin_search_form', $entity_type, $entity_id);

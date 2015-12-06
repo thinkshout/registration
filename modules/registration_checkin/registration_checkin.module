@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Entity Registration registrant checkin workflow and UI for regisration.
+ * Entity Registration registrant checkin workflow and UI for registration.
  */
 
 /**
@@ -26,17 +26,6 @@ function registration_checkin_menu() {
         'weight' => 15,
         'type' => MENU_LOCAL_TASK,
         'file' => 'registration_checkin.pages.inc',
-      );
-
-      // Add a new registratrant with a default state for the registration.
-      $items[$type . '/%entity_object/register/%default_state'] = array(
-        'load arguments' => array($type),
-        'title' => 'Register',
-        'page callback' => 'registration_checkin_register_page',
-        'page arguments' => array(0, 1, 3),
-        'access callback' => 'registration_register_page_access',
-        'access arguments' => array(0, 1),
-        'type' => $hide_register_tab ? MENU_CALLBACK : MENU_LOCAL_TASK,
       );
     }
   }
@@ -249,10 +238,10 @@ function registration_checkin_search_form_submit($form, &$form_state) {
   // Query again for all registrants.
   // We need them all since we are want to search the entity label value.
   // Not all entities will have a label, so a load-all basis is needed here.
-  $registrations = regisration_checkin_get_all_registrations($entity_id, $entity_type);
+  $registrations = registration_checkin_get_all_registrations($entity_id, $entity_type);
 
-  $search_keys = explode(' ', $form_state['values']['search_keys']);
-  $registration_searhchable_fields = array('registrant_mail');
+  $search_keys = preg_split('/\s+/', $form_state['values']['search_keys']);
+  $registration_searchable_fields = array('registrant_mail');
 
   // Since we coldn't use field conditions before the query, we have to iterate.
   // This is going to slow down as we scale up. A few hundred should be ok.
@@ -265,17 +254,17 @@ function registration_checkin_search_form_submit($form, &$form_state) {
     $registrant = $registration_wrapper->registrant->value();
     $registrant_label = entity_label($registrant_type, $registrant);
     foreach ($search_keys as $key) {
-      if (strpos($registrant_label, $key) !== FALSE) {
+      if (stripos($registrant_label, $key) !== FALSE) {
         $matches[$rid] = $registration;
         break;
       }
     }
 
     // Iterate the the fields we defined as searchable.
-    foreach ($registration_searhchable_fields as $field) {
+    foreach ($registration_searchable_fields as $field) {
       $haystack = $registration_wrapper->$field->value();
       foreach ($search_keys as $needle) {
-        if (strpos($haystack, $needle) !== FALSE) {
+        if (stripos($haystack, $needle) !== FALSE) {
           // A match was found.
           // Save it in the matches bucket and stop examining this registration.
           $matches[$rid] = $registration;
@@ -287,7 +276,7 @@ function registration_checkin_search_form_submit($form, &$form_state) {
   if (!empty($matches)) {
     // Generate markup for the registrant table.
     $table = array(
-      'header' => regisration_checkin_get_registration_table_headers(),
+      'header' => registration_checkin_get_registration_table_headers(),
       'rows' => registration_checkin_get_registration_table_rows($matches),
     );
     $registrant_markup = theme('table', $table) . theme('pager');
@@ -321,12 +310,12 @@ function registration_checkin_search_form_reset($form, &$form_state) {
 
   $pager_limit = 20;
   $registrants
-    = regisration_checkin_get_all_registrations($entity_id, $entity_type, $pager_limit);
+    = registration_checkin_get_all_registrations($entity_id, $entity_type, $pager_limit);
 
   // Rebuild the original listing.
   if ($registrants) {
     $table = array(
-      'header' => regisration_checkin_get_registration_table_headers(),
+      'header' => registration_checkin_get_registration_table_headers(),
       'rows' => registration_checkin_get_registration_table_rows($registrants),
     );
     $registrant_markup = theme('table', $table) . theme('pager');
@@ -353,7 +342,7 @@ function registration_checkin_search_form_reset($form, &$form_state) {
  *   An array of loaded Registration entities, or
  *   FALSE if there are no registrations for the host entity.
  */
-function regisration_checkin_get_all_registrations($host_entity_id, $host_entity_type, $pager_size = FALSE) {
+function registration_checkin_get_all_registrations($host_entity_id, $host_entity_type, $pager_size = FALSE) {
 
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'registration')
@@ -381,7 +370,7 @@ function regisration_checkin_get_all_registrations($host_entity_id, $host_entity
  * @return array
  *   A header array suitable for use with theme_table().
  */
-function regisration_checkin_get_registration_table_headers() {
+function registration_checkin_get_registration_table_headers() {
   $header = array(
     array(
       'data' => t('Registrant'),

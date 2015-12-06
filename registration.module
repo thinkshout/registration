@@ -554,7 +554,7 @@ function registration_administer_registrations_access($entity_type, $entity, $ac
  * @see registration_register_access()
  * @see registration_menu()
  */
-function registration_register_page($entity_type, $entity, $default_state = 'completed') {
+function registration_register_page($entity_type, $entity, $default_state = NULL) {
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   if (registration_status($entity_type, $entity_id)) {
     $registration_type = registration_get_entity_registration_type($entity_type, $entity);
@@ -562,8 +562,12 @@ function registration_register_page($entity_type, $entity, $default_state = 'com
       'entity_type' => $entity_type,
       'entity_id' => $entity_id,
       'type' => $registration_type,
-      'state' => $default_state,
     ));
+
+    if (user_access("edit $registration_type registration state")) {
+      $registration->state = $default_state;
+    }
+
     return drupal_get_form('registration_form', $registration);
   }
   else {

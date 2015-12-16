@@ -1772,8 +1772,12 @@ function registration_property_registrant_mail_get($registration, array $options
   $mail = NULL;
   if (isset($registrant->$property)) {
     $value = $registrant->$property->value();
-    if ($field_col && isset($value[0][$field_col])) {
-      $mail = $value[0][$field_col];
+    // If we have multiple values, just grab the first one:
+    if (isset($value[0])) {
+      $value = $value[0];
+    }
+    if ($field_col && isset($value[$field_col])) {
+      $mail = $value[$field_col];
     }
     else {
       $mail = $value;

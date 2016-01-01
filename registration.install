@@ -243,27 +243,6 @@ function registration_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
-      'registrant_entity_type' => array(
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => 'user',
-        'description' => 'The machine name of the registrant entity\'s type.',
-      ),
-      'registrant_bundle' => array(
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => 'user',
-        'description' => 'The machine name of the registrant entity\'s bundle.',
-      ),
-      'registrant_email_property' => array(
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => 'mail',
-        'description' => 'The machine name of the registrant entity\'s email property.',
-      ),
     ),
     'primary key' => array('id'),
     'unique keys' => array(

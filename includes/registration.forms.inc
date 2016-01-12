@@ -600,6 +600,47 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     unset($form['scheduling']['close']['#maxlength']);
   }
 
+  // Allow for setting open and close date based on tokens:
+  if (module_exists('token')) {
+    $date_fields = array(
+      array(
+        'name' => 'open',
+        'label' => 'Open Date',
+        'set' => 'scheduling',
+      ),
+      array(
+        'name' => 'close',
+        'label' => 'Close Date',
+        'set' => 'scheduling',
+      ),
+    );
+    foreach ($date_fields as $field) {
+      $form[$field['set']][$field['name'] . '_use_token'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Use a token to set the @label.', array('@label' => $field['label'])),
+        '#default_value' => isset($settings['settings'][$field['name'] . '_date_token']) ? TRUE : FALSE,
+      );
+      $form[$field['set']][$field['name'] . '_field'] = array(
+        '#type' => 'textfield',
+        '#title' => t('@label Source', array('@label' => $field['label'])),
+        '#description' => $form[$field['set']][$field['name']]['#description'] . t(". <i>Choose a token that will return the time in 'Y-m-d H:i:s' format.</i>"),
+        '#default_value' => isset($settings['settings'][$field['name'] . '_date_token']) ? $settings['settings'][$field['name'] . '_date_token'] : NULL,
+        '#element_validate' => array('token_element_validate'),
+        '#token_types' => array($entity_type),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="scheduling[' . $field['name'] . '_use_token]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form[$field['set']][$field['name']]['#states'] = array(
+        'visible' => array(
+          ':input[name="scheduling[' . $field['name'] . '_use_token]"]' => array('checked' => FALSE),
+        ),
+      );
+    }
+  }
+
   $form['reminder'] = array(
     '#type' => 'fieldset',
     '#title' => t('Reminder'),

@@ -643,6 +643,14 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
         ),
       );
     }
+    // Add the UI for browsing tokens.
+    $form['scheduling']['_tokens'] = array(
+      '#theme' => 'token_tree_link',
+      '#token_types' => array($entity_type),
+      '#global_types' => FALSE,
+      '#click_insert' => TRUE,
+      '#weight' => 3,
+    );
   }
 
   $form['reminder'] = array(

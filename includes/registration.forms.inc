@@ -911,20 +911,34 @@ function registration_convert_form_settings($values) {
     'close' => NULL,
   );
 
+  $date_fields = array(
+    array(
+      'name' => 'open',
+      'label' => 'Open Date',
+      'set' => 'scheduling',
+    ),
+    array(
+      'name' => 'close',
+      'label' => 'Close Date',
+      'set' => 'scheduling',
+    ),
+  );
+  foreach ($date_fields as $field) {
+    // Check for token configuration and add to settings.
+    if (!empty($values[$field['set']][$field['name'] . '_use_token'])) {
+      $fields['settings'][$field['name'] . '_date_token'] = $values[$field['set']][$field['name'] . '_field'];
+    }
+    // Otherwise check for a raw date value.
+    elseif (!empty($values[$field['set']][$field['name']])) {
+      $fields[$field['name']] = date('Y-m-d H:i:s', strtotime($values[$field['set']][$field['name']]));
+    }
+  }
+
   // Reminder: Reminder Date:
   if (!empty($values['reminder']['reminder_settings']['reminder_date'])) {
     $fields['reminder_date'] = date('Y-m-d H:i:s', strtotime($values['reminder']['reminder_settings']['reminder_date']));
   }
 
-  // Scheduling: open date:
-  if (!empty($values['scheduling']['open'])) {
-    $fields['open'] = date('Y-m-d H:i:s', strtotime($values['scheduling']['open']));
-  }
-
-  // Scheduling: close date:
-  if (!empty($values['scheduling']['close'])) {
-    $fields['close'] = date('Y-m-d H:i:s', strtotime($values['scheduling']['close']));
-  }
   $fields['settings'] = serialize($fields['settings']);
 
   return $fields;

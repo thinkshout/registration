@@ -567,10 +567,9 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#title' => t('Open Date'),
     '#maxlength' => 25,
     '#description' => t('When to automatically open registrations. Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to disable.', array(
-        '%time' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
-        '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'O') : format_date(time(), 'custom', 'O'),
-      )
-    ),
+      '%time' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
+      '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'O') : format_date(time(), 'custom', 'O'),
+    )),
     '#default_value' => !empty($settings['open']) ? $settings['open'] : '',
   );
   if ($date_popup_installed) {
@@ -578,7 +577,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     $form['scheduling']['open']['#date_format'] = 'Y-m-d H:i:s O';
     $form['scheduling']['open']['#description'] = t('When to automatically open registrations. (This uses the !timezone.)', array(
       '!timezone' => l(t('site default time zone'), 'admin/config/regional/settings'),
-      ));
+    ));
     unset($form['scheduling']['open']['#maxlength']);
   }
 
@@ -587,10 +586,9 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#title' => t('Close Date'),
     '#maxlength' => 25,
     '#description' => t('When to automatically close registrations. Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to disable.', array(
-        '%time' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
-        '%timezone' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'O') : format_date(time(), 'custom', 'O'),
-      )
-    ),
+      '%time' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
+      '%timezone' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'O') : format_date(time(), 'custom', 'O'),
+    )),
     '#default_value' => !empty($settings['close']) ? $settings['close'] : '',
   );
   if ($date_popup_installed) {
@@ -598,7 +596,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     $form['scheduling']['close']['#date_format'] = 'Y-m-d H:i:s O';
     $form['scheduling']['close']['#description'] = t('When to automatically close registrations.. (This uses the !timezone.)', array(
       '!timezone' => l(t('site default time zone'), 'admin/config/regional/settings'),
-      ));
+    ));
     unset($form['scheduling']['close']['#maxlength']);
   }
 
@@ -633,10 +631,9 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#title' => t('Reminder Date'),
     '#maxlength' => 25,
     '#description' => t('When to send reminders. Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC.', array(
-        '%time' => !empty($settings['open']) ? date_format(date_create($settings['reminder_date']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
-        '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['reminder_date']), 'O') : format_date(time(), 'custom', 'O'),
-      )
-    ),
+      '%time' => !empty($settings['open']) ? date_format(date_create($settings['reminder_date']), 'Y-m-d H:i:s O') : format_date(time(), 'custom', 'Y-m-d H:i:s O'),
+      '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['reminder_date']), 'O') : format_date(time(), 'custom', 'O'),
+    )),
     '#default_value' => !empty($settings['reminder_date']) ? $settings['reminder_date'] : '',
   );
   if ($date_popup_installed) {
@@ -644,7 +641,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     $form['reminder']['reminder_settings']['reminder_date']['#date_format'] = 'Y-m-d H:i:s O';
     $form['reminder']['reminder_settings']['reminder_date']['#description'] = t('When to send reminders. (This uses the !timezone.)', array(
       '!timezone' => l(t('site default time zone'), 'admin/config/regional/settings'),
-      ));
+    ));
     unset($form['reminder']['reminder_settings']['reminder_date']['#maxlength']);
   }
 

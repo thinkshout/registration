@@ -906,7 +906,7 @@ function registration_convert_form_settings($values) {
     'send_reminder' => isset($values['reminder']['send_reminder']) ? $values['reminder']['send_reminder'] : 0,
     'reminder_date' => NULL,
     'reminder_template' => isset($values['reminder']['reminder_settings']['reminder_template']) ? $values['reminder']['reminder_settings']['reminder_template'] : NULL,
-    'settings' => serialize($values['settings']),
+    'settings' => $values['settings'],
     'open' => NULL,
     'close' => NULL,
   );
@@ -925,6 +925,7 @@ function registration_convert_form_settings($values) {
   if (!empty($values['scheduling']['close'])) {
     $fields['close'] = date('Y-m-d H:i:s', strtotime($values['scheduling']['close']));
   }
+  $fields['settings'] = serialize($fields['settings']);
 
   return $fields;
 }

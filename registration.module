@@ -1248,6 +1248,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
   }
 
   $settings = registration_entity_settings($entity_type, $entity_id, $reset);
+  registration_interpret_settings($settings, $entity_type, $entity);
   $status = $settings['status'];
   $open = isset($settings['open']) ? strtotime($settings['open']) : NULL;
   $close = isset($settings['close']) ? strtotime($settings['close']) : NULL;
@@ -2070,4 +2071,19 @@ function _registration_translate($name, $string, $langcode = NULL) {
  */
 function _registration_translate_update($name, $string, $langcode = NULL) {
   return function_exists('i18n_string') ? i18n_string('registration:' . $name, $string, array('update' => TRUE, 'langcode' => $langcode)) : FALSE;
+}
+
+/**
+ * Process registration settings to provide usable values.
+ *
+ * Initial purpose is to interpret dates that are using tokens rather than raw
+ * dates.
+ */
+function registration_interpret_settings(&$settings, $entity_type, $entity) {
+  $fields = array('open', 'close');
+  foreach ($fields as $field) {
+    if (!empty($settings['settings'][$field . '_date_token'])) {
+      $settings[$field] = token_replace($settings['settings'][$field . '_date_token'], array($entity_type => $entity), array('clear' => TRUE));
+    }
+  }
 }

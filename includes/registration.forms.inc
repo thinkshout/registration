@@ -561,7 +561,6 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#collapsed' => FALSE,
     '#tree' => TRUE,
   );
-
   $form['scheduling']['open'] = array(
     '#type' => 'textfield',
     '#title' => t('Open Date'),
@@ -571,6 +570,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
       '%timezone' => !empty($settings['open']) ? date_format(date_create($settings['open']), 'O') : format_date(time(), 'custom', 'O'),
     )),
     '#default_value' => !empty($settings['open']) ? $settings['open'] : '',
+    '#weight' => 0,
   );
   if ($date_popup_installed) {
     $form['scheduling']['open']['#type'] = 'date_popup';
@@ -590,6 +590,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
       '%timezone' => !empty($settings['close']) ? date_format(date_create($settings['close']), 'O') : format_date(time(), 'custom', 'O'),
     )),
     '#default_value' => !empty($settings['close']) ? $settings['close'] : '',
+    '#weight' => 2,
   );
   if ($date_popup_installed) {
     $form['scheduling']['close']['#type'] = 'date_popup';
@@ -615,10 +616,12 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
       ),
     );
     foreach ($date_fields as $field) {
+      $base_weight = isset($form[$field['set']][$field['name']]['#weight']) ? $form[$field['set']][$field['name']]['#weight'] : 0;
       $form[$field['set']][$field['name'] . '_use_token'] = array(
         '#type' => 'checkbox',
         '#title' => t('Use a token to set the @label.', array('@label' => $field['label'])),
         '#default_value' => isset($settings['settings'][$field['name'] . '_date_token']) ? TRUE : FALSE,
+        '#weight' => $base_weight - 0.5,
       );
       $form[$field['set']][$field['name'] . '_field'] = array(
         '#type' => 'textfield',
@@ -632,6 +635,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
             ':input[name="scheduling[' . $field['name'] . '_use_token]"]' => array('checked' => TRUE),
           ),
         ),
+        '#weight' => $base_weight,
       );
       $form[$field['set']][$field['name']]['#states'] = array(
         'visible' => array(

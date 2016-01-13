@@ -2055,8 +2055,8 @@ function _registration_translate_update($name, $string, $langcode = NULL) {
 function registration_interpret_settings(&$settings, $entity_type, $entity) {
   $fields = array('open', 'close');
   foreach ($fields as $field) {
-    if (!empty($settings['settings'][$field . '_date_token'])) {
-      $settings[$field] = token_replace($settings['settings'][$field . '_date_token'], array($entity_type => $entity), array('clear' => TRUE));
+    if (!empty($settings[$field . '_date_token'])) {
+      $settings[$field] = token_replace($settings[$field . '_date_token'], array($entity_type => $entity), array('clear' => TRUE));
     }
   }
 }

@@ -616,41 +616,48 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
       ),
     );
     foreach ($date_fields as $field) {
+      $input_root = $entity_id ? $field['set'] . '[' : 'instance[settings][default_registration_settings][' . $field['set'] . '][';
       $base_weight = isset($form[$field['set']][$field['name']]['#weight']) ? $form[$field['set']][$field['name']]['#weight'] : 0;
       $form[$field['set']][$field['name'] . '_use_token'] = array(
         '#type' => 'checkbox',
         '#title' => t('Use a token to set the @label.', array('@label' => $field['label'])),
-        '#default_value' => isset($settings['settings'][$field['name'] . '_date_token']) ? TRUE : FALSE,
+        '#default_value' => !empty($settings[$field['name'] . '_date_token']) ? TRUE : FALSE,
         '#weight' => $base_weight - 0.5,
       );
-      $form[$field['set']][$field['name'] . '_field'] = array(
+      $form[$field['set']][$field['name'] . '_date_token'] = array(
         '#type' => 'textfield',
         '#title' => t('@label Source', array('@label' => $field['label'])),
         '#description' => $form[$field['set']][$field['name']]['#description'] . t(". <i>Choose a token that will return the time in 'Y-m-d H:i:s' format.</i>"),
-        '#default_value' => isset($settings['settings'][$field['name'] . '_date_token']) ? $settings['settings'][$field['name'] . '_date_token'] : NULL,
-        '#element_validate' => array('token_element_validate'),
-        '#token_types' => array($entity_type),
+        '#default_value' => isset($settings[$field['name'] . '_date_token']) ? $settings[$field['name'] . '_date_token'] : NULL,
         '#states' => array(
           'visible' => array(
-            ':input[name="scheduling[' . $field['name'] . '_use_token]"]' => array('checked' => TRUE),
+            ':input[name="' . $input_root . $field['name'] . '_use_token]"]' => array('checked' => TRUE),
           ),
         ),
         '#weight' => $base_weight,
       );
       $form[$field['set']][$field['name']]['#states'] = array(
         'visible' => array(
-          ':input[name="scheduling[' . $field['name'] . '_use_token]"]' => array('checked' => FALSE),
+          ':input[name="' . $input_root . $field['name'] . '_use_token]"]' => array('checked' => FALSE),
         ),
       );
+      if ($entity_id) {
+        // Only add this validation when on an actual entity: allows for setting
+        // defaults on the field configuration page.
+        $form[$field['set']][$field['name'] . '_date_token']['#element_validate'] = array('token_element_validate');
+        $form[$field['set']][$field['name'] . '_date_token']['#token_types'] = array($entity_type);
+      }
     }
-    // Add the UI for browsing tokens.
-    $form['scheduling']['_tokens'] = array(
-      '#theme' => 'token_tree_link',
-      '#token_types' => array($entity_type),
-      '#global_types' => FALSE,
-      '#click_insert' => TRUE,
-      '#weight' => 3,
-    );
+    if ($entity_id) {
+      // Add the UI for browsing tokens.
+      $form['scheduling']['_tokens'] = array(
+        '#theme' => 'token_tree_link',
+        '#token_types' => array($entity_type),
+        '#global_types' => FALSE,
+        '#click_insert' => TRUE,
+        '#weight' => 3,
+      );
+    }
   }
 
   $form['reminder'] = array(
@@ -909,6 +916,8 @@ function registration_convert_form_settings($values) {
     'settings' => $values['settings'],
     'open' => NULL,
     'close' => NULL,
+    'open_date_token' => $values['scheduling']['open_date_token'],
+    'close_date_token' => $values['scheduling']['close_date_token'],
   );
 
   $date_fields = array(
@@ -924,12 +933,7 @@ function registration_convert_form_settings($values) {
     ),
   );
   foreach ($date_fields as $field) {
-    // Check for token configuration and add to settings.
-    if (!empty($values[$field['set']][$field['name'] . '_use_token'])) {
-      $fields['settings'][$field['name'] . '_date_token'] = $values[$field['set']][$field['name'] . '_field'];
-    }
-    // Otherwise check for a raw date value.
-    elseif (!empty($values[$field['set']][$field['name']])) {
+    if (!empty($values[$field['set']][$field['name']])) {
       $fields[$field['name']] = date('Y-m-d H:i:s', strtotime($values[$field['set']][$field['name']]));
     }
   }

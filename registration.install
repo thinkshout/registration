@@ -159,6 +159,13 @@ function registration_schema() {
         'sqlsrv_type' => 'smalldatetime',
         'not null' => FALSE,
       ),
+      'open_date_token' => array(
+        'description' => 'Token value to determine open date.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
       'close' => array(
         'description' => 'Date to close registrations. Or NULL to never close automatically.',
         'type' => 'datetime',
@@ -167,6 +174,13 @@ function registration_schema() {
         'sqlite_type' => 'varchar',
         'sqlsrv_type' => 'smalldatetime',
         'not null' => FALSE,
+      ),
+      'close_date_token' => array(
+        'description' => 'Token value to determine close date.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => NULL,
       ),
       'settings' => array(
         'type' => 'blob',
@@ -681,4 +695,31 @@ function registration_update_7201(&$sandbox) {
     'not null' => FALSE,
     'default' => 0,
   ));
+}
+
+/**
+ * Add token field for open and close date on Registration configuration.
+ */
+function registration_update_7202() {
+  $token_fields = array(
+    'open_date_token' => array(
+      'description' => 'Token value to determine open date.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'default' => NULL,
+    ),
+    'close_date_token' => array(
+      'description' => 'Token value to determine close date.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'default' => NULL,
+    ),
+  );
+  foreach ($token_fields as $name => $config) {
+    if (!db_field_exists('registration_entity', $name)) {
+      db_add_field('registration_entity', $name, $config);
+    }
+  }
 }

@@ -1285,6 +1285,8 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
   $context = array(
     'entity_type' => $entity_type,
     'entity_id' => $entity_id,
+    'spaces' => $spaces,
+    'registration_id' => $registration_id,
     'errors' => &$errors
   );
 

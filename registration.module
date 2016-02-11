@@ -22,6 +22,17 @@ define('REGISTRATION_REGISTRANT_TYPE_SELF', 'registration_registrant_type_self')
 define('REGISTRATION_REGISTRANT_TYPE_OTHER', 'registration_registrant_type_other');
 
 /**
+ * Implements hook_config_info().
+ */
+function registration_config_info() {
+  $prefixes['registration.first.settings']  = array(
+    'label' => t('First set of settings'),
+    'group' => t('Registration'),
+  );
+  return $prefixes;
+}
+
+/**
  * Implements hook_entity_info().
  */
 function registration_entity_info() {

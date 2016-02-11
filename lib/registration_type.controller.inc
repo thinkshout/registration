@@ -4,11 +4,11 @@
  * @file
  * The controller class used for registration type entities
  */
+
+/*
 class RegistrationTypeController extends EntityAPIControllerExportable {
 
-  /**
-   * Overridden.
-   */
+
   public function export($entity, $prefix = '') {
     // Ensure our data properties are properly structured.
     $data_properties = array('held_expire', 'held_expire_state');
@@ -23,3 +23,4 @@ class RegistrationTypeController extends EntityAPIControllerExportable {
   }
 
 }
+*/

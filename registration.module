@@ -41,7 +41,7 @@ function registration_entity_info() {
       'label' => t('Registration'),
       'plural label' => t('Registrations'),
       'controller class' => 'EntityAPIController',
-      'entity class' => 'Registration',
+      'entity class' => '',
       'metadata controller class' => 'RegistrationMetadataController',
       'base table' => 'registration',
       'fieldable' => TRUE,
@@ -70,7 +70,7 @@ function registration_entity_info() {
       'label' => t('Registration type'),
       'entity class' => 'RegistrationType',
       'metadata controller class' => 'RegistrationTypeMetadataController',
-      'controller class' => 'RegistrationTypeController',
+      'controller class' => 'EntityTypeController',
       'base table' => 'registration_type',
       'fieldable' => FALSE,
       'bundle of' => 'registration',
@@ -165,6 +165,8 @@ function registration_entity_info_alter(&$entity_info) {
     // recursion issue as loading the model types requires the entity info as well.
     // Need to do a class_exists check for updates from earlier versions
     // of registration module.
+    // TODO: Replace
+    /*
     if (class_exists('RegistrationTypeController')) {
       foreach (registration_get_types() as $type => $info) {
         $entity_info['registration']['bundles'][$type] = array(
@@ -178,6 +180,7 @@ function registration_entity_info_alter(&$entity_info) {
         );
       }
     }
+    */
   }
 }
 
@@ -1960,12 +1963,12 @@ function registration_access($op, Registration $registration = NULL, $account = 
 function registration_get_types($name = NULL) {
   if (isset($name)) {
     if ($name) {
-      $types = entity_load_multiple_by_name('registration_type', array($name));
+     // $types = entity_load_multiple_by_name('registration_type', array($name));
       return $types ? reset($types) : NULL;
     }
     return NULL;
   }
-  return entity_load_multiple_by_name('registration_type');
+  return entity_load_multiple('registration_type');
 }
 
 /**
@@ -2099,4 +2102,21 @@ function registration_interpret_settings(&$settings, $entity_type, $entity) {
       $settings[$field] = token_replace($settings['settings'][$field . '_date_token'], array($entity_type => $entity), array('clear' => TRUE));
     }
   }
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function registration_autoload_info() {
+  return array(
+    'Registration' => 'lib/registration.entity.inc',
+    'RegistrationMetadataController' => 'lib/registration.metadata.inc',
+    'RegistrationTypeMetadataController' => 'lib/registration_type.metadata.inc',
+    'RegistrationStateController' => 'lib/registration_state.controller.inc',
+    'RegistrationState' => 'lib/registration_state.entity.inc',
+    'RegistrationStatesUIController' => 'lib/registration_state.ui_controller.inc',
+    //TODO: 'RegistrationTypeController' => 'lib/registration_type.controller.inc',
+    'RegistrationType' => 'lib/registration_type.entity.inc',
+    'RegistrationTypeUIController' => 'lib/registration_type.ui_controller.inc',
+  );
 }

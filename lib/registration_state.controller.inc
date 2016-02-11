@@ -4,7 +4,9 @@
  * @file
  * The controller class used for registration state entities
  */
-class RegistrationStateController extends EntityAPIControllerExportable {
+//TODO :: Replace this
+class RegistrationStateController {
+//class RegistrationStateController extends EntityAPIControllerExportable {
 
   public function save($entity, DatabaseTransaction $transaction = NULL) {
     parent::save($entity, $transaction);

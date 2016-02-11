@@ -72,10 +72,6 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
     $registrations[] = $this->createRegistration(array('count' => 2));
     $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, wait list full.'), 'Registration');
 
-    // Load user with admin permission.
-    $user = $admin_user;
-    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open, wait list full but user has admin permission.'), 'Registration');
-
     // Switch back to basic user.
     $user = $basic_user;
 

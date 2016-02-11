@@ -1620,7 +1620,7 @@ function registration_registrant_create($registration_type, $mail = NULL) {
 
   $values = array();
   $info = entity_get_info($registrant_entity_type);
-  if (isset($info['entity keys']['bundle'])) {
+  if (!empty($info['entity keys']['bundle'])) {
     $values[$info['entity keys']['bundle']] = $registration_type->registrant_bundle;
   }
   $registrant = entity_create($registrant_entity_type, $values);

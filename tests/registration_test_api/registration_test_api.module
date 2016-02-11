@@ -9,7 +9,7 @@
  * Implements hook_registration_status().
  */
 function registration_test_api_registration_status_alter(&$status, &$context) {
-  $var = variable_get(__FUNCTION__);
+  $var = config_get('registration.settings', __FUNCTION__);
   if (isset($var)) {
     $status = $var;
   }

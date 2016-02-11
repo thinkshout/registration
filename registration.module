@@ -302,7 +302,7 @@ function registration_menu() {
  */
 function registration_admin_paths() {
   $paths = array();
-  if (variable_get('registration_paths_administrative', FALSE)) {
+  if (config_get('registration.settings', 'registration_paths_administrative')) {
     foreach (registration_get_registration_instances() as $instance) {
       $type = $instance['entity_type'];
       if (!in_array($type, array('registration', 'registration_type'))) {

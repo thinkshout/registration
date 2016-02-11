@@ -598,12 +598,12 @@ class RegistrationAPITestCase extends RegistrationTestCase {
     $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open.'), 'Registration');
 
     // Host main status is opened, hook closes.
-    variable_set('registration_test_api_registration_status_alter', FALSE);
+    config_set('registration.settings', 'registration_test_api_registration_status_alter', FALSE);
     $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open, hook overrides'), 'Registration');
 
     // Hook should still be invoked if main status is closed.
     $this->setHostEntitySettings(array('status' => 0));
-    variable_set('registration_test_api_registration_status_alter', TRUE);
+    config_set('registration.settings', 'registration_test_api_registration_status_alter', TRUE);
     $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, hook overrides.'), 'Registration');
   }
 }

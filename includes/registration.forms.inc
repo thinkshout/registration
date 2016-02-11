@@ -754,7 +754,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#title' => t('From Address'),
     '#description' => t('From email address to use for confirmations, reminders, and broadcast emails.'),
     '#required' => TRUE,
-    '#default_value' => isset($settings['settings']['from_address']) ? $settings['settings']['from_address'] : variable_get('site_mail', ini_get('sendmail_from')),
+    '#default_value' => isset($settings['settings']['from_address']) ? $settings['settings']['from_address'] : config_get('registration.settings', 'site_mail'),
   );
 
   $form['settings']['confirmation'] = array(

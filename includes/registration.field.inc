@@ -9,6 +9,10 @@
  * Implements hook_field_info().
  */
 function registration_field_info() {
+  $site_mail = config_get('registration.settings', 'site_mail');
+  if (empty($site_mail)) {
+    $site_mail = ini_get('sendmail_from');
+  }
   return array(
     'registration' => array(
       'label' => t('Registration'),
@@ -32,7 +36,7 @@ function registration_field_info() {
           'settings' => array(
             'maximum_spaces' => 1,
             'multiple_registrations' => -1,
-            'from_address' => config_get('registration.settings', 'sendmail_from'),
+            'from_address' => config_get('registration.settings', 'site_mail'),
           ),
         ),
       ),

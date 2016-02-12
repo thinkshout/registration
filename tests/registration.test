@@ -362,8 +362,12 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->assertFieldByName('who_is_registering');
   }
 
-  function testRegistrationForm() {
-    // Setup environment.
+  /**
+   * Tests for the registration add/edit form.
+   */
+  public function testRegistrationForm() {
+
+    // Setup environment - create all users we'll need for tests.
     $permissions = array(
       'create ' . $this->registration_type_name . ' registration',
       'view own ' . $this->registration_type_name . ' registration',
@@ -373,13 +377,31 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       'create ' . $this->registration_type_name . ' registration other users',
       'create ' . $this->registration_type_name . ' registration other anonymous'
     );
-
+    // Ensure permission set is valid before using them.
     $this->checkPermissions($permissions, TRUE);
+    // Create user with many permissions.
     $user = $this->drupalCreateUser($permissions);
-    $this->drupalLogin($user);
-
+    // Create user with view permission only.
+    $permissions = array(
+      'view ' . $this->registration_type_name . ' registration',
+    );
+    $this->checkPermissions($permissions, TRUE);
+    $user_view_permission = $this->drupalCreateUser($permissions);
+    // Create a user with only "registration self" permission to test with.
+    $permissions = array(
+      'create ' . $this->registration_type_name . ' registration self'
+    );
+    $this->checkPermissions($permissions, TRUE);
+    $user_register_self_permission = $this->drupalCreateUser($permissions);
+    // Create a user with no registration permissions to test with.
     $user_no_permission = $this->drupalCreateUser();
 
+    // #######################################################################.
+    // Login as user with many permissions - create registration.
+    // #######################################################################.
+    $this->drupalLogin($user);
+
+    // Configure registration settings on host entity.
     $this->setHostEntitySettings(array(
       'status' => 1,
       'capacity' => 2,
@@ -388,7 +410,8 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       ),
     ));
 
-    // Submit a Registration form.
+    // Submit a Registration form as the user with
+    // many registration permissions.
     $this->drupalGet($this->host_entity_path . '/register');
     $this->assertResponse(200, t('Register page loaded.'), 'Registration');
     $registration_form = array(
@@ -397,39 +420,41 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalPost($this->host_entity_path . '/register', $registration_form, t('Save Registration'));
     $this->assertText(t('Registration for'), t('Registration saved.'), 'Registration');
 
+    // Load registration that was just created and it's ID to be used again.
     $registration_a_id = $this->entityLastId('registration');
+    $registration_a = entity_load_single('registration', $registration_a_id);
 
-    $registration_c = $this->createRegistration(array(
-      'author_uid' => $user->uid,
-      'user_uid' => $user->uid,
-    ));
+    // Check registration we just created does not allow user without
+    // "register self" permission the option to register themself.
+    $access_people = registration_access_people($registration_a, $user_no_permission);
+    $this->assertTrue((count($access_people) == 0), t('Check user with no registration permissions is not allowed to register.'));
+    // Check user with permission to register only themself, can only register
+    // themself.
+    $access_people = registration_access_people($registration_a, $user_register_self_permission);
+    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_ME]) && count($access_people) == 1), t('Check user that is allowed to register only self, can register only self.'));
 
-    // Edit a registration
-    // TODO: These two tests are failing as the drupalPost() is not working. Needs to be resolved.
-//    $this->drupalGet('registration/' . $registration_c->registration_id . '/edit');
-//    $this->assertResponse(200, t('User can access registration edit page.'), 'Registration');
-//    $edit = array(
-//      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_USER,
-//      'user' => $user_no_permission->name,
-//    );
-//    $this->drupalPost('registration/' . $registration_c->registration_id . '/edit', $edit, t('Save Registration'));
-//    $this->assertText(t('Registration has been saved'), t('Registration form saved'), 'Registration');
-//
-//    $this->resetRegistration();
-//    $registration_c = entity_load_single('registration', $registration_c->registration_id);
-//    $this->drupalGet('registration/' . $registration_c->registration_id);
-//    $this->assertEqual($registration_c->user_uid, $user_no_permission->uid, t('Changed user on registration form.'), 'Registration');
+    // Ensure registration reports having space available.
+    // Capacity is set to 2 and only 1 user has registered.
+    $this->assertTrue(registration_has_room($this->host_entity_type, $this->host_entity_id), t('Space available'), 'Registration');
 
-    // Delete a registration.
-    $this->drupalGet('registration/' . $registration_c->registration_id . '/delete');
-    $this->assertResponse(200, 'User can access registration delete confirmation page.', 'Registration');
-    $this->drupalPost('registration/' . $registration_c->registration_id . '/delete', array(), t('Delete'));
+    // #######################################################################.
+    // Login as user with only view permission.
+    // #######################################################################.
+    $this->drupalLogout();
+    $this->drupalLogin($user_view_permission);
 
-    $this->resetRegistration();
-    $this->assertFalse(entity_load_single('registration', $registration_c->registration_id), t('Deleted registration via form'), 'Registration');
+    // Ensure user with view permission can the registration we just created.
+    $this->drupalGet('registration/' . $registration_a_id);
+    $this->assertResponse(200, t('User with permission can view registration'), 'Registration');
 
-    // No permission.
+    // #######################################################################.
+    // Login as user with no permissions.
+    // #######################################################################.
+    $this->drupalLogout();
     $this->drupalLogin($user_no_permission);
+
+    // User with no permission - try to create, view, edit, delete registration.
+    // Expect failure for all attempted operations.
     $this->drupalGet($this->host_entity_path . '/register');
     $this->assertResponse(403, t('User without permission cannot create registration.'), 'Registration');
     $this->drupalGet('registration/' . $registration_a_id);
@@ -439,41 +464,44 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalGet('registration/' . $registration_a_id . '/delete');
     $this->assertResponse(403, t('User without permission cannot delete registration.'), 'Registration');
 
-    // Create a new registration to test whether users with specific permissions can access it.
-    $registration_b = $this->createRegistration();
-    // Check registration we just created does not allow anyone to register.
-    $access_people = registration_access_people($registration_b, $user_no_permission);
-    $this->assertTrue((count($access_people) == 0), t('Check user with no registration permissions is not allowed to register.'));
-    // Check user that is allowed to register only self, can register only self.
-    $user_register_self_permission = $this->drupalCreateUser(array('create ' . $this->registration_type_name . ' registration self'));
-    $access_people = registration_access_people($registration_b, $user_register_self_permission);
-    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_ME]) && count($access_people) == 1), t('Check user that is allowed to register only self, can register only self.'));
+    // #######################################################################.
+    // Test registered users - not necessary to be logged in as a particular
+    // user for this section of assertions.
+    // #######################################################################.
+    // Create a duplicate copy of the registration and unset the ID because
+    // registration_is_registered will exclude the passed registration.
+    $registration_b = $registration_a;
+    unset($registration_b->registration_id);
+    $this->assertFalse(registration_is_registered($registration_b, NULL, $user_register_self_permission->uid), t('User who did not register is not registered.'), 'Registration');
+    $this->assertTrue(registration_is_registered($registration_b, NULL, $user->uid), t('User who registered is registered.'), 'Registration');
 
-    // Load registration.
-    $permissions = array(
-      'view ' . $this->registration_type_name . ' registration',
+    // #######################################################################.
+    // Login as user with many permissions - edit, then delete registration.
+    // #######################################################################.
+    $this->drupalLogout();
+    $this->drupalLogin($user);
+
+    // Edit a registration.
+    $this->drupalGet('registration/' . $registration_a_id . '/edit');
+    $this->assertResponse(200, t('User can access registration edit page.'), 'Registration');
+    $edit = array(
+      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_USER,
+      'user' => $user_no_permission->name,
     );
-    $this->checkPermissions($permissions, TRUE);
-    $user2 = $this->drupalCreateUser($permissions);
-    $this->drupalLogin($user2);
+    $this->drupalPost('registration/' . $registration_a_id . '/edit', $edit, t('Save Registration'));
+    $this->assertText(t('Registration for'), t('Registration form saved.'), 'Registration');
 
-    $this->drupalGet('registration/' . $registration_a_id);
-    $this->assertResponse(200, t('User with permission can view registration'), 'Registration');
-
-    $this->assertTrue(registration_has_room($this->host_entity_type, $this->host_entity_id), t('Space available'), 'Registration');
-
-    $this->drupalGet('registration/' . $registration_b->registration_id);
-    $this->assertResponse(200, t('User with permission can view registration'), 'Registration');
-
-    // Test registered users.
     $this->resetRegistration();
     $registration_a = entity_load_single('registration', $registration_a_id);
-    unset($registration_a->registration_id); // registration_is_registered will exclude passed registration
-    $user3 = $this->drupalCreateUser();
+    $this->drupalGet('registration/' . $registration_a_id);
+    $this->assertEqual($registration_a->user_uid, $user_no_permission->uid, t('Changed user on registration edit form.'), 'Registration');
 
-    $this->assertFalse(registration_is_registered($registration_a, NULL, $user3->uid), t('New user not registered for host entity'), 'Registration');
-    $this->assertTrue(registration_is_registered($registration_a, NULL, $user->uid), t('User registered for host entity'), 'Registration');
-    $this->assertTrue(registration_is_registered($registration_a, NULL, $user_register_self_permission->uid), t('User registered for host entity'), 'Registration');
+    // Delete a registration.
+    $this->drupalGet('registration/' . $registration_a_id . '/delete');
+    $this->assertResponse(200, 'User can access registration delete confirmation page.', 'Registration');
+    $this->drupalPost('registration/' . $registration_a_id . '/delete', array(), t('Delete'));
+    $this->resetRegistration();
+    $this->assertFalse(entity_load_single('registration', $registration_a_id), t('Deleted registration via form'), 'Registration');
   }
 
   function testRegistrationHostDelete() {

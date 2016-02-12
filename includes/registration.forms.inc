@@ -1123,7 +1123,7 @@ function registration_state_overview_form_validate($form, &$form_state) {
   // Ensure each state is only "active" or "pending" – not both.
   foreach ($form_state['input']['state'] as $state) {
     if ($state['active'] && $state['held']) {
-      form_set_error('state', 'A state can only be "active" or "pending" – not both. Update the "' . $state['label'] . '" state to resolve this warning.');
+      form_set_error('state', 'A state can only be "active" or "held" – not both. Update the "' . $state['label'] . '" state to resolve this warning.');
     }
   }
 }

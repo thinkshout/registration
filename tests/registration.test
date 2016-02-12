@@ -433,11 +433,11 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalGet($this->host_entity_path . '/register');
     $this->assertResponse(403, t('User without permission cannot create registration.'), 'Registration');
     $this->drupalGet('registration/' . $registration_a_id);
-    $this->assertResponse(404, t('User without permission cannot view registration.'), 'Registration');
+    $this->assertResponse(403, t('User without permission cannot view registration.'), 'Registration');
     $this->drupalGet('registration/' . $registration_a_id . '/edit');
-    $this->assertResponse(404, t('User without permission cannot edit registration.'), 'Registration');
+    $this->assertResponse(403, t('User without permission cannot edit registration.'), 'Registration');
     $this->drupalGet('registration/' . $registration_a_id . '/delete');
-    $this->assertResponse(404, t('User without permission cannot delete registration.'), 'Registration');
+    $this->assertResponse(403, t('User without permission cannot delete registration.'), 'Registration');
 
     // Create a new registration to test whether users with specific permissions can access it.
     $registration_b = $this->createRegistration();

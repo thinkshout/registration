@@ -20,7 +20,7 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
   }
 
   function setUp() {
-    parent::setUp(array('registration'));
+    parent::setUp(array('registration_waitlist'));
     $this->setUpEntity();
   }
 

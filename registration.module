@@ -115,35 +115,6 @@ function registration_entity_info() {
 }
 
 /**
- * Implements hook_schema_alter().
- */
-function registration_schema_alter(&$schema) {
-  if (drupal_get_installed_schema_version('registration') >= 7200) {
-    $schema['registration_type']['fields']['registrant_entity_type'] = array(
-      'type' => 'varchar',
-      'length' => 128,
-      'not null' => TRUE,
-      'default' => 'user',
-      'description' => 'The machine name of the registrant entity\'s type.',
-    );
-    $schema['registration_type']['fields']['registrant_bundle'] = array(
-      'type' => 'varchar',
-      'length' => 128,
-      'not null' => TRUE,
-      'default' => 'user',
-      'description' => 'The machine name of the registrant entity\'s bundle.',
-    );
-    $schema['registration_type']['fields']['registrant_email_property'] = array(
-      'type' => 'varchar',
-      'length' => 128,
-      'not null' => TRUE,
-      'default' => 'mail',
-      'description' => 'The machine name of the registrant entity\'s email property.',
-    );
-  }
-}
-
-/**
  * Implements hook_entity_info_alter().
  */
 function registration_entity_info_alter(&$entity_info) {

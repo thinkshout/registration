@@ -431,7 +431,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     // Check user with permission to register only themself, can only register
     // themself.
     $access_people = registration_access_people($registration_a, $user_register_self_permission);
-    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_ME]) && count($access_people) == 1), t('Check user that is allowed to register only self, can register only self.'));
+    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_SELF]) && count($access_people) == 1), t('Check user that is allowed to register only self, can register only self.'));
 
     // Ensure registration reports having space available.
     // Capacity is set to 2 and only 1 user has registered.
@@ -485,7 +485,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalGet('registration/' . $registration_a_id . '/edit');
     $this->assertResponse(200, t('User can access registration edit page.'), 'Registration');
     $edit = array(
-      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_USER,
+      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_OTHER,
       'user' => $user_no_permission->name,
     );
     $this->drupalPost('registration/' . $registration_a_id . '/edit', $edit, t('Save Registration'));

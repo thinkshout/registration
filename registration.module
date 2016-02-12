@@ -41,7 +41,7 @@ function registration_entity_info() {
       'label' => t('Registration'),
       'plural label' => t('Registrations'),
       'controller class' => 'EntityAPIController',
-      'entity class' => '',
+      'entity class' => 'Registration',
       'metadata controller class' => 'RegistrationMetadataController',
       'base table' => 'registration',
       'fieldable' => TRUE,
@@ -70,7 +70,7 @@ function registration_entity_info() {
       'label' => t('Registration type'),
       'entity class' => 'RegistrationType',
       'metadata controller class' => 'RegistrationTypeMetadataController',
-      'controller class' => 'EntityTypeController',
+      'controller class' => 'RegistrationTypeController',
       'base table' => 'registration_type',
       'fieldable' => FALSE,
       'bundle of' => 'registration',
@@ -165,8 +165,6 @@ function registration_entity_info_alter(&$entity_info) {
     // recursion issue as loading the model types requires the entity info as well.
     // Need to do a class_exists check for updates from earlier versions
     // of registration module.
-    // TODO: Replace
-    /*
     if (class_exists('RegistrationTypeController')) {
       foreach (registration_get_types() as $type => $info) {
         $entity_info['registration']['bundles'][$type] = array(
@@ -180,7 +178,6 @@ function registration_entity_info_alter(&$entity_info) {
         );
       }
     }
-    */
   }
 }
 
@@ -2115,7 +2112,7 @@ function registration_autoload_info() {
     'RegistrationStateController' => 'lib/registration_state.controller.inc',
     'RegistrationState' => 'lib/registration_state.entity.inc',
     'RegistrationStatesUIController' => 'lib/registration_state.ui_controller.inc',
-    //TODO: 'RegistrationTypeController' => 'lib/registration_type.controller.inc',
+    'RegistrationTypeController' => 'lib/registration_type.controller.inc',
     'RegistrationType' => 'lib/registration_type.entity.inc',
     'RegistrationTypeUIController' => 'lib/registration_type.ui_controller.inc',
   );

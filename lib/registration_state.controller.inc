@@ -5,7 +5,7 @@
  * The controller class used for registration state entities
  */
 //TODO :: Replace this
-class RegistrationStateController {
+class RegistrationStateController extends DefaultEntityController {
 //class RegistrationStateController extends EntityAPIControllerExportable {
 
   public function save($entity, DatabaseTransaction $transaction = NULL) {

@@ -15,7 +15,7 @@ class RegistrationType extends Entity {
   public $registrant_bundle;
   public $registrant_email_property;
 
-  public function __construct($values = array()) {
+  public function __construct(array $values = array()) {
     parent::__construct($values, 'registration_type');
   }
 }

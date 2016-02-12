@@ -439,6 +439,8 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $this->drupalGet('registration/' . $registration_a_id . '/delete');
     $this->assertResponse(404, t('User without permission cannot delete registration.'), 'Registration');
 
+    // Create a new registration to test whether users with specific permissions can access it.
+    $registration_b = $this->createRegistration();
     // Load registration.
     $permissions = array(
       'view ' . $this->registration_type_name . ' registration',
@@ -452,11 +454,6 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
 
     $this->assertTrue(registration_has_room($this->host_entity_type, $this->host_entity_id), t('Space available'), 'Registration');
 
-    // Create another registration programmatically.
-    $registration_b = $this->createRegistration(array(
-      'user_uid' => $user_no_permission->uid,
-      'count' => 1,
-    ));
 
     $access_people = registration_access_people($registration_b, $user_no_permission);
     $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_ME]) && count($access_people) == 1), t('Check valid people types for unsaved registration.'));

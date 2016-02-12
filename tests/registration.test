@@ -473,7 +473,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
 
     $this->assertFalse(registration_is_registered($registration_a, NULL, $user3->uid), t('New user not registered for host entity'), 'Registration');
     $this->assertTrue(registration_is_registered($registration_a, NULL, $user->uid), t('User registered for host entity'), 'Registration');
-    $this->assertTrue(registration_is_registered($registration_a, NULL, $user_no_permission->uid), t('User registered for host entity'), 'Registration');
+    $this->assertTrue(registration_is_registered($registration_a, NULL, $user_register_self_permission->uid), t('User registered for host entity'), 'Registration');
   }
 
   function testRegistrationHostDelete() {

@@ -369,6 +369,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       'view own ' . $this->registration_type_name . ' registration',
       'update own ' . $this->registration_type_name . ' registration',
       'delete own ' . $this->registration_type_name . ' registration',
+      'create ' . $this->registration_type_name . ' registration self',
       'create ' . $this->registration_type_name . ' registration other users',
       'create ' . $this->registration_type_name . ' registration other anonymous'
     );

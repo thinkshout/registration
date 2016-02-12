@@ -444,6 +444,11 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     // Check registration we just created does not allow anyone to register.
     $access_people = registration_access_people($registration_b, $user_no_permission);
     $this->assertTrue((count($access_people) == 0), t('Check user with no registration permissions is not allowed to register.'));
+    // Check user that is allowed to register only self, can register only self.
+    $user_register_self_permission = $this->drupalCreateUser(array('create ' . $this->registration_type_name . ' registration self'));
+    $access_people = registration_access_people($registration_b, $user_register_self_permission);
+    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_ME]) && count($access_people) == 1), t('Check user that is allowed to register only self, can register only self.'));
+
     // Load registration.
     $permissions = array(
       'view ' . $this->registration_type_name . ' registration',

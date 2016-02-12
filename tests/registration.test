@@ -424,15 +424,6 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
     $registration_a_id = $this->entityLastId('registration');
     $registration_a = entity_load_single('registration', $registration_a_id);
 
-//    // Check registration we just created does not allow user without
-//    // "register self" permission the option to register themself.
-//    $access_people = registration_access_people($registration_a, $user_no_permission);
-//    $this->assertTrue((count($access_people) == 0), t('Check user with no registration permissions is not allowed to register.'));
-//    // Check user with permission to register only themself, can only register
-//    // themself.
-//    $access_people = registration_access_people($registration_a, $user_register_self_permission);
-//    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_SELF]) && count($access_people) == 1), t('Check user that is allowed to register only self, can register only self.'));
-
     // Ensure registration reports having space available.
     // Capacity is set to 2 and only 1 user has registered.
     $this->assertTrue(registration_has_room($this->host_entity_type, $this->host_entity_id), t('Space available'), 'Registration');

@@ -395,7 +395,7 @@ class RegistrationStandardTestCase extends RegistrationTestCase {
       'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_ME,
     );
     $this->drupalPost($this->host_entity_path . '/register', $registration_form, t('Save Registration'));
-    $this->assertText(t('Registration has been saved'), t('Registration saved.'), 'Registration');
+    $this->assertText(t('Registration for'), t('Registration saved.'), 'Registration');
 
     $registration_a_id = $this->entityLastId('registration');
 

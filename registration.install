@@ -359,7 +359,9 @@ function registration_schema() {
   );
 
   // Create cache bins for Entity-cache module.
-  $cache_schema = drupal_get_schema_unprocessed('system', 'cache');
+    // @FIXME
+  /*
+    $cache_schema = drupal_get_schema_unprocessed('system', 'cache');
   $types = array(
     'registration',
     'registration_type',
@@ -370,6 +372,7 @@ function registration_schema() {
     $schema["cache_entity_$type"] = $cache_schema;
     $schema["cache_entity_$type"]['description'] = "Cache table used to store $type entity records.";
   }
+  */
 
   return $schema;
 }

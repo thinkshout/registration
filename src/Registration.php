@@ -1,9 +1,5 @@
 <?php
-
-/**
- * @file
- * Entity hooks and callbacks for registrations.
- */
+namespace Drupal\registration;
 
 /**
  * Main class for Registration entities.
@@ -214,4 +210,3 @@ class Registration extends Entity {
   }
 
 }
-

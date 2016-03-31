@@ -1,9 +1,5 @@
 <?php
-
-/**
- * @file
- * Tests for the Registration Wait List module
- */
+namespace Drupal\registration_waitlist;
 
 /**
  * Creates a registration type

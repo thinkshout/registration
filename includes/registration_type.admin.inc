@@ -55,7 +55,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
 
   // Prep the entity type list before creating the form item:
   $entity_types = array('' => t('-- Select --'));
-  foreach (entity_get_info() as $entity_type => $info) {
+  foreach (\Drupal::entityManager()->getDefinitions() as $entity_type => $info) {
 
     // Ignore registration entity types:
     if (strpos($entity_type, 'registration') === FALSE) {
@@ -91,7 +91,7 @@ function registration_type_form($form, &$form_state, $registration_type, $op = '
 
     // Prep the bundle list before creating the form item:
     $bundles = array('' => t('-- Select --'));
-    $info  = entity_get_info($form_entity_type);
+    $info  = \Drupal::entityManager()->getDefinition($form_entity_type);
     foreach ($info['bundles'] as $key => $bundle) {
       $bundles[$key] = $bundle['label'];
     }

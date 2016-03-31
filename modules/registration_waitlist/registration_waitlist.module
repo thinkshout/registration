@@ -65,7 +65,7 @@ function registration_waitlist_registration_entity_settings($settings) {
  */
 function registration_waitlist_default_registration_state() {
   $defaults = array();
-  $defaults[REGISTRATION_WAITLIST_STATE] = entity_create('registration_state', array(
+  $defaults[REGISTRATION_WAITLIST_STATE] = \Drupal::entityManager()->getStorage('registration_state')->create(array(
     'name' => REGISTRATION_WAITLIST_STATE,
     'label' => t('Wait list'),
     'description' => t('Special state for registrations after capacity is reached.'),

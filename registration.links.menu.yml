@@ -1,0 +1,8 @@
+# Registration type menu items definition
+entity.registration_type.collection:
+  title: 'Registration type list'
+  route_name: entity.registration_type.collection
+  description: 'List Registration type entities'
+  parent: system.admin_structure
+  weight: 100
+

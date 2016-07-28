@@ -1,0 +1,5 @@
+entity.registration_type.add_form:
+  route_name: 'entity.registration_type.add_page'
+  title: 'Add Registration type'
+  appears_on:
+    - entity.registration_type.collection

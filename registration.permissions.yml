@@ -1,0 +1,22 @@
+add registration type entities:
+  title: 'Create new Registration type entities'
+
+administer registration type entities:
+  title: 'Administer Registration type entities'
+  description: 'Allow to access the administration form to configure Registration type entities.'
+  restrict access: true
+
+delete registration type entities:
+  title: 'Delete Registration type entities'
+
+edit registration type entities:
+  title: 'Edit Registration type entities'
+
+access registration type overview:
+  title: 'Access the Registration type overview page'
+
+view published registration type entities:
+  title: 'View published Registration type entities'
+
+view unpublished registration type entities:
+  title: 'View unpublished Registration type entities'

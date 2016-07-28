@@ -6,3 +6,19 @@ entity.registration_state.collection:
   parent: system.admin_structure
   weight: 99
 
+# Registration type menu items definition
+entity.registration_type.collection:
+  title: 'Registration type list'
+  route_name: entity.registration_type.collection
+  description: 'List Registration type entities'
+  parent: system.admin_structure
+  weight: 100
+
+# Registration type type menu items definition
+entity.registration_type_type.collection:
+  title: 'Registration type type'
+  route_name: entity.registration_type_type.collection
+  description: 'List Registration type type (bundles)'
+  parent: system.admin_structure
+  weight: 99
+

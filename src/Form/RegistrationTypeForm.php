@@ -2,23 +2,42 @@
 
 namespace Drupal\registration\Form;
 
-use Drupal\Core\Entity\ContentEntityForm;
+use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Form controller for Registration type edit forms.
+ * Class RegistrationTypeForm.
  *
- * @ingroup registration
+ * @package Drupal\registration\Form
  */
-class RegistrationTypeForm extends ContentEntityForm {
+class RegistrationTypeForm extends EntityForm {
 
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
-    /* @var $entity \Drupal\registration\Entity\RegistrationType */
-    $form = parent::buildForm($form, $form_state);
-    $entity = $this->entity;
+  public function form(array $form, FormStateInterface $form_state) {
+    $form = parent::form($form, $form_state);
+
+    $registration_type = $this->entity;
+    $form['label'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('Label'),
+      '#maxlength' => 255,
+      '#default_value' => $registration_type->label(),
+      '#description' => $this->t("Label for the Registration type."),
+      '#required' => TRUE,
+    );
+
+    $form['id'] = array(
+      '#type' => 'machine_name',
+      '#default_value' => $registration_type->id(),
+      '#machine_name' => array(
+        'exists' => '\Drupal\registration\Entity\RegistrationType::load',
+      ),
+      '#disabled' => !$registration_type->isNew(),
+    );
+
+    /* You will need additional form elements for your custom properties. */
 
     return $form;
   }
@@ -27,22 +46,22 @@ class RegistrationTypeForm extends ContentEntityForm {
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
-    $entity = $this->entity;
-    $status = parent::save($form, $form_state);
+    $registration_type = $this->entity;
+    $status = $registration_type->save();
 
     switch ($status) {
       case SAVED_NEW:
         drupal_set_message($this->t('Created the %label Registration type.', [
-          '%label' => $entity->label(),
+          '%label' => $registration_type->label(),
         ]));
         break;
 
       default:
         drupal_set_message($this->t('Saved the %label Registration type.', [
-          '%label' => $entity->label(),
+          '%label' => $registration_type->label(),
         ]));
     }
-    $form_state->setRedirect('entity.registration_type.canonical', ['registration_type' => $entity->id()]);
+    $form_state->setRedirectUrl($registration_type->urlInfo('collection'));
   }
 
 }

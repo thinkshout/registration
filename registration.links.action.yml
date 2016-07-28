@@ -2,16 +2,14 @@ entity.registration_state.add_form:
   route_name: 'entity.registration_state.add_form'
   title: 'Add Registration state'
   appears_on:
-    - entity.registration_state.collection
-
+    - entity.registration_state.collectionentity.registration.add_form:
+  route_name: 'entity.registration.add_page'
+  title: 'Add Registration'
+  appears_on:
+    - entity.registration.collection
 entity.registration_type.add_form:
-  route_name: 'entity.registration_type.add_page'
+  route_name: 'entity.registration_type.add_form'
   title: 'Add Registration type'
   appears_on:
     - entity.registration_type.collection
-entity.registration_type_type.add_form:
-  route_name: 'entity.registration_type_type.add_form'
-  title: 'Add Registration type type'
-  appears_on:
-    - entity.registration_type_type.collection
 

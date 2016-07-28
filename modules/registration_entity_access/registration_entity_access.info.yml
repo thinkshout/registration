@@ -1,0 +1,7 @@
+name: 'Registration Entity Access'
+description: 'Provides per entity access control for registration.'
+package: Registration
+core: 8.x
+dependencies:
+  - registration
+type: module

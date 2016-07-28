@@ -13,7 +13,7 @@
  *   object with a node defined.
  */
 function registration_form($form, &$form_state, Registration $registration) {
-  global $user;
+  $user = \Drupal::currentUser();
 
   $wrapper = entity_metadata_wrapper('registration', $registration);
   $host = $wrapper->entity->value();
@@ -34,11 +34,11 @@ function registration_form($form, &$form_state, Registration $registration) {
   // Options for who is registering.
   $who_options = array();
 
-  if (!empty($user->mail) && user_access("create own $type registration")) {
+  if (!empty($user->mail) && \Drupal::currentUser()->hasPermission("create own $type registration")) {
     $who_options[REGISTRATION_REGISTRANT_TYPE_SELF] = t('Myself');
   }
 
-  if (user_access("create $type registration")) {
+  if (\Drupal::currentUser()->hasPermission("create $type registration")) {
     $who_options[REGISTRATION_REGISTRANT_TYPE_OTHER] = t('Other person');
   }
 
@@ -140,7 +140,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#title' => t('Spaces'),
     '#description' => $description,
     '#default_value' => isset($registration->count) ? $registration->count : 1,
-    '#size' => drupal_strlen($remaining),
+    '#size' => \Drupal\Component\Utility\Unicode::strlen($remaining),
     '#access' => (isset($settings['settings']['maximum_spaces']) && $settings['settings']['maximum_spaces'] == 1) ? FALSE : TRUE,
     '#element_validate' => array('element_validate_integer_positive', '_registration_validate_space_request'),
   );
@@ -159,7 +159,7 @@ function registration_form($form, &$form_state, Registration $registration) {
     '#description' => t('State of this registration'),
     '#default_value' => ($state ? $state->identifier() : $default_state->identifier()),
     '#options' => $states,
-    '#access' => !empty($states) && user_access('edit ' . $registration->type . ' registration state'),
+    '#access' => !empty($states) && \Drupal::currentUser()->hasPermission('edit ' . $registration->type . ' registration state'),
   );
 
   field_attach_form('registration', $registration, $form, $form_state);
@@ -197,14 +197,13 @@ function registration_form($form, &$form_state, Registration $registration) {
  * Validation callback for registration_form().
  */
 function registration_form_validate($form, &$form_state) {
-  global $user;
+  $user = \Drupal::currentUser();
 
   $registration = $form_state['registration'];
 
   $count = $form_state['values']['count'];
 
-  $label = entity_label($registration->entity_type,
-    entity_load_single($registration->entity_type, $registration->entity_id));
+  $label = entity_load_single($registration->entity_type, $registration->entity_id)->label();
 
   // Test status on new registrations.
   if (isset($registration->is_new) && $registration->is_new) {
@@ -257,13 +256,13 @@ function registration_form_validate($form, &$form_state) {
  * Submit callback for registration_form().
  */
 function registration_form_submit($form, &$form_state) {
-  global $user;
+  $user = \Drupal::currentUser();
   $registration = $form_state['registration'];
   $registration_type = registration_get_types($registration->type);
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $registrant_entity_type = $registration_type->registrant_entity_type;
   $registrant_bundle = $registration_type->registrant_bundle;
-  $registrant_entity_info = entity_get_info($registrant_entity_type);
+  $registrant_entity_info = \Drupal::entityManager()->getDefinition($registrant_entity_type);
 
   // Set the registration's author uid:
   if (!isset($registration->registration_id)) {
@@ -335,8 +334,8 @@ function registration_form_submit($form, &$form_state) {
 
     // Set redirect to configured value, if there is one.
     if (!empty($reg_config['settings']['confirmation_redirect']) && strlen($reg_config['settings']['confirmation_redirect'])) {
-      if (module_exists('token')) {
-        $form_state['redirect'] = token_replace($reg_config['settings']['confirmation_redirect'], array(
+      if (\Drupal::moduleHandler()->moduleExists('token')) {
+        $form_state['redirect'] = \Drupal::token()->replace($reg_config['settings']['confirmation_redirect'], array(
           $host->type => $host,
           'registration' => $registration,
         ));
@@ -409,7 +408,7 @@ function registration_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
     $registration = $form_state['values']['registration'];
     registration_delete_multiple(array($registration->registration_id));
-    watchdog('registration', 'Registration %id deleted.', array('%id' => $registration->registration_id));
+    \Drupal::logger('registration')->notice('Registration %id deleted.', array('%id' => $registration->registration_id));
     drupal_set_message(t('Registration %id has been deleted.', array('%id' => $registration->registration_id)));
 
     $wrapper = entity_metadata_wrapper('registration', $registration);
@@ -443,7 +442,7 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
     '#title' => t('Message'),
     '#description' => t(
       'Enter the message you want to send to %name registrants. Tokens are supported if the module is enabled, E.g., [node:title].',
-      array('%name' => entity_label($entity_type, $entity))
+      array('%name' => $entity->label())
     ),
     '#required' => TRUE,
     '#cols' => 60,
@@ -462,7 +461,7 @@ function registration_registrations_broadcast_form($form, &$form_state, $entity_
   }
 
   // Add token support:
-  if (module_exists('token')) {
+  if (\Drupal::moduleHandler()->moduleExists('token')) {
     $form['token_tree'] = array(
       '#theme' => 'token_tree',
       '#token_types' => array(
@@ -493,8 +492,8 @@ function registration_broadcast_preview($form, &$form_state) {
   $entity_id = $form_state['entity']['entity_id'];
   $message_template = $form_state['values']['message'];
   $entity = entity_load_single($entity_type, $entity_id);
-  if (module_exists('token')) {
-    $message = token_replace($message_template, array($entity_type => $entity));
+  if (\Drupal::moduleHandler()->moduleExists('token')) {
+    $message = \Drupal::token()->replace($message_template, array($entity_type => $entity));
   }
 
   $form_state['registration_broadcast_preview'] = $message;
@@ -535,7 +534,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
   }
   // Check to see if date_popup is installed so we can provide a friendlier UI.
   $date_popup_installed = FALSE;
-  if (module_exists('date_popup')) {
+  if (\Drupal::moduleHandler()->moduleExists('date_popup')) {
     $date_popup_installed = TRUE;
   }
   $form['status'] = array(
@@ -576,7 +575,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     $form['scheduling']['open']['#type'] = 'date_popup';
     $form['scheduling']['open']['#date_format'] = 'Y-m-d H:i:s O';
     $form['scheduling']['open']['#description'] = t('When to automatically open registrations. (This uses the !timezone.)', array(
-      '!timezone' => l(t('site default time zone'), 'admin/config/regional/settings'),
+      '!timezone' => \Drupal::l(t('site default time zone'), \Drupal\Core\Url::fromRoute('system.regional_settings')),
     ));
     unset($form['scheduling']['open']['#maxlength']);
   }
@@ -596,13 +595,13 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     $form['scheduling']['close']['#type'] = 'date_popup';
     $form['scheduling']['close']['#date_format'] = 'Y-m-d H:i:s O';
     $form['scheduling']['close']['#description'] = t('When to automatically close registrations.. (This uses the !timezone.)', array(
-      '!timezone' => l(t('site default time zone'), 'admin/config/regional/settings'),
+      '!timezone' => \Drupal::l(t('site default time zone'), \Drupal\Core\Url::fromRoute('system.regional_settings')),
     ));
     unset($form['scheduling']['close']['#maxlength']);
   }
 
   // Allow for setting open and close date based on tokens:
-  if (module_exists('token')) {
+  if (\Drupal::moduleHandler()->moduleExists('token')) {
     $date_fields = array(
       array(
         'name' => 'open',
@@ -693,7 +692,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     $form['reminder']['reminder_settings']['reminder_date']['#type'] = 'date_popup';
     $form['reminder']['reminder_settings']['reminder_date']['#date_format'] = 'Y-m-d H:i:s O';
     $form['reminder']['reminder_settings']['reminder_date']['#description'] = t('When to send reminders. (This uses the !timezone.)', array(
-      '!timezone' => l(t('site default time zone'), 'admin/config/regional/settings'),
+      '!timezone' => \Drupal::l(t('site default time zone'), \Drupal\Core\Url::fromRoute('system.regional_settings')),
     ));
     unset($form['reminder']['reminder_settings']['reminder_date']['#maxlength']);
   }
@@ -706,7 +705,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
   );
 
   // Add token support:
-  if (module_exists('token')) {
+  if (\Drupal::moduleHandler()->moduleExists('token')) {
     $form['reminder']['reminder_settings']['token_tree'] = array(
       '#theme' => 'token_tree',
       '#token_types' => array(
@@ -749,13 +748,18 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#default_value' => isset($settings['settings']['maximum_spaces']) ? $settings['settings']['maximum_spaces'] : 1,
   );
 
-  $form['settings']['from_address'] = array(
-    '#type' => 'textfield',
-    '#title' => t('From Address'),
-    '#description' => t('From email address to use for confirmations, reminders, and broadcast emails.'),
-    '#required' => TRUE,
-    '#default_value' => isset($settings['settings']['from_address']) ? $settings['settings']['from_address'] : variable_get('site_mail', ini_get('sendmail_from')),
-  );
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// $form['settings']['from_address'] = array(
+//     '#type' => 'textfield',
+//     '#title' => t('From Address'),
+//     '#description' => t('From email address to use for confirmations, reminders, and broadcast emails.'),
+//     '#required' => TRUE,
+//     '#default_value' => isset($settings['settings']['from_address']) ? $settings['settings']['from_address'] : variable_get('site_mail', ini_get('sendmail_from')),
+//   );
+
 
   $form['settings']['confirmation'] = array(
     '#type' => 'textfield',
@@ -777,7 +781,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
     '#default_value' => isset($settings['settings']['confirmation_redirect']) ? $settings['settings']['confirmation_redirect'] : '',
   );
   // Display the list of available placeholders if token module is installed.
-  if (module_exists('token')) {
+  if (\Drupal::moduleHandler()->moduleExists('token')) {
     $form['settings']['confirmation_redirect']['#description'] .= ' ' . t('Tokens may be used.');
     $form['settings']['token_help'] = array(
       '#type' => 'fieldset',
@@ -793,7 +797,7 @@ function registration_entity_settings_form($form, &$form_state, $settings, $enti
   }
 
   // Allow other modules to add their own custom settings:
-  $form['settings'] += module_invoke_all('registration_entity_settings', $settings);
+  $form['settings'] += \Drupal::moduleHandler()->invokeAll('registration_entity_settings', [$settings]);
 
   // Only show save if we're not on the field instance defaults:
   if ($entity_id) {
@@ -1092,14 +1096,20 @@ function registration_state_overview_form($form, &$form_state) {
         '#type' => 'checkbox',
         '#default_value' => $state->show_on_form,
       );
-      $form['state'][$sid]['delete'] = array(
-        '#type' => 'item',
-        '#markup' => l(t('delete'), 'admin/structure/registration/registration_states/manage/' . $state->identifier() . '/delete', array('query' => drupal_get_destination())),
-      );
-      $form['state'][$sid]['export'] = array(
-        '#type' => 'item',
-        '#markup' => l(t('export'), 'admin/structure/registration/registration_states/manage/' . $state->identifier() . '/export'),
-      );
+      // @FIXME
+// l() expects a Url object, created from a route name or external URI.
+// $form['state'][$sid]['delete'] = array(
+//         '#type' => 'item',
+//         '#markup' => l(t('delete'), 'admin/structure/registration/registration_states/manage/' . $state->identifier() . '/delete', array('query' => drupal_get_destination())),
+//       );
+
+      // @FIXME
+// l() expects a Url object, created from a route name or external URI.
+// $form['state'][$sid]['export'] = array(
+//         '#type' => 'item',
+//         '#markup' => l(t('export'), 'admin/structure/registration/registration_states/manage/' . $state->identifier() . '/export'),
+//       );
+
     }
   }
 
@@ -1156,7 +1166,14 @@ function registration_state_overview_form_submit($form, &$form_state) {
 function theme_registration_state_overview_form($variables) {
   $form = $variables['form'];
 
-  drupal_add_tabledrag('registration-state-admin-settings-table', 'order', 'self', 'registration-state-weight');
+  // @FIXME
+// TableDrag is now attached with the #tabledrag property of certain render
+// arrays. drupal_add_tabledrag() is now internal and should never be called directly.
+// 
+// 
+// @see https://www.drupal.org/node/2160571
+// drupal_add_tabledrag('registration-state-admin-settings-table', 'order', 'self', 'registration-state-weight');
+
   $header = array(
     array('data' => t('Label !required', array('!required' => '<span class="form-required" title="' . t('This field is required.') . '">*</span>'))),
     array('data' => t('Description')),
@@ -1169,7 +1186,7 @@ function theme_registration_state_overview_form($variables) {
     array('data' => t('Operations'), 'colspan' => 2),
   );
 
-  foreach (element_children($form['state']) as $key) {
+  foreach (\Drupal\Core\Render\Element::children($form['state']) as $key) {
     $row = array();
     foreach (array(
                'label',
@@ -1187,7 +1204,7 @@ function theme_registration_state_overview_form($variables) {
       if (!empty($form['state'][$key][$element]['#title'])) {
         unset($form['state'][$key][$element]['#title']);
       }
-      $row[] = drupal_render($form['state'][$key][$element]);
+      $row[] = \Drupal::service("renderer")->render($form['state'][$key][$element]);
     }
 
     $rows[] = array(
@@ -1196,11 +1213,20 @@ function theme_registration_state_overview_form($variables) {
     );
   }
 
-  $output = theme('table', array(
-    'header' => $header,
-    'rows' => $rows,
-    'attributes' => array('id' => 'registration-state-admin-settings-table'),
-  ));
+  // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $output = theme('table', array(
+//     'header' => $header,
+//     'rows' => $rows,
+//     'attributes' => array('id' => 'registration-state-admin-settings-table'),
+//   ));
+
 
   $output .= drupal_render_children($form);
   return $output;

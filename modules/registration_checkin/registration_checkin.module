@@ -107,11 +107,9 @@ function registration_checkin_state_update_callback($form, &$form_state) {
     $registration->save();
   }
   else {
-    watchdog('registration_checkin', 'Could not load registration (id: @id) to update state.',
-      array(
+    \Drupal::logger('registration_checkin')->notice('Could not load registration (id: @id) to update state.', array(
         '@id' => $form['registration_id'],
-      )
-    );
+      ));
   }
 }
 
@@ -153,7 +151,7 @@ function registration_checkin_checkin_action_callback($form, &$form_state) {
     $registration->state = 'attended';
     $registration->save();
 
-    $updated_state_form = drupal_get_form('registration_checkin_state_form', $registration);
+    $updated_state_form = \Drupal::formBuilder()->getForm('registration_checkin_state_form', $registration);
     return array(
       '#type' => 'ajax',
       '#commands' => array(
@@ -162,11 +160,9 @@ function registration_checkin_checkin_action_callback($form, &$form_state) {
     );
   }
   else {
-    watchdog('registration_checkin', 'Could not load registration (id: @id) to checkin.',
-      array(
+    \Drupal::logger('registration_checkin')->notice('Could not load registration (id: @id) to checkin.', array(
         '@id' => $form['registration_id'],
-      )
-    );
+      ));
   }
 }
 
@@ -250,7 +246,7 @@ function registration_checkin_search_form_submit($form, &$form_state) {
     // First search entity label.
     $registrant_type = $registration_wrapper->registrant->type();
     $registrant = $registration_wrapper->registrant->value();
-    $registrant_label = entity_label($registrant_type, $registrant);
+    $registrant_label = $registrant->label();
     foreach ($search_keys as $key) {
       if (stripos($registrant_label, $key) !== FALSE) {
         $matches[$rid] = $registration;
@@ -277,7 +273,16 @@ function registration_checkin_search_form_submit($form, &$form_state) {
       'header' => registration_checkin_get_registration_table_headers(),
       'rows' => registration_checkin_get_registration_table_rows($matches),
     );
-    $registrant_markup = theme('table', $table) . theme('pager');
+    // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $registrant_markup = theme('table', $table) . theme('pager');
+
   }
   else {
     $registrant_markup = t('No results.');
@@ -303,8 +308,8 @@ function registration_checkin_search_form_reset($form, &$form_state) {
   // Get the host entity info.
   $entity_id = $form_state['values']['entity_id'];
   $entity_type = $form_state['values']['entity_type'];
-  $entity = menu_get_object();
-  $label = entity_label($entity_type, $entity);
+  $entity = \Drupal::routeMatch()->getParameter();
+  $label = $entity->label();
 
   $pager_limit = 20;
   $registrants
@@ -316,7 +321,16 @@ function registration_checkin_search_form_reset($form, &$form_state) {
       'header' => registration_checkin_get_registration_table_headers(),
       'rows' => registration_checkin_get_registration_table_rows($registrants),
     );
-    $registrant_markup = theme('table', $table) . theme('pager');
+    // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $registrant_markup = theme('table', $table) . theme('pager');
+
   }
   else {
     $registrant_markup = t('There are no registrants for %name', array('%name' => $label));
@@ -407,23 +421,35 @@ function registration_checkin_get_registration_table_rows($registrations) {
     $registrant = $wrapper->registrant->value();
 
     // Link the registrant name.
-    $row['registrant_entry'] = theme('registration_registrant_link', array(
-      'registrant_type' => $registrant_type,
-      'registrant' => $registrant,
-    ));
+    // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $row['registrant_entry'] = theme('registration_registrant_link', array(
+//       'registrant_type' => $registrant_type,
+//       'registrant' => $registrant,
+//     ));
+
 
     // Mailto link the registrant email.
-    $row['registrant_mail']
+    // @FIXME
+// l() expects a Url object, created from a route name or external URI.
+// $row['registrant_mail']
       = l($wrapper->registrant_mail->value(), 'mailto:' . $wrapper->registrant_mail->value());
 
+
     // Hide state management widgets with access control.
-    if (user_access("edit $registration->type registration state")) {
+    if (\Drupal::currentUser()->hasPermission("edit $registration->type registration state")) {
       // State dropdown.
-      $form = drupal_get_form('registration_checkin_state_form', $registration);
+      $form = \Drupal::formBuilder()->getForm('registration_checkin_state_form', $registration);
       $row['state_selection'] = render($form);
 
       // Check-in button.
-      $form = drupal_get_form(
+      $form = \Drupal::formBuilder()->getForm(
         'registration_checkin_checkin_action_form', $registration
       );
       $row['checkin_button'] = render($form);

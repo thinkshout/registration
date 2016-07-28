@@ -34,7 +34,7 @@ function registration_checkin_install() {
   // Create the "attended" registration state entity.
   $attended_state = registration_get_states('attended');
   if (!$attended_state) {
-    $attended_state = entity_create('registration_state', array(
+    $attended_state = \Drupal::entityManager()->getStorage('registration_state')->create(array(
       'name' => 'attended',
       'label' => t('Attended'),
       'description' => t('Registrant has attended.'),

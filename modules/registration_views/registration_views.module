@@ -165,7 +165,7 @@ class RegistrationViewsController extends EntityDefaultViewsController {
     $data['registration']['state']['relationship']['base field'] = 'name';
 
     foreach (registration_get_types() as $registration_type) {
-      $info = entity_get_info($registration_type->registrant_entity_type);
+      $info = \Drupal::entityManager()->getDefinition($registration_type->registrant_entity_type);
       $relationship_key = $registration_type->registrant_entity_type . '_' . $info['entity keys']['id'];
 
       $data['registration'][$relationship_key]['title'] = t('Registrant @entity', array('@entity' => $info['label']));
@@ -208,7 +208,7 @@ function registration_views_views_data_alter(&$data) {
   );
 
   $registration_instances = registration_get_registration_instances();
-  $entity_info = entity_get_info();
+  $entity_info = \Drupal::entityManager()->getDefinitions();
 
   foreach ($registration_instances as $instance) {
     $entity_type = $instance['entity_type'];

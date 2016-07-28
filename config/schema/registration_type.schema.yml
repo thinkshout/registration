@@ -1,6 +1,6 @@
-registration.registration_type_type.*:
+registration.registration_type.*:
   type: config_entity
-  label: 'Registration type type config'
+  label: 'Registration type config'
   mapping:
     id:
       type: string

@@ -22,3 +22,37 @@ function registration_help($route_name, RouteMatchInterface $route_match) {
     default:
   }
 }
+
+/**
+ * Implements hook_theme().
+ */
+function registration_theme() {
+  $theme = [];
+  $theme['registration'] = array(
+    'render element' => 'elements',
+    'file' => 'registration.page.inc',
+    'template' => 'registration',
+  );
+  $theme['registration_content_add_list'] = [
+    'render element' => 'content',
+    'variables' => ['content' => NULL],
+    'file' => 'registration.page.inc',
+  ];
+  return $theme;
+}
+
+/**
+* Implements hook_theme_suggestions_HOOK().
+*/
+function registration_theme_suggestions_registration(array $variables) {
+  $suggestions = array();
+  $entity = $variables['elements']['#registration'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+
+  $suggestions[] = 'registration__' . $sanitized_view_mode;
+  $suggestions[] = 'registration__' . $entity->bundle();
+  $suggestions[] = 'registration__' . $entity->bundle() . '__' . $sanitized_view_mode;
+  $suggestions[] = 'registration__' . $entity->id();
+  $suggestions[] = 'registration__' . $entity->id() . '__' . $sanitized_view_mode;
+  return $suggestions;
+}

@@ -2,26 +2,20 @@
 
 namespace Drupal\registration;
 
+use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityListBuilder;
-use Drupal\Core\Routing\LinkGeneratorTrait;
-use Drupal\Core\Url;
 
 /**
- * Defines a class to build a listing of Registration type entities.
- *
- * @ingroup registration
+ * Provides a listing of Registration type entities.
  */
-class RegistrationTypeListBuilder extends EntityListBuilder {
-
-  use LinkGeneratorTrait;
+class RegistrationTypeListBuilder extends ConfigEntityListBuilder {
 
   /**
    * {@inheritdoc}
    */
   public function buildHeader() {
-    $header['id'] = $this->t('Registration type ID');
-    $header['name'] = $this->t('Name');
+    $header['label'] = $this->t('Registration type');
+    $header['id'] = $this->t('Machine name');
     return $header + parent::buildHeader();
   }
 
@@ -29,16 +23,9 @@ class RegistrationTypeListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-    /* @var $entity \Drupal\registration\Entity\RegistrationType */
+    $row['label'] = $entity->label();
     $row['id'] = $entity->id();
-    $row['name'] = $this->l(
-      $entity->label(),
-      new Url(
-        'entity.registration_type.edit_form', array(
-          'registration_type' => $entity->id(),
-        )
-      )
-    );
+    // You probably want a few more properties here...
     return $row + parent::buildRow($entity);
   }
 

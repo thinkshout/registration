@@ -12,7 +12,7 @@
  *   The registration object to edit or for a create form an empty registration
  *   object with a node defined.
  */
-function registration_form($form, &$form_state, Registration $registration) {
+function registration_form($form, &$form_state, Registration $registration, $new = TRUE) {
   $user = \Drupal::currentUser();
 
   $wrapper = entity_metadata_wrapper('registration', $registration);
@@ -22,6 +22,9 @@ function registration_form($form, &$form_state, Registration $registration) {
   $registrant_mail = $wrapper->registrant_mail->value();
 
   $form_state['registration'] = $registration;
+
+  //This line may need to be removed, not certain
+  $form['#registration_is_new'] = $new;
 
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
 
@@ -1169,8 +1172,8 @@ function theme_registration_state_overview_form($variables) {
   // @FIXME
 // TableDrag is now attached with the #tabledrag property of certain render
 // arrays. drupal_add_tabledrag() is now internal and should never be called directly.
-// 
-// 
+//
+//
 // @see https://www.drupal.org/node/2160571
 // drupal_add_tabledrag('registration-state-admin-settings-table', 'order', 'self', 'registration-state-weight');
 
@@ -1218,8 +1221,8 @@ function theme_registration_state_overview_form($variables) {
 // Calling _theme() directly can alter the expected output and potentially
 // introduce security issues (see https://www.drupal.org/node/2195739). You
 // should use renderable arrays instead.
-// 
-// 
+//
+//
 // @see https://www.drupal.org/node/2195739
 // $output = theme('table', array(
 //     'header' => $header,

@@ -21,7 +21,7 @@ class RegistrationAPITestCase extends RegistrationTestCase {
   function testHookAccess() {
     $account = $this->drupalCreateUser();
     $crud = array('create', 'view', 'update', 'delete');
-    $registration_values = array('user_uid' => $account->uid);
+    $registration_values = array('registrant_id' => $account->uid);
 
     // Test hook.
     $registration = $this->createRegistration($registration_values);

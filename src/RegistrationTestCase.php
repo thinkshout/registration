@@ -14,6 +14,9 @@ class RegistrationTestCase extends DrupalWebTestCase {
     $this->registration_type = \Drupal::entityManager()->getStorage('registration_type')->create(array(
       'name' => $this->registration_type_name,
       'label' => $label,
+      'registrant_entity_type' => 'user',
+      'registrant_bundle' => 'user',
+      'registrant_email_property' => 'mail',
     ));
     $this->registration_type->save();
 

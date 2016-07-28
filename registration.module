@@ -671,8 +671,8 @@ function registration_registrations_page($entity_type, $entity) {
 // Calling _theme() directly can alter the expected output and potentially
 // introduce security issues (see https://www.drupal.org/node/2195739). You
 // should use renderable arrays instead.
-// 
-// 
+//
+//
 // @see https://www.drupal.org/node/2195739
 // $author_col = $registration->author_uid ? theme('username', array('account' => $author)) : '';
 
@@ -682,8 +682,8 @@ function registration_registrations_page($entity_type, $entity) {
 // Calling _theme() directly can alter the expected output and potentially
 // introduce security issues (see https://www.drupal.org/node/2195739). You
 // should use renderable arrays instead.
-// 
-// 
+//
+//
 // @see https://www.drupal.org/node/2195739
 // $registrant_col = theme('registration_registrant_link', array(
 //         'registrant_type' => $registrant_type,
@@ -751,8 +751,8 @@ function registration_registrations_page($entity_type, $entity) {
 // Calling _theme() directly can alter the expected output and potentially
 // introduce security issues (see https://www.drupal.org/node/2195739). You
 // should use renderable arrays instead.
-// 
-// 
+//
+//
 // @see https://www.drupal.org/node/2195739
 // $out = theme('table', $table) . theme('pager');
 
@@ -2104,8 +2104,12 @@ function _registration_translate_update($name, $string, $langcode = NULL) {
 function registration_interpret_settings(&$settings, $entity_type, $entity) {
   $fields = array('open', 'close');
   foreach ($fields as $field) {
+
+    // @Fixme not sure which of these two is correct
     if (!empty($settings['settings'][$field . '_date_token'])) {
       $settings[$field] = \Drupal::token()->replace($settings['settings'][$field . '_date_token'], array($entity_type => $entity), array('clear' => TRUE));
+    if (!empty($settings[$field . '_date_token'])) {
+      $settings[$field] = \Drupal::token()->replace($settings[$field . '_date_token'], array($entity_type => $entity), array('clear' => TRUE));
     }
   }
 }

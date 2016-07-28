@@ -22,8 +22,6 @@ function registration_form($form, &$form_state, Registration $registration, $new
   $registrant_mail = $wrapper->registrant_mail->value();
 
   $form_state['registration'] = $registration;
-
-  //@fixme This line may need to be removed, not certain
   $form['#registration_is_new'] = $new;
 
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);

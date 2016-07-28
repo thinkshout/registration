@@ -23,7 +23,7 @@ function registration_form($form, &$form_state, Registration $registration, $new
 
   $form_state['registration'] = $registration;
 
-  //This line may need to be removed, not certain
+  //@fixme This line may need to be removed, not certain
   $form['#registration_is_new'] = $new;
 
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);

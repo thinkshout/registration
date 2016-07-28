@@ -47,46 +47,6 @@ function registration_field_info() {
 //     ),
 //   );
 
-  // @FIXME
-// // @FIXME
-// // This looks like another module's variable. You'll need to rewrite this call
-// // to ensure that it uses the correct configuration object.
-// return array(
-//     'registration' => array(
-//       'label' => t('Registration'),
-//       'description' => t('Enables registrations of a selected type for an entity.'),
-//       'settings' => array(),
-//       'instance_settings' => array(
-//         'default_registration_settings' => array(
-//           'status' => 0,
-//           'capacity' => 0,
-//           'scheduling' => array(
-//             'open' => NULL,
-//             'open_date_token' => NULL,
-//             'close' => NULL,
-//             'close_date_token' => NULL,
-//           ),
-//           'reminder' => array(
-//             'send_reminder' => 0,
-//             'reminder_settings' => array(
-//               'reminder_date' => NULL,
-//               'reminder_template' => NULL,
-//             ),
-//           ),
-//           'settings' => array(
-//             'maximum_spaces' => 1,
-//             'multiple_registrations' => -1,
-//             'from_address' => variable_get('site_mail', ini_get('sendmail_from')),
-//           ),
-//         ),
-//       ),
-//       'property_type' => 'text',
-//       'default_widget' => 'registration_select',
-//       'default_formatter' => 'registration_default',
-//       'no_ui' => FALSE,
-//     ),
-//   );
-
 }
 
 /**

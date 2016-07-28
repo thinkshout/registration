@@ -28,7 +28,7 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
    * Check internal status modifiers for the wait list.
    */
   function testHostRegistrationWaitlistStatus() {
-    global $user;
+    $user = \Drupal::currentUser();
 
     $permissions = array(
       'create ' . $this->registration_type_name . ' registration',
@@ -76,7 +76,7 @@ class RegistrationWaitlistTestCase extends RegistrationTestCase {
     $user = $basic_user;
 
     // Unfill capacity by one registration.
-    entity_delete('registration', end($registrations)->registration_id);
+    end($registrations)->registration_id->delete();
     $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Deleted a registration, wait list now not at maximum.'), 'Registration');
 
     // Test dates.

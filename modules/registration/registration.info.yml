@@ -1,0 +1,10 @@
+name: Registration
+type: module
+description: 'Provides ContentRegistration entity.'
+package: Registration modules
+core: 8.x
+# These modules are required by the tests, must be available at bootstrap time
+dependencies:
+  - options
+  - entity_reference
+  - registration

@@ -1,5 +1,5 @@
-name: Registration
-description: 'Entity based registration system.'
-package: Registration
-core: 8.x
+name: registration
 type: module
+description: Registration
+core: 8.x
+package: Registration

@@ -9,38 +9,44 @@
  * Implements hook_field_info().
  */
 function registration_field_info() {
-  return array(
-    'registration' => array(
-      'label' => t('Registration'),
-      'description' => t('Enables registrations of a selected type for an entity.'),
-      'settings' => array(),
-      'instance_settings' => array(
-        'default_registration_settings' => array(
-          'status' => 0,
-          'capacity' => 0,
-          'scheduling' => array(
-            'open' => NULL,
-            'close' => NULL,
-          ),
-          'reminder' => array(
-            'send_reminder' => 0,
-            'reminder_settings' => array(
-              'reminder_date' => NULL,
-              'reminder_template' => NULL,
-            ),
-          ),
-          'settings' => array(
-            'maximum_spaces' => 1,
-            'multiple_registrations' => -1,
-            'from_address' => variable_get('site_mail', ini_get('sendmail_from')),
-          ),
-        ),
-      ),
-      'default_widget' => 'registration_select',
-      'default_formatter' => 'registration_default',
-      'no_ui' => FALSE,
-    ),
-  );
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// return array(
+//     'registration' => array(
+//       'label' => t('Registration'),
+//       'description' => t('Enables registrations of a selected type for an entity.'),
+//       'settings' => array(),
+//       'instance_settings' => array(
+//         'default_registration_settings' => array(
+//           'status' => 0,
+//           'capacity' => 0,
+//           'scheduling' => array(
+//             'open' => NULL,
+//             'close' => NULL,
+//           ),
+//           'reminder' => array(
+//             'send_reminder' => 0,
+//             'reminder_settings' => array(
+//               'reminder_date' => NULL,
+//               'reminder_template' => NULL,
+//             ),
+//           ),
+//           'settings' => array(
+//             'maximum_spaces' => 1,
+//             'multiple_registrations' => -1,
+//             'from_address' => variable_get('site_mail', ini_get('sendmail_from')),
+//           ),
+//         ),
+//       ),
+//       'property_type' => 'text',
+//       'default_widget' => 'registration_select',
+//       'default_formatter' => 'registration_default',
+//       'no_ui' => FALSE,
+//     ),
+//   );
+
 }
 
 /**
@@ -268,17 +274,26 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
         // Enable registration link if accessible.
         if (registration_register_page_access($entity_type, $entity) && registration_status($entity_type, $entity_id)) {
           $uri = entity_uri($entity_type, $entity);
-          $element[0] = array(
-            '#markup' => theme('registration_link',
-              array(
-                'label' => $label,
-                'path' => $uri['path'] . '/register',
-                'registration type' => $reg_type,
-                'entity_type' => $entity_type,
-                'entity' => $entity,
-              )
-            ),
-          );
+          // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $element[0] = array(
+//             '#markup' => theme('registration_link',
+//               array(
+//                 'label' => $label,
+//                 'path' => $uri['path'] . '/register',
+//                 'registration type' => $reg_type,
+//                 'entity_type' => $entity_type,
+//                 'entity' => $entity,
+//               )
+//             ),
+//           );
+
         }
         break;
 
@@ -290,7 +305,7 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
             'entity_id' => $entity_id,
             'type' => $reg_type->name,
           ));
-          $element[0] = drupal_get_form('registration_form', $registration);
+          $element[0] = \Drupal::formBuilder()->getForm('registration_form', $registration);
         }
         break;
 

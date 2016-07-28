@@ -1,0 +1,6 @@
+name = Registration Entity Checkin
+description = Provides an event checkin UI for registration.
+package = Registration
+core = 7.x
+
+dependencies[] = registration

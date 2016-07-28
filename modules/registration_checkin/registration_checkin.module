@@ -1,0 +1,491 @@
+<?php
+/**
+ * @file
+ * Entity Registration registrant checkin workflow and UI for registration.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function registration_checkin_menu() {
+  $items = array();
+
+  // UI for checking in registrants.
+  foreach (registration_get_registration_instances() as $instance) {
+    $type = $instance['entity_type'];
+    if (!in_array($type, array('registration', 'registration_type'))) {
+
+      // The checkin listing.
+      $items[$type . '/%entity_object/registrations/checkin'] = array(
+        'load arguments' => array($type),
+        'title' => 'Check-in',
+        'page callback' => 'registration_checkin_list_page',
+        'page arguments' => array(0, 1),
+        'access callback' => 'registration_administer_registrations_access',
+        'access arguments' => array(0, 1),
+        'weight' => 15,
+        'type' => MENU_LOCAL_TASK,
+        'file' => 'registration_checkin.pages.inc',
+      );
+    }
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function registration_checkin_form_registration_form_alter(&$form, &$form_state) {
+  // Add a submit handler so we can add a redirect.
+  $form['#submit'][] = 'registration_checkin_registration_form_submit';
+}
+
+/**
+ * Custom submit handler for the registration form.
+ */
+function registration_checkin_registration_form_submit($form, &$form_state) {
+  // If we are submitting a new registration with the state as "attended",
+  // we likely came from the new registrations buttuon on the checkin listing.
+  // Return there since it's the next logical place for the user to be.
+  if ($form_state['values']['state'] == 'attended') {
+    $entity_type = $form_state['complete form']['#registration_settings']['entity_type'];
+    $entity_id = $form_state['complete form']['#registration_settings']['entity_id'];
+    $form_state['redirect']
+      = $entity_type . '/' . $entity_id . '/registrations/checkin';
+  }
+}
+
+/**
+ * Form builder for the checkin state AJAX form.
+ *
+ * @param Registration $registration
+ *   The specific registration for which we are providing a select
+ *   box for. Should be a fully-loaded Registration entity.
+ *
+ * @return array
+ *   A complete form array.
+ */
+function registration_checkin_state_form($form, &$form_state, Registration $registration) {
+  $rid = $registration->registration_id;
+  $form = array();
+
+  $default_state = registration_get_default_state($registration->type);
+  $states = registration_get_states_options(array('show_on_form' => TRUE));
+
+  // Ensure default state is in options or it won't be set.
+  if (!in_array($default_state->label, $states)) {
+    $states[$default_state->name] = $default_state->label;
+  }
+
+  $form['registration_state'] = array(
+    '#type' => 'select',
+    '#title' => 'Select state',
+    '#title_display' => 'invisible',
+    '#options' => $states,
+    '#default_value' => $registration->state,
+    '#ajax' => array(
+      'callback' => 'registration_checkin_state_update_callback',
+    ),
+  );
+  $form['registration_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $rid,
+  );
+  $form['#attributes']['class'][] = 'registration-state--rid' . $rid;
+
+  return $form;
+}
+
+/**
+ * AJAX submit handler for the state update selection form.
+ */
+function registration_checkin_state_update_callback($form, &$form_state) {
+  $registration = registration_load($form_state['values']['registration_id']);
+  if ($registration) {
+    $registration->state = $form_state['values']['registration_state'];
+    $registration->save();
+  }
+  else {
+    \Drupal::logger('registration_checkin')->notice('Could not load registration (id: @id) to update state.', array(
+        '@id' => $form['registration_id'],
+      ));
+  }
+}
+
+/**
+ * Form builder for the checkin action form.
+ *
+ * @param Registration $registration
+ *   The specific registration for which we are providing a select
+ *   box for. Should be a fully-loaded Registration entity.
+ *
+ * @return array
+ *   A complete form array.
+ */
+function registration_checkin_checkin_action_form($form, &$form_state, Registration $registration) {
+  $form = array();
+
+  $form['registration_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $registration->registration_id,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#ajax' => array(
+      'callback' => 'registration_checkin_checkin_action_callback',
+    ),
+    '#value' => t('Check-in'),
+  );
+
+  return $form;
+}
+
+/**
+ * AJAX callback for checking in a specific registrant.
+ */
+function registration_checkin_checkin_action_callback($form, &$form_state) {
+  $rid = $form_state['values']['registration_id'];
+  $registration = registration_load($rid);
+  if ($registration) {
+    $registration->state = 'attended';
+    $registration->save();
+
+    $updated_state_form = \Drupal::formBuilder()->getForm('registration_checkin_state_form', $registration);
+    return array(
+      '#type' => 'ajax',
+      '#commands' => array(
+        ajax_command_replace('.registration-state--rid' . $rid, render($updated_state_form)),
+      ),
+    );
+  }
+  else {
+    \Drupal::logger('registration_checkin')->notice('Could not load registration (id: @id) to checkin.', array(
+        '@id' => $form['registration_id'],
+      ));
+  }
+}
+
+/**
+ * Form builder for the checkin page search function.
+ */
+function registration_checkin_search_form($form, &$form_state, $entity_type, $entity_id) {
+  $form = array();
+
+  // Enable both a keyboard "return" key or a click on the submit
+  // button to trigger the ajax refresh. Same callback for both.
+  $form['search_keys'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search'),
+    '#title_display' => 'invisible',
+    '#size' => 15,
+    '#default_value' => '',
+    '#attributes' => array(
+      'title' => t('Enter the terms you wish to search for.'),
+      'placeholder' => t('Email or name'),
+    ),
+    '#ajax' => array(
+      'callback' => 'registration_checkin_search_form_submit',
+      'wrapper' => 'registrant-list',
+      // Setting this to 'keyup' has the unfortunate loss-of-focus bug. This
+      // means you have to tab back into the box to continue typing. Fixing
+      // this would allow us to get the "as you type" update interaction.
+      'event' => 'change',
+    ),
+  );
+  // Hidden fields for access in ajax callback.
+  $form['entity_type'] = array(
+    '#type' => 'hidden',
+    '#value' => $entity_type,
+  );
+  $form['entity_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $entity_id,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+    '#ajax' => array(
+      'callback' => 'registration_checkin_search_form_submit',
+      'wrapper' => 'registrant-list',
+    ),
+  );
+  $form['reset'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset'),
+    '#ajax' => array(
+      'callback' => 'registration_checkin_search_form_reset',
+      'wrapper' => 'registrant-list',
+    ),
+  );
+  return $form;
+}
+
+/**
+ * AJAX callback to update the registrant checkin table based on a search query.
+ */
+function registration_checkin_search_form_submit($form, &$form_state) {
+  // Get host info.
+  $entity_type = $form_state['values']['entity_type'];
+  $entity_id = $form_state['values']['entity_id'];
+
+  // Query again for all registrants.
+  // We need them all since we are want to search the entity label value.
+  // Not all entities will have a label, so a load-all basis is needed here.
+  $registrations = registration_checkin_get_all_registrations($entity_id, $entity_type);
+
+  $search_keys = preg_split('/\s+/', $form_state['values']['search_keys']);
+  $registration_searchable_fields = array('registrant_mail');
+
+  // Since we coldn't use field conditions before the query, we have to iterate.
+  // This is going to slow down as we scale up. A few hundred should be ok.
+  $matches = array();
+  foreach ($registrations as $rid => $registration) {
+    $registration_wrapper = entity_metadata_wrapper('registration', $registration);
+
+    // First search entity label.
+    $registrant_type = $registration_wrapper->registrant->type();
+    $registrant = $registration_wrapper->registrant->value();
+    $registrant_label = $registrant->label();
+    foreach ($search_keys as $key) {
+      if (stripos($registrant_label, $key) !== FALSE) {
+        $matches[$rid] = $registration;
+        break;
+      }
+    }
+
+    // Iterate the the fields we defined as searchable.
+    foreach ($registration_searchable_fields as $field) {
+      $haystack = $registration_wrapper->$field->value();
+      foreach ($search_keys as $needle) {
+        if (stripos($haystack, $needle) !== FALSE) {
+          // A match was found.
+          // Save it in the matches bucket and stop examining this registration.
+          $matches[$rid] = $registration;
+          break 2;
+        }
+      }
+    }
+  }
+  if (!empty($matches)) {
+    // Generate markup for the registrant table.
+    $table = array(
+      'header' => registration_checkin_get_registration_table_headers(),
+      'rows' => registration_checkin_get_registration_table_rows($matches),
+    );
+    // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $registrant_markup = theme('table', $table) . theme('pager');
+
+  }
+  else {
+    $registrant_markup = t('No results.');
+  }
+
+  $registrants_build = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'id' => array('registrant-list'),
+    ),
+    'markup' => array(
+      '#markup' => $registrant_markup,
+    ),
+  );
+
+  return render($registrants_build);
+}
+
+/**
+ * AJAX callback to reset the checkin table back to an unfiltered state.
+ */
+function registration_checkin_search_form_reset($form, &$form_state) {
+  // Get the host entity info.
+  $entity_id = $form_state['values']['entity_id'];
+  $entity_type = $form_state['values']['entity_type'];
+  $entity = \Drupal::routeMatch()->getParameter();
+  $label = $entity->label();
+
+  $pager_limit = 20;
+  $registrants
+    = registration_checkin_get_all_registrations($entity_id, $entity_type, $pager_limit);
+
+  // Rebuild the original listing.
+  if ($registrants) {
+    $table = array(
+      'header' => registration_checkin_get_registration_table_headers(),
+      'rows' => registration_checkin_get_registration_table_rows($registrants),
+    );
+    // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $registrant_markup = theme('table', $table) . theme('pager');
+
+  }
+  else {
+    $registrant_markup = t('There are no registrants for %name', array('%name' => $label));
+  }
+  $build = registration_checkin_prepare_registrants_checkin_build($registrant_markup);
+
+  return render($build);
+}
+
+/**
+ * Get all registrants for a specific host entity.
+ *
+ * @param int $host_entity_id
+ *   The unique entity identifier for the host entity.
+ * @param string $host_entity_type
+ *   The machine name of the entity type.
+ * @param int $pager_size
+ *   The pager size of the query result. Omit this to remove the pager.
+ *
+ * @return array | bool
+ *   An array of loaded Registration entities, or
+ *   FALSE if there are no registrations for the host entity.
+ */
+function registration_checkin_get_all_registrations($host_entity_id, $host_entity_type, $pager_size = FALSE) {
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'registration')
+    ->propertyCondition('entity_id', $host_entity_id)
+    ->propertyCondition('entity_type', $host_entity_type)
+    ->propertyOrderBy('created', 'DESC');
+
+  if ($pager_size) {
+    $query->pager((int) $pager_size);
+  }
+
+  $result = $query->execute();
+
+  if (!empty($result['registration'])) {
+    return registration_load_multiple(array_keys($result['registration']));
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Helper function to build registrant checkin table headers.
+ *
+ * @return array
+ *   A header array suitable for use with theme_table().
+ */
+function registration_checkin_get_registration_table_headers() {
+  $header = array(
+    array(
+      'data' => t('Registrant'),
+    ),
+    array(
+      'data' => t('Email'),
+    ),
+    array(
+      'data' => t('State'),
+    ),
+    array(
+      'data' => t('Actions'),
+    ),
+  );
+  return $header;
+}
+
+/**
+ * Helper function to build the registrant rows of the checkin table.
+ *
+ * @param array $registrations
+ *   An array of fully-loaded Registration entities.
+ *
+ * @return array
+ *   An array of table rows suitable for use with theme_table.
+ */
+function registration_checkin_get_registration_table_rows($registrations) {
+  $rows = array();
+
+  foreach ($registrations as $registration) {
+    $row = array();
+
+    // Result basics.
+    $wrapper = entity_metadata_wrapper('registration', $registration);
+    $registrant_type = $wrapper->registrant->type();
+    $registrant = $wrapper->registrant->value();
+
+    // Link the registrant name.
+    // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// $row['registrant_entry'] = theme('registration_registrant_link', array(
+//       'registrant_type' => $registrant_type,
+//       'registrant' => $registrant,
+//     ));
+
+
+    // Mailto link the registrant email.
+    // @FIXME
+// l() expects a Url object, created from a route name or external URI.
+// $row['registrant_mail']
+      = l($wrapper->registrant_mail->value(), 'mailto:' . $wrapper->registrant_mail->value());
+
+
+    // Hide state management widgets with access control.
+    if (\Drupal::currentUser()->hasPermission("edit $registration->type registration state")) {
+      // State dropdown.
+      $form = \Drupal::formBuilder()->getForm('registration_checkin_state_form', $registration);
+      $row['state_selection'] = render($form);
+
+      // Check-in button.
+      $form = \Drupal::formBuilder()->getForm(
+        'registration_checkin_checkin_action_form', $registration
+      );
+      $row['checkin_button'] = render($form);
+    }
+    else {
+      $row['state_selection'] = ' ';
+
+      $row['checkin_button'] = ' ';
+    }
+
+    // Add the row.
+    $rows[] = $row;
+  }
+
+  return $rows;
+}
+
+/**
+ * Helper function to prepare swappable render array of registrants.
+ *
+ * @param string $registrant_markup
+ *   Arbitrary html string that is the markup for the registrants list.
+ *
+ * @return array
+ *   A render array containing the registrant listing markup that works
+ *   with the AJAX search functionality in the search form.
+ */
+function registration_checkin_prepare_registrants_checkin_build($registrant_markup) {
+  $registrants_build = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'id' => array('registrant-list'),
+    ),
+    'markup' => array(
+      '#markup' => $registrant_markup,
+    ),
+  );
+  return $registrants_build;
+}

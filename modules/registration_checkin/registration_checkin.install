@@ -1,0 +1,49 @@
+<?php
+/**
+ * @file
+ * Install/update hooks for registration checkin.
+ */
+
+/**
+ * Implements hook_schema_alter().
+ */
+function registration_checkin_schema_alter(&$schema) {
+  $schema['registration_state']['fields']['attended'] = array(
+    'description' => 'A boolean indicating whether or not the registrant attended.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function registration_checkin_install() {
+  // Add the "attended" column to registration_state table.
+  $col = array(
+    'description' => 'A boolean indicating whether or not the registrant attended.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+  );
+  db_add_field('registration_state', 'attended', $col);
+
+  // Create the "attended" registration state entity.
+  $attended_state = registration_get_states('attended');
+  if (!$attended_state) {
+    $attended_state = \Drupal::entityManager()->getStorage('registration_state')->create(array(
+      'name' => 'attended',
+      'label' => t('Attended'),
+      'description' => t('Registrant has attended.'),
+    ));
+  }
+  $attended_state->active = TRUE;
+  $attended_state->attended = TRUE;
+  $attended_state->show_on_form = TRUE;
+  $attended_state->save();
+
+  drupal_set_message('Created the "Attended" registration state.');
+}

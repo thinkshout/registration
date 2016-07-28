@@ -1,0 +1,7 @@
+name: 'Registration Wait list'
+description: 'Provides a special registration state that acts as a wait list.'
+package: Registration
+core: 8.x
+dependencies:
+  - registration
+type: module

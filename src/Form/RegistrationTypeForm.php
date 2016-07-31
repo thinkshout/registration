@@ -46,7 +46,7 @@ class RegistrationTypeForm extends EntityForm {
       ),
     );
 
-    $form_entity_type = & $form_state['values']['registrant_entity_type'];
+    $form_entity_type = & $form_state->getValue('registrant_entity_type');
 
     // Prep the entity type list before creating the form item:
     $entity_types = array('' => t('-- Select --'));
@@ -82,7 +82,7 @@ class RegistrationTypeForm extends EntityForm {
     );
 
     if ($form_entity_type) {
-      $form_bundle = & $form_state['values']['registrant_bundle'];
+      $form_bundle = & $form_state->getValue('registrant_bundle');
 
       // Prep the bundle list before creating the form item:
       $bundles = array('' => t('-- Select --'));
@@ -115,7 +115,7 @@ class RegistrationTypeForm extends EntityForm {
       );
 
       if ($form_bundle) {
-        $form_email_property = & $form_state['values']['registrant_email_property'];
+        $form_email_property = & $form_state->getValue('registrant_email_property');
 
         // Prep the field & properties list before creating the form item:
         $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);

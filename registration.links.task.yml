@@ -15,3 +15,24 @@ entity.registration.delete_form:
   title: Delete
   weight: 10
 
+# Registration state routing definition
+registration_state.settings_tab:
+  route_name: registration_state.settings
+  title: 'Settings'
+  base_route: registration_state.settings
+entity.registration_state.canonical:
+  route_name: entity.registration_state.canonical
+  base_route: entity.registration_state.canonical
+  title: 'View'
+
+entity.registration_state.edit_form:
+  route_name: entity.registration_state.edit_form
+  base_route: entity.registration_state.canonical
+  title: Edit
+
+entity.registration_state.delete_form:
+  route_name:  entity.registration_state.delete_form
+  base_route:  entity.registration_state.canonical
+  title: Delete
+  weight: 10
+

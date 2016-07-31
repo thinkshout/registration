@@ -9,3 +9,8 @@ entity.registration_type.add_form:
   appears_on:
     - entity.registration_type.collection
 
+entity.registration_state.add_form:
+  route_name: entity.registration_state.add_form
+  title: 'Add Registration state'
+  appears_on:
+    - entity.registration_state.collection

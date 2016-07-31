@@ -14,3 +14,16 @@ entity.registration_type.collection:
   parent: system.admin_structure
   weight: 99
 
+# Registration state menu items definition
+entity.registration_state.collection:
+  title: 'Registration state list'
+  route_name: entity.registration_state.collection
+  description: 'List Registration state entities'
+  parent: system.admin_structure
+  weight: 100
+
+registration_state.admin.structure.settings:
+  title: Registration state settings
+  description: 'Configure Registration state entities'
+  route_name: registration_state.settings
+  parent: system.admin_structure

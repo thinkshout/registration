@@ -20,3 +20,25 @@ view published registration entities:
 
 view unpublished registration entities:
   title: 'View unpublished Registration entities'
+add registration state entities:
+  title: 'Create new Registration state entities'
+
+administer registration state entities:
+  title: 'Administer Registration state entities'
+  description: 'Allow to access the administration form to configure Registration state entities.'
+  restrict access: true
+
+delete registration state entities:
+  title: 'Delete Registration state entities'
+
+edit registration state entities:
+  title: 'Edit Registration state entities'
+
+access registration state overview:
+  title: 'Access the Registration state overview page'
+
+view published registration state entities:
+  title: 'View published Registration state entities'
+
+view unpublished registration state entities:
+  title: 'View unpublished Registration state entities'

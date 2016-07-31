@@ -50,7 +50,8 @@ class RegistrationTypeForm extends EntityForm {
 
     // Prep the entity type list before creating the form item:
     $entity_types = array('' => t('-- Select --'));
-    foreach (entity_get_info() as $entity_type => $info) {
+    $all_entities = \Drupal::entityTypeManager()->getDefinitions();
+    foreach ($all_entities as $entity_type => $info) {
 
       // Ignore registration entity types:
       if (strpos($entity_type, 'registration') === FALSE) {

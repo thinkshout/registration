@@ -51,11 +51,11 @@ class RegistrationTypeForm extends EntityForm {
     // Prep the entity type list before creating the form item:
     $entity_types = array('' => t('-- Select --'));
     $all_entities = \Drupal::entityTypeManager()->getDefinitions();
-    foreach ($all_entities as $entity_type => $info) {
+    foreach ($all_entities as $entity_type => $entity) {
 
       // Ignore registration entity types:
       if (strpos($entity_type, 'registration') === FALSE) {
-        $entity_types[$entity_type] = $info['label'];
+        $entity_types[$entity_type] = $entity->getLabel();
       }
     }
     asort($entity_types);
@@ -87,9 +87,10 @@ class RegistrationTypeForm extends EntityForm {
 
       // Prep the bundle list before creating the form item:
       $bundles = array('' => t('-- Select --'));
-      $info  = entity_get_info($form_entity_type);
-      foreach ($info['bundles'] as $key => $bundle) {
-        $bundles[$key] = $bundle['label'];
+      $form_entity = \Drupal::entityTypeManager()->getDefinitions($form_entity_type);
+
+      foreach ($form_entity['bundles'] as $key => $bundle) {
+        $bundles[$key] = $bundle->getLabel();
       }
       asort($bundles);
 

@@ -77,7 +77,7 @@ class RegistrationTypeForm extends EntityForm {
       '#required' => TRUE,
       '#description' => t('Select a registrant entity type (default: User).'),
       '#ajax' => array(
-        'callback' => 'registration_mapping_form_callback',
+        'callback' => '::registration_mapping_form_callback',
         'wrapper' => 'registration-registrant-entity',
       ),
     );
@@ -85,11 +85,29 @@ class RegistrationTypeForm extends EntityForm {
     if ($form_entity_type) {
       $form_bundle = & $form_state->getValue('registrant_bundle');
 
+      /* @fixme use this code sample to parse bundles and fields
+       * 
+      foreach ($this->entityManager->getDefinitions() as $entity_type) {
+        if ($entity_type instanceof ContentEntityTypeInterface) {
+          foreach ($this->entityManager->getBundleInfo($entity_type->id()) as $bundle => $bundle_info) {
+            foreach ($this->entityManager->getFieldDefinitions($entity_type->id(), $bundle) as $field_definition) {
+              $relation_uri = $this->getRelationUri($entity_type->id(), $bundle, $field_definition->getName(), $context);
+              $data[$relation_uri] = array(
+                'entity_type' => $entity_type,
+                'bundle' => $bundle,
+                'field_name' => $field_definition->getName(),
+              );
+            }
+          }
+        }
+      }
+       */
+
       // Prep the bundle list before creating the form item:
       $bundles = array('' => t('-- Select --'));
-      $form_entity = \Drupal::entityTypeManager()->getDefinitions($form_entity_type);
+      $form_entity = \Drupal::entityManager()->getBundleInfo($form_entity_type);
 
-      foreach ($form_entity['bundles'] as $key => $bundle) {
+      foreach ($form_entity as $key => $bundle) {
         $bundles[$key] = $bundle->getLabel();
       }
       asort($bundles);
@@ -111,7 +129,7 @@ class RegistrationTypeForm extends EntityForm {
         '#options' => $bundles,
         '#default_value' => $form_bundle,
         '#ajax' => array(
-          'callback' => 'registration_mapping_form_callback',
+          'callback' => '::registration_mapping_form_callback',
           'wrapper' => 'registration-registrant-entity',
         ),
       );
@@ -179,6 +197,51 @@ class RegistrationTypeForm extends EntityForm {
         ]));
     }
     $form_state->setRedirectUrl($registration_type->urlInfo('collection'));
+  }
+
+  /**
+   * Ajax callback for registration_mapping_form().
+   */
+  public function registration_mapping_form_callback($form, &$form_state) {
+
+    return $form['registrant_entity'];
+  }
+
+  /**
+   * Return all possible Drupal properties for a given entity type.
+   *
+   * @param string $entity_type
+   *   Name of entity whose properties to list.
+   * @param string $entity_bundle
+   *   Optional entity bundle to get properties for.
+   *
+   * @return array
+   *   List of entities that can be used as an #options list.
+   */
+  public function registration_email_fieldmap_options($entity_type, $entity_bundle = NULL) {
+    $options = array('' => t('-- Select --'));
+
+    $properties = \Drupal::entityManager()->getFieldDefinitions($entity_type);
+    if (isset($entity_bundle)) {
+      $info = \Drupal::entityManager()->getFieldDefinitions($entity_type);
+      $properties = $info['properties'];
+      if (isset($info['bundles'][$entity_bundle])) {
+        $properties += $info['bundles'][$entity_bundle]['properties'];
+      }
+    }
+
+    foreach ($properties as $key => $property) {
+      if (isset($property['field']) && $property['field'] && !empty($property['property info'])) {
+        foreach ($property['property info'] as $sub_key => $sub_prop) {
+          $options[$property['label']][$key . ':' . $sub_key] = $sub_prop['label'];
+        }
+      }
+      else {
+        $options[$key] = $property['label'];
+      }
+    }
+
+    return $options;
   }
 
 }

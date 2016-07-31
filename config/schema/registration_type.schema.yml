@@ -5,8 +5,29 @@ registration.registration_type.*:
     id:
       type: string
       label: 'ID'
+    name:
+      type: string
+      label: 'Name'
     label:
       type: label
       label: 'Label'
     uuid:
       type: string
+    locked:
+      type: string
+      label: 'Locked'
+    default_state:
+      type: string
+      label: 'Default State'
+    data:
+      type: string
+      label: 'Data'
+    registrant_entity_type:
+      type: string
+      label: 'Registrant Entity Type'
+    registrant_bundle:
+      type: string
+      label: 'Registrant Bundle'
+    registrant_email_property:
+      type: string
+      label: 'Registrant Email Property'

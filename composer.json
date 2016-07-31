@@ -1,7 +1,7 @@
 {
   "name": "drupal/registration",
   "type": "drupal-module",
-  "description": "Registration",
+  "description": "Entity based registration system.",
   "keywords": ["Drupal"],
   "license": "GPL-2.0+",
   "homepage": "https://www.drupal.org/project/registration",

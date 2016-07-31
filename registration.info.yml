@@ -1,5 +1,5 @@
 name: Registration
 type: module
-description: Registration
+description: Entity based registration system.
 core: 8.x
 package: Registration

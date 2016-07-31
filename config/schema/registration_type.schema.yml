@@ -5,9 +5,6 @@ registration.registration_type.*:
     id:
       type: string
       label: 'ID'
-    name:
-      type: string
-      label: 'Name'
     label:
       type: label
       label: 'Label'

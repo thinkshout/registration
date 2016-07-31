@@ -1,0 +1,16 @@
+# Registration menu items definition
+entity.registration.collection:
+  title: 'Registration list'
+  route_name: entity.registration.collection
+  description: 'List Registration entities'
+  parent: system.admin_structure
+  weight: 100
+
+# Registration type menu items definition
+entity.registration_type.collection:
+  title: 'Registration type'
+  route_name: entity.registration_type.collection
+  description: 'List Registration type (bundles)'
+  parent: system.admin_structure
+  weight: 99
+

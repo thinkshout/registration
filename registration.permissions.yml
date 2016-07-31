@@ -1,0 +1,22 @@
+add registration entities:
+  title: 'Create new Registration entities'
+
+administer registration entities:
+  title: 'Administer Registration entities'
+  description: 'Allow to access the administration form to configure Registration entities.'
+  restrict access: true
+
+delete registration entities:
+  title: 'Delete Registration entities'
+
+edit registration entities:
+  title: 'Edit Registration entities'
+
+access registration overview:
+  title: 'Access the Registration overview page'
+
+view published registration entities:
+  title: 'View published Registration entities'
+
+view unpublished registration entities:
+  title: 'View unpublished Registration entities'

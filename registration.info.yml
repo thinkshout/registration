@@ -1,0 +1,5 @@
+name: Registration
+type: module
+description: Registration
+core: 8.x
+package: Registration

@@ -1,0 +1,14 @@
+{
+  "name": "drupal/registration",
+  "type": "drupal-module",
+  "description": "Registration",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/registration",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/registration",
+    "source": "http://cgit.drupalcode.org/registration"
+  },
+  "require": { }
+}

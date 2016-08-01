@@ -174,6 +174,39 @@ class RegistrationTypeForm extends EntityForm {
       }
     }
 
+    // Setting for default state for regsitrations of this type.
+    // Overrides global default state setting.
+
+    // @fixme
+    $state_options = [];
+    //$state_options = registration_get_states_options();
+    $form['default_state'] = array(
+      '#title' => 'Default state',
+      '#type' => 'select',
+      '#description' => t('The default state for this registration type. Overrides the global default state set at /admin/structure/registration/registration_states.'),
+      '#default_value' => isset($registration_type->default_state) ? $registration_type->default_state : 0,
+      '#options' => array('none' => 'None') + $state_options,
+    );
+
+    // Setting for how long a held registration will exist before it is removed from held state.
+    $form['data']['held_expire'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Hold expiration hours'),
+      '#size' => 5,
+      '#maxlength' => 5,
+      '#required' => FALSE,
+      '#description' => t('The minimum number of hours a registration can remain held before it is taken out of held state and no longer counts against capacity. For no limit, use 0 (default is 1).<br><strong>Note</strong>: registrations are removed from held state by cron, so the number of hours specified is the minimum amount of time a registration will be held for; it can be held for longer depending on when the next cron run is after the minimum amount of time has elapsed.'),
+      '#default_value' => isset($registration_type->held_expire) ? $registration_type->held_expire : 1,
+    );
+    // Setting for which state a registration will be put in if its hold expires.
+    $form['data']['held_expire_state'] = array(
+      '#type' => 'select',
+      '#title' => t('Hold expiration state'),
+      '#options' => $state_options,
+      '#required' => FALSE,
+      '#description' => t('The state a registration will be put into when its hold expires (default is "canceled").'),
+      '#default_value' => isset($registration_type->held_expire_state) ? $registration_type->held_expire_state : 'canceled',
+    );
     return $form;
   }
 

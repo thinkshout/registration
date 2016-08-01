@@ -86,7 +86,7 @@ class RegistrationTypeForm extends EntityForm {
       $form_bundle = & $form_state->getValue('registrant_bundle');
 
       /* @fixme use this code sample to parse bundles and fields
-       * 
+       *
       foreach ($this->entityManager->getDefinitions() as $entity_type) {
         if ($entity_type instanceof ContentEntityTypeInterface) {
           foreach ($this->entityManager->getBundleInfo($entity_type->id()) as $bundle => $bundle_info) {
@@ -108,7 +108,7 @@ class RegistrationTypeForm extends EntityForm {
       $form_entity = \Drupal::entityManager()->getBundleInfo($form_entity_type);
 
       foreach ($form_entity as $key => $bundle) {
-        $bundles[$key] = $bundle->getLabel();
+        $bundles[$key] = $bundle['label'];
       }
       asort($bundles);
 
@@ -138,7 +138,7 @@ class RegistrationTypeForm extends EntityForm {
         $form_email_property = & $form_state->getValue('registrant_email_property');
 
         // Prep the field & properties list before creating the form item:
-        $fields = registration_email_fieldmap_options($form_entity_type, $form_bundle);
+        $fields = $this->registration_email_fieldmap_options($form_entity_type, $form_bundle);
 
         // Flatten fields array by one level.
         $flattened_fields = array();
